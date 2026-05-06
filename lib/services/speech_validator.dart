@@ -94,30 +94,45 @@ class SpeechValidator {
           if (e.permanent) {
             _initialized = false;
             debugPrint('[MIC] onError permanente → _initialized=false');
-          }
-        },
-        onStatus: (status) {
-          debugPrint('[MIC] onStatus: "$status" (_listening=$_listening, deliverOnStatus=${_deliverOnStatus != null})');
-          if (status == 'done' || status == 'notListening') {
-            _listening = false;
-            // STT encerrou sem emitir onResult(finalResult:true) — dispara deliver para desbloquear o jogo
+            // Erro permanente: entrega com o que foi ouvido até agora (parcial ou vazio)
             final fn = _deliverOnStatus;
             _deliverOnStatus = null;
             if (fn != null) {
-              debugPrint('[MIC] onStatus "$status": disparando deliverOnStatus (sem resultado final do STT)');
+              debugPrint('[MIC] onError permanente: disparando bridge (transcript="$_lastTranscript")');
               fn();
+            }
+          }
+        },
+        onStatus: (status) {
+          debugPrint('[MIC] onStatus: "$status" (transcript="$_lastTranscript", listening=$_listening, bridge=${_deliverOnStatus != null})');
+          if (status == 'done' || status == 'notListening') {
+            _listening = false;
+            // ⚠️  ATENÇÃO: 'done' chega de 'doneNoResult' que é enviado pelo plugin Android
+            // em onEndOfSpeech() — ANTES de onResults(). Se dispararmos a bridge aqui com
+            // transcrição parcial, perdemos o resultado real que vem em onResult(finalResult=true).
+            //
+            // Regra: só disparar bridge se NÃO há transcrição parcial (sem fala detectada).
+            // Se há transcrição, confiamos em onResult(finalResult:true) para entregar.
+            if (_lastTranscript.isEmpty) {
+              final fn = _deliverOnStatus;
+              _deliverOnStatus = null;
+              if (fn != null) {
+                debugPrint('[MIC] onStatus "$status": sem transcrição → bridge (silêncio/timeout)');
+                fn();
+              }
+            } else {
+              debugPrint('[MIC] onStatus "$status": transcrição="$_lastTranscript" → aguardando onResult(final)');
             }
           }
         },
         debugLogging: false,
       );
       debugPrint('[MIC] initialize(): _stt.initialize() retornou $_initialized');
-      if (_initialized) {
-        // Detecta locale disponível: prefere pt_BR, cai para pt, depois padrão
+      if (_initialized && _localeId == null) {
+        // Detecta locale apenas uma vez — preservado entre sessões
         final locales = await _stt.locales();
         debugPrint('[MIC] locales disponíveis: ${locales.map((l) => l.localeId).toList()}');
         const preferred = ['pt_BR', 'pt-BR', 'pt_PT', 'pt-PT', 'pt'];
-        _localeId = null;
         for (final pref in preferred) {
           if (locales.any((l) => l.localeId == pref)) {
             _localeId = pref;
@@ -146,7 +161,7 @@ class SpeechValidator {
     required String targetWord,
     required List<String> syllables,
     ValidationLevel level = ValidationLevel.beginner,
-    Duration timeout = const Duration(seconds: 7),
+    Duration timeout = const Duration(seconds: 10),
   }) async {
     debugPrint('[MIC] startListening(): targetWord="$targetWord", _listening=$_listening');
     if (_listening) {
@@ -154,10 +169,10 @@ class SpeechValidator {
       return;
     }
 
-    // No Android o SpeechRecognizer é de uso único — re-inicializa sempre.
+    // No Android o SpeechRecognizer é de uso único — sempre re-inicializa antes de ouvir.
     _initialized = false;
     _deliverOnStatus = null;
-    debugPrint('[MIC] startListening(): forçou _initialized=false, chamando initialize()...');
+    debugPrint('[MIC] startListening(): inicializando STT...');
     final ok = await initialize();
     debugPrint('[MIC] startListening(): initialize() = $ok');
     if (!ok) {
@@ -185,6 +200,8 @@ class SpeechValidator {
       delivered = true;
       _deliverOnStatus = null;
       _listening = false;
+      // Marca como não inicializado para que a próxima tentativa re-inicialize o recognizer
+      _initialized = false;
       onValidated(r);
     }
 
@@ -226,8 +243,12 @@ class SpeechValidator {
         localeId: _localeId,
         listenFor: timeout,
         pauseFor: const Duration(seconds: 3),
-        partialResults: true,
-        cancelOnError: false,
+        listenOptions: SpeechListenOptions(
+          partialResults: true,
+          cancelOnError: false,
+          // confirmation: melhor para uma palavra isolada (vs dictation para frases)
+          listenMode: ListenMode.confirmation,
+        ),
         onResult: (result) {
           debugPrint('[MIC] onResult: "${result.recognizedWords}" | final=${result.finalResult}');
           _lastTranscript = result.recognizedWords;
@@ -326,11 +347,11 @@ class SpeechValidator {
       adjustedConfidence = (adjustedConfidence + 0.10).clamp(0.0, 1.0);
     }
 
-    // Limiar por nível
+    // Limiar por nível (calibrado para pronúncia infantil)
     final minAccuracy = switch (level) {
-      ValidationLevel.beginner => 0.58,
-      ValidationLevel.intermediate => 0.73,
-      ValidationLevel.advanced => 0.88,
+      ValidationLevel.beginner => 0.45,
+      ValidationLevel.intermediate => 0.65,
+      ValidationLevel.advanced => 0.82,
     };
 
     final ValidationStatus status;
@@ -501,13 +522,19 @@ class SpeechValidator {
   }) {
     return syllables.map((syl) {
       final sylNorm = _applyPhoneticNormalization(_normalize(syl));
-      final dist = _levenshtein(sylNorm, heardText.length >= sylNorm.length
-          ? heardText.substring(0, sylNorm.length.clamp(0, heardText.length))
-          : heardText);
-      final acc = (1.0 - dist / sylNorm.length.clamp(1, 99)).clamp(0.0, 1.0);
+      // Compara cada sílaba contra o texto ouvido completo (não apenas prefixo)
+      // e verifica se a sílaba está contida no texto ouvido
+      double acc;
+      if (heardText.contains(sylNorm)) {
+        acc = 1.0;
+      } else {
+        final maxLen = (sylNorm.length > heardText.length ? sylNorm.length : heardText.length).clamp(1, 999);
+        final dist = _levenshtein(sylNorm, heardText);
+        acc = (1.0 - dist / maxLen).clamp(0.0, 1.0);
+      }
       final obs = acc >= 0.85
           ? 'pronúncia clara'
-          : acc >= 0.60
+          : acc >= 0.55
               ? 'variação aceitável'
               : 'precisa de reforço';
       return SyllableResult(syllable: syl, accuracy: acc, observation: obs);
