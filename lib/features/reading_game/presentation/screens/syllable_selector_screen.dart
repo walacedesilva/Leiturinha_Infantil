@@ -132,9 +132,13 @@ class _SyllableSelectorScreenState extends State<SyllableSelectorScreen> {
 
     final gameLogic = context.read<GameLogic>();
 
-    // Expande as sílabas ativas para incluir as sílabas estruturais
-    // das palavras selecionadas (ex: ao selecionar BA, LA de BALA entra
-    // automaticamente). O seletor só exibe as canônicas ao usuário.
+    // Modo família única: expande as sílabas ativas para incluir as sílabas
+    // estruturais das palavras (ex: ao selecionar BA, LA de BALA entra
+    // automaticamente). O seletor exibe apenas as canônicas ao usuário.
+    //
+    // Modo combinação: usa as sílabas exatamente como selecionadas, sem expansão.
+    // filterByDualFamilies filtrará apenas palavras cujas sílabas pertencem
+    // exclusivamente às famílias envolvidas (sem sílabas de terceiras famílias).
     Set<String> _expand(SyllabicFamily fam, List<String> canonical) {
       final expanded = <String>{...canonical};
       for (final w in fam.words) {
@@ -145,10 +149,18 @@ class _SyllableSelectorScreenState extends State<SyllableSelectorScreen> {
       return expanded;
     }
 
-    final expandedPrimary = _expand(widget.family, _selected.toList()).toList();
-    final expandedSecondary = (_combineMode && _secondaryFamily != null)
-        ? _expand(_secondaryFamily!, _selectedSecondary.toList()).toList()
-        : const <String>[];
+    final List<String> expandedPrimary;
+    final List<String> expandedSecondary;
+
+    if (_combineMode && _secondaryFamily != null) {
+      // Combinação: sem expansão — garante pool apenas com sílabas das famílias ativas
+      expandedPrimary = _selected.toList();
+      expandedSecondary = _selectedSecondary.toList();
+    } else {
+      // Família única: expande para incluir sílabas secundárias das palavras
+      expandedPrimary = _expand(widget.family, _selected.toList()).toList();
+      expandedSecondary = const [];
+    }
 
     final config = DualFamilyConfig(
       primary: widget.family,

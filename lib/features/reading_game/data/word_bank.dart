@@ -346,10 +346,25 @@ class WordBank {
     final result = <WordEntry>[];
     final seen = <String>{};
 
-    // Apenas palavras da família primária
+    // Em modo combinação, uma palavra só é elegível se TODAS as suas sílabas
+    // pertencerem à família primária OU à secundária (sem sílabas estrangeiras),
+    // além de estarem presentes no conjunto ativo selecionado.
+    bool isEligible(WordEntry entry) {
+      if (secondary != null) {
+        final pk = primary.key.toUpperCase();
+        final sk = secondary.key.toUpperCase();
+        if (!entry.syllables.every(
+          (s) =>
+              s.toUpperCase().startsWith(pk) ||
+              s.toUpperCase().startsWith(sk),
+        )) return false;
+      }
+      return entry.syllables.every((s) => allActive.contains(s));
+    }
+
+    // Palavras da família primária
     for (final entry in primary.words) {
-      if (seen.contains(entry.word)) continue;
-      if (entry.syllables.every((s) => allActive.contains(s))) {
+      if (!seen.contains(entry.word) && isEligible(entry)) {
         seen.add(entry.word);
         result.add(entry);
       }
@@ -358,8 +373,7 @@ class WordBank {
     // Palavras da família secundária (modo dual)
     if (secondary != null) {
       for (final entry in secondary.words) {
-        if (seen.contains(entry.word)) continue;
-        if (entry.syllables.every((s) => allActive.contains(s))) {
+        if (!seen.contains(entry.word) && isEligible(entry)) {
           seen.add(entry.word);
           result.add(entry);
         }
@@ -369,8 +383,7 @@ class WordBank {
       final keys = [primary.key, secondary.key]..sort();
       final pairKey = keys.join('_');
       for (final entry in _crossWords[pairKey] ?? const <WordEntry>[]) {
-        if (seen.contains(entry.word)) continue;
-        if (entry.syllables.every((s) => allActive.contains(s))) {
+        if (!seen.contains(entry.word) && isEligible(entry)) {
           seen.add(entry.word);
           result.add(entry);
         }
