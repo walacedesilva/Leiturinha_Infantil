@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -74,6 +76,10 @@ class SpeechValidator {
   // Bridge: permite que onStatus dispare deliver() quando STT encerra sem onResult final
   void Function()? _deliverOnStatus;
 
+  // Grace timer: aguarda resultado tardio antes de entregar silêncio
+  // (Android dispara onEndOfSpeech ANTES do primeiro partial em MIUI)
+  Timer? _graceTimer;
+
   // ────────────────────────────────────────────────
   // INICIALIZAÇÃO
   // ────────────────────────────────────────────────
@@ -114,13 +120,27 @@ class SpeechValidator {
             // Regra: só disparar bridge se NÃO há transcrição parcial (sem fala detectada).
             // Se há transcrição, confiamos em onResult(finalResult:true) para entregar.
             if (_lastTranscript.isEmpty) {
-              final fn = _deliverOnStatus;
-              _deliverOnStatus = null;
-              if (fn != null) {
-                debugPrint('[MIC] onStatus "$status": sem transcrição → bridge (silêncio/timeout)');
-                fn();
-              }
+              // Condição de corrida: Android pode disparar onEndOfSpeech antes do
+              // primeiro partial result chegar. Aguarda 2s (grace period) antes de
+              // entregar silêncio, dando tempo para resultados tardios chegarem.
+              _graceTimer?.cancel();
+              _graceTimer = Timer(const Duration(milliseconds: 2000), () {
+                _graceTimer = null;
+                if (_lastTranscript.isEmpty) {
+                  final fn = _deliverOnStatus;
+                  _deliverOnStatus = null;
+                  if (fn != null) {
+                    debugPrint('[MIC] onStatus "$status" + grace: sem transcrição → bridge (silêncio)');
+                    fn();
+                  }
+                } else {
+                  debugPrint('[MIC] grace: transcrição chegou durante espera="$_lastTranscript" → aguardando onResult(final)');
+                }
+              });
+              debugPrint('[MIC] onStatus "$status": transcript vazio → grace timer 2s iniciado');
             } else {
+              _graceTimer?.cancel();
+              _graceTimer = null;
               debugPrint('[MIC] onStatus "$status": transcrição="$_lastTranscript" → aguardando onResult(final)');
             }
           }
@@ -199,6 +219,8 @@ class SpeechValidator {
       if (delivered) return;
       delivered = true;
       _deliverOnStatus = null;
+      _graceTimer?.cancel();
+      _graceTimer = null;
       _listening = false;
       onValidated(r);
     }
@@ -245,7 +267,9 @@ class SpeechValidator {
           partialResults: true,
           cancelOnError: false,
           // confirmation: melhor para uma palavra isolada (vs dictation para frases)
-          listenMode: ListenMode.confirmation,
+          // dictation: mantém o reconhecedor ativo por mais tempo,
+          // melhor para criança que pode pausar entre sílabas.
+          listenMode: ListenMode.dictation,
         ),
         onResult: (result) {
           debugPrint('[MIC] onResult: "${result.recognizedWords}" | final=${result.finalResult}');
