@@ -7,6 +7,7 @@ import 'core/theme_provider.dart';
 import 'splash_screen.dart';
 import 'features/reading_game/domain/game_logic.dart';
 import 'services/audio_manager.dart';
+import 'services/gamification_service.dart';
 import 'services/progress_service.dart';
 
 void main() async {
@@ -29,14 +30,20 @@ void main() async {
         ChangeNotifierProvider<ProgressService>(
           create: (_) => ProgressService(prefs),
         ),
-        // GameLogic depende de ProgressService e AudioManager (singleton)
-        ChangeNotifierProxyProvider<ProgressService, GameLogic>(
+        // GamificationService depende de SharedPreferences
+        ChangeNotifierProvider<GamificationService>(
+          create: (_) => GamificationService(prefs),
+        ),
+        // GameLogic depende de ProgressService, AudioManager e GamificationService
+        ChangeNotifierProxyProvider2<ProgressService, GamificationService, GameLogic>(
           create: (ctx) => GameLogic(
             ctx.read<ProgressService>(),
             AudioManager(),
+            ctx.read<GamificationService>(),
           ),
-          update: (ctx, progressService, previous) =>
-              previous ?? GameLogic(progressService, AudioManager()),
+          update: (ctx, progressService, gamification, previous) =>
+              previous ??
+              GameLogic(progressService, AudioManager(), gamification),
         ),
       ],
       child: const LearnToReadApp(),

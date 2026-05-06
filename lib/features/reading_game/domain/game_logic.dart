@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../data/word_bank.dart';
 import '../../../services/audio_manager.dart';
+import '../../../services/gamification_service.dart';
+import '../../../services/gamification_models.dart';
 import '../../../services/progress_service.dart';
 import '../../../services/speech_validator.dart';
 
@@ -20,6 +22,7 @@ enum GameState {
 class GameLogic extends ChangeNotifier {
   final ProgressService _progressService;
   final AudioManager _audioManager;
+  final GamificationService gamification;
 
   // Família atual (definida ao entrar na tela de jogo)
   late SyllabicFamily _family;
@@ -72,7 +75,10 @@ class GameLogic extends ChangeNotifier {
   // INICIALIZAÇÃO
   // ────────────────────────────────────────────────
 
-  GameLogic(this._progressService, this._audioManager);
+  // Último evento de recompensa (para exibir animação na UI)
+  RewardEvent? lastReward;
+
+  GameLogic(this._progressService, this._audioManager, this.gamification);
 
   /// Inicializa com uma família silábica específica.
   /// Filtra palavras já concluídas para retomar de onde parou.
@@ -193,7 +199,7 @@ class GameLogic extends ChangeNotifier {
         _partialTranscript = partial;
         notifyListeners();
       },
-      onValidated: (result) {
+      onValidated: (result) async {
         debugPrint('[GAME] onValidated: status=${result.status}, confidence=${result.confidence.toStringAsFixed(2)}, transcript="${result.transcript}"');
 
         // Se o STT falhou tecnicamente (sem fala), não conta como tentativa real
@@ -205,6 +211,20 @@ class GameLogic extends ChangeNotifier {
         if (isTechnicalFailure) {
           debugPrint('[GAME] falha técnica (sem fala real) → devolvendo tentativa');
           _validationAttempts = (_validationAttempts - 1).clamp(0, _maxAttempts);
+        }
+
+        // ── Gamificação: recompensa apenas em acertos ──────────────────
+        if (result.isSuccess && !isTechnicalFailure) {
+          lastReward = await gamification.onWordValidated(
+            accuracy: result.confidence,
+            attemptNumber: _validationAttempts,
+            isDualFamily: _dualConfig?.isDual ?? false,
+            familyKey: _family.key,
+            wordWasNew: true,
+          );
+          debugPrint('[GAME] recompensa: +${lastReward!.coins} moedas, +${lastReward!.xp} XP');
+        } else {
+          lastReward = null;
         }
 
         _lastValidation = result;
@@ -243,6 +263,10 @@ class GameLogic extends ChangeNotifier {
       // Família toda concluída
       _state = GameState.familyDone;
       _currentWord = '';
+      // Recompensa por completar a família
+      if (_dualConfig == null || !_dualConfig!.isDual) {
+        gamification.onFamilyCompleted(_family.key);
+      }
       notifyListeners();
     } else {
       _loadCurrentWord();

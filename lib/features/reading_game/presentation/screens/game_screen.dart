@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme.dart';
 import '../../domain/game_logic.dart';
 import '../../../../services/speech_validator.dart';
+import '../widgets/gamification_widgets.dart';
 import '../widgets/syllable_pool.dart';
 import '../widgets/word_slots.dart';
 import '../widgets/balloon_overlay.dart';
@@ -19,6 +20,7 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   // Controla o delay de 500ms no botão "Próxima Palavra" para evitar toque acidental
   bool _nextButtonEnabled = false;
+  bool _rewardShown = false; // impede toast duplicado por rebuild
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +29,18 @@ class _GameScreenState extends State<GameScreen> {
       body: SafeArea(
         child: Consumer<GameLogic>(
           builder: (context, gameLogic, _) {
+            // Dispara toast de recompensa uma vez ao entrar no estado 'validated' com sucesso
+            if (gameLogic.isValidated &&
+                gameLogic.lastReward != null &&
+                (gameLogic.lastReward!.hasReward || gameLogic.lastReward!.hasBadge) &&
+                !_rewardShown) {
+              _rewardShown = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) showRewardToast(context, gameLogic.lastReward!);
+              });
+            }
+            if (!gameLogic.isValidated) _rewardShown = false;
+
             // ── Família completa ──────────────────────────────────
             if (gameLogic.isFamilyDone) {
               return _FamilyDoneView(familyLabel: gameLogic.sessionLabel);

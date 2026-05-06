@@ -3,9 +3,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/app_themes.dart';
 import '../../../../core/theme_provider.dart';
+import '../../../../services/gamification_service.dart';
 import '../../../../services/progress_service.dart';
 import '../../data/word_bank.dart';
+import 'profile_screen.dart';
 import 'syllable_selector_screen.dart';
+import '../widgets/gamification_widgets.dart';
 
 /// Tela de seleção de família silábica com indicador de progresso.
 class MenuScreen extends StatelessWidget {
@@ -37,40 +40,55 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final tokens = themeProvider.tokens;
+    final gam = context.watch<GamificationService>();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 24, 16, 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Aprenda a Ler! ${tokens.familyIcon}',
-                  style: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: tokens.primary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.3),
-                const SizedBox(height: 4),
-                Text(
-                  'Escolha uma família de sílabas',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: tokens.primary.withOpacity(0.65),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ).animate().fadeIn(duration: 400.ms, delay: 150.ms),
-              ],
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Aprenda a Ler! ${tokens.familyIcon}',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: tokens.primary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.3),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Escolha uma família de sílabas',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: tokens.primary.withOpacity(0.65),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ).animate().fadeIn(duration: 400.ms, delay: 150.ms),
+                  ],
+                ),
+              ),
+              _ThemeToggleButton(tokens: tokens, themeProvider: themeProvider),
+            ],
           ),
-          _ThemeToggleButton(tokens: tokens, themeProvider: themeProvider),
+          const SizedBox(height: 10),
+          // Barra de XP / moedas com botão de perfil
+          XpBar(
+            xp: gam.state.xp,
+            coins: gam.state.coins,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+            ),
+          ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
         ],
       ),
     );
