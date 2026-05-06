@@ -121,7 +121,11 @@ class _GameScreenState extends State<GameScreen> {
                                       : MicState.idle,
                                   partialText: gameLogic.isValidating
                                       ? gameLogic.partialTranscript
-                                      : null,
+                                      : (gameLogic.isValidated &&
+                                              gameLogic.lastValidation != null &&
+                                              gameLogic.lastValidation!.transcript.isNotEmpty
+                                          ? gameLogic.lastValidation!.transcript
+                                          : null),
                                   onTap: gameLogic.isValidating
                                       ? () {}
                                       : () => gameLogic.startSpeechValidation(),

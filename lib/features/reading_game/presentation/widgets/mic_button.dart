@@ -67,21 +67,44 @@ class _MicButtonState extends State<MicButton>
 
         const SizedBox(height: 12),
 
-        // Texto parcial (transcrição em tempo real)
-        if (widget.state == MicState.recording &&
-            widget.partialText != null &&
-            widget.partialText!.isNotEmpty)
+        // Texto capturado: parcial (durante gravação) ou final (pós-validação)
+        if (widget.partialText != null && widget.partialText!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              '"${widget.partialText}"',
-              style: TextStyle(
-                fontSize: 14,
-                fontStyle: FontStyle.italic,
-                color: cs.primary,
-              ),
-              textAlign: TextAlign.center,
-            ).animate(key: ValueKey(widget.partialText)).fadeIn(duration: 200.ms),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  widget.state == MicState.recording
+                      ? Icons.graphic_eq_rounded
+                      : Icons.record_voice_over_rounded,
+                  size: 16,
+                  color: widget.state == MicState.recording
+                      ? Colors.redAccent
+                      : cs.primary,
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    '"${widget.partialText}"',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: widget.state == MicState.recording
+                          ? FontWeight.normal
+                          : FontWeight.w600,
+                      color: widget.state == MicState.recording
+                          ? Colors.redAccent
+                          : cs.primary,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                ),
+              ],
+            ).animate(key: ValueKey(widget.partialText)).fadeIn(duration: 250.ms),
           ),
 
         // Botão principal
