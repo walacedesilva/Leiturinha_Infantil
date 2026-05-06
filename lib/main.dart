@@ -9,6 +9,7 @@ import 'features/reading_game/domain/game_logic.dart';
 import 'services/audio_manager.dart';
 import 'services/gamification_service.dart';
 import 'services/progress_service.dart';
+import 'services/session_tracking_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,16 +35,22 @@ void main() async {
         ChangeNotifierProvider<GamificationService>(
           create: (_) => GamificationService(prefs),
         ),
-        // GameLogic depende de ProgressService, AudioManager e GamificationService
-        ChangeNotifierProxyProvider2<ProgressService, GamificationService, GameLogic>(
+        // SessionTrackingService depende de SharedPreferences
+        ChangeNotifierProvider<SessionTrackingService>(
+          create: (_) => SessionTrackingService(prefs),
+        ),
+        // GameLogic depende de ProgressService, AudioManager, GamificationService e SessionTrackingService
+        ChangeNotifierProxyProvider3<ProgressService, GamificationService,
+            SessionTrackingService, GameLogic>(
           create: (ctx) => GameLogic(
             ctx.read<ProgressService>(),
             AudioManager(),
             ctx.read<GamificationService>(),
+            ctx.read<SessionTrackingService>(),
           ),
-          update: (ctx, progressService, gamification, previous) =>
+          update: (ctx, progressService, gamification, tracking, previous) =>
               previous ??
-              GameLogic(progressService, AudioManager(), gamification),
+              GameLogic(progressService, AudioManager(), gamification, tracking),
         ),
       ],
       child: const LearnToReadApp(),

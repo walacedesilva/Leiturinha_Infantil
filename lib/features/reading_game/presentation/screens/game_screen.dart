@@ -9,6 +9,7 @@ import '../widgets/syllable_pool.dart';
 import '../widgets/word_slots.dart';
 import '../widgets/balloon_overlay.dart';
 import '../widgets/mic_button.dart';
+import 'session_summary_screen.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -393,9 +394,44 @@ ValidationFeedbackData _buildFeedbackData(
   };
 }
 
-class _FamilyDoneView extends StatelessWidget {
+class _FamilyDoneView extends StatefulWidget {
   final String familyLabel;
   const _FamilyDoneView({required this.familyLabel});
+
+  @override
+  State<_FamilyDoneView> createState() => _FamilyDoneViewState();
+}
+
+class _FamilyDoneViewState extends State<_FamilyDoneView> {
+  @override
+  void initState() {
+    super.initState();
+    // Navega para resumo da sessão com pequeno delay para animações
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final gameLogic = context.read<GameLogic>();
+      final session = gameLogic.lastSession;
+      if (session == null) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => SessionSummaryScreen(
+            session: session,
+            coinsEarned: gameLogic.sessionCoins,
+            xpEarned: gameLogic.sessionXp,
+            newBadgeIds: gameLogic.sessionBadges,
+            nextChallenge: _buildNextChallenge(gameLogic),
+            onContinue: () => Navigator.of(context)
+              ..pop()  // fecha resumo
+              ..pop(), // volta ao menu
+          ),
+        ),
+      );
+    });
+  }
+
+  String _buildNextChallenge(GameLogic gameLogic) {
+    // Sugere próxima família ou repetição
+    return 'Na próxima aventura, vamos explorar novas palavras! 🚀';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -419,7 +455,7 @@ class _FamilyDoneView extends StatelessWidget {
             ).animate().fadeIn(delay: 300.ms),
             const SizedBox(height: 8),
             Text(
-              familyLabel,
+              widget.familyLabel,
               style: const TextStyle(
                 fontSize: 20,
                 color: AppTheme.primaryColor,

@@ -6,6 +6,7 @@ import '../../../services/audio_manager.dart';
 import '../../../services/gamification_service.dart';
 import '../../../services/gamification_models.dart';
 import '../../../services/progress_service.dart';
+import '../../../services/session_tracking_service.dart';
 import '../../../services/speech_validator.dart';
 
 /// Estados possíveis do jogo para uma palavra
@@ -23,6 +24,7 @@ class GameLogic extends ChangeNotifier {
   final ProgressService _progressService;
   final AudioManager _audioManager;
   final GamificationService gamification;
+  final SessionTrackingService sessionTracking;
 
   // Família atual (definida ao entrar na tela de jogo)
   late SyllabicFamily _family;
@@ -77,13 +79,27 @@ class GameLogic extends ChangeNotifier {
 
   // Último evento de recompensa (para exibir animação na UI)
   RewardEvent? lastReward;
+  // Última sessão encerrada (para SessionSummaryScreen)
+  GameSession? lastSession;
+  int _sessionCoins = 0;
+  int _sessionXp = 0;
+  List<String> _sessionBadges = [];
 
-  GameLogic(this._progressService, this._audioManager, this.gamification);
+  int get sessionCoins => _sessionCoins;
+  int get sessionXp => _sessionXp;
+  List<String> get sessionBadges => List.unmodifiable(_sessionBadges);
+
+  GameLogic(this._progressService, this._audioManager, this.gamification,
+      this.sessionTracking);
 
   /// Inicializa com uma família silábica específica.
   /// Filtra palavras já concluídas para retomar de onde parou.
   void initWithFamily(SyllabicFamily family) {
     _family = family;
+    sessionTracking.startSession();
+    _sessionCoins = 0;
+    _sessionXp = 0;
+    _sessionBadges = [];
     final completed = _progressService.getCompletedWords(family.key);
 
     // Palavras ainda não concluídas ficam pendentes
@@ -223,6 +239,15 @@ class GameLogic extends ChangeNotifier {
             wordWasNew: true,
           );
           debugPrint('[GAME] recompensa: +${lastReward!.coins} moedas, +${lastReward!.xp} XP');
+          // Tracking de sessão
+          sessionTracking.recordWordValidated(
+            accuracy: result.confidence,
+            attemptNumber: _validationAttempts,
+            familyKey: _family.key,
+          );
+          _sessionCoins += lastReward!.coins;
+          _sessionXp += lastReward!.xp;
+          _sessionBadges.addAll(lastReward!.newBadgeIds);
         } else {
           lastReward = null;
         }
@@ -265,8 +290,13 @@ class GameLogic extends ChangeNotifier {
       _currentWord = '';
       // Recompensa por completar a família
       if (_dualConfig == null || !_dualConfig!.isDual) {
-        gamification.onFamilyCompleted(_family.key);
+        final famReward = await gamification.onFamilyCompleted(_family.key);
+        _sessionCoins += famReward.coins;
+        _sessionXp += famReward.xp;
+        _sessionBadges.addAll(famReward.newBadgeIds);
       }
+      // Encerra sessão de tracking
+      lastSession = await sessionTracking.endSession();
       notifyListeners();
     } else {
       _loadCurrentWord();

@@ -8,6 +8,7 @@ import '../../../../services/progress_service.dart';
 import '../../data/word_bank.dart';
 import 'profile_screen.dart';
 import 'syllable_selector_screen.dart';
+import 'weekly_report_screen.dart';
 import '../widgets/gamification_widgets.dart';
 
 /// Tela de seleção de família silábica com indicador de progresso.
@@ -82,12 +83,28 @@ class _Header extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           // Barra de XP / moedas com botão de perfil
-          XpBar(
-            xp: gam.state.xp,
-            coins: gam.state.coins,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ProfileScreen()),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: XpBar(
+                  xp: gam.state.xp,
+                  coins: gam.state.coins,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.bar_chart_rounded),
+                tooltip: 'Relatório Semanal',
+                color: tokens.primary,
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const WeeklyReportScreen()),
+                ),
+              ),
+            ],
           ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
         ],
       ),
