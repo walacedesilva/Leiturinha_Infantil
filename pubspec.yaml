@@ -1,29 +1,37 @@
-name: leiturinha_infantil
-description: "A new Flutter project."
+name: aprenda_a_ler
+description: App infantil offline para aprender a ler juntando sílabas.
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.5
+  sdk: '>=3.2.0 <4.0.0'
+  flutter: ">=3.19.0"
 
 dependencies:
-  audioplayers: ^6.6.0
   flutter:
     sdk: flutter
-  flutter_animate: ^4.5.2
-  lottie: ^3.3.3
-  provider: ^6.1.5+1
-  shared_preferences: ^2.5.5
+  audioplayers: ^6.0.0
+  flutter_tts: ^4.0.0
+  shared_preferences: ^2.2.3
+  provider: ^6.1.2
+  flutter_animate: ^4.5.0
+  lottie: ^3.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
   assets:
     - assets/audio/syllables/
     - assets/audio/words/
     - assets/audio/sfx/
-    - assets/fonts/
+    - assets/animations/

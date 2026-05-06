@@ -3,115 +3,166 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../data/word_bank.dart';
 import '../../../../services/audio_manager.dart';
-import '../../../../services/storage_service.dart';
+import '../../../../services/progress_service.dart';
 
+/// Estados possíveis do jogo para uma palavra
+enum GameState {
+  assembling,  // Criança está montando a palavra
+  completed,   // Palavra montada corretamente — aguarda interação manual
+  familyDone,  // Todas as palavras da família foram concluídas
+}
+
+/// Controlador de jogo por família silábica.
+/// Não avança automaticamente: aguarda chamada explícita de [goToNextWord].
 class GameLogic extends ChangeNotifier {
-  final StorageService _storageService;
+  final ProgressService _progressService;
   final AudioManager _audioManager;
-  
-  List<String> _words = [];
+
+  // Família atual (definida ao entrar na tela de jogo)
+  late SyllabicFamily _family;
+  late List<WordEntry> _pendingWords;
   int _currentIndex = 0;
-  
+
+  // Estado da palavra atual
+  GameState _state = GameState.assembling;
   String _currentWord = '';
   List<String> _targetSyllables = [];
-  
-  // Sílabas disponíveis para escolha
   List<String> _availableSyllables = [];
-  
-  // Sílabas já posicionadas corretamente
   List<String?> _placedSyllables = [];
-  
-  bool _showCelebration = false;
 
-  GameLogic(this._storageService, this._audioManager) {
-    _initGame();
-  }
+  // Debounce para playFormedWord
+  DateTime? _lastWordPlay;
+
+  // ────────────────────────────────────────────────
+  // GETTERS
+  // ────────────────────────────────────────────────
 
   String get currentWord => _currentWord;
-  List<String> get availableSyllables => _availableSyllables;
-  List<String?> get placedSyllables => _placedSyllables;
-  bool get showCelebration => _showCelebration;
-  List<String> get targetSyllables => _targetSyllables;
+  SyllabicFamily get family => _family;
+  List<String> get availableSyllables => List.unmodifiable(_availableSyllables);
+  List<String?> get placedSyllables => List.unmodifiable(_placedSyllables);
+  List<String> get targetSyllables => List.unmodifiable(_targetSyllables);
+  GameState get state => _state;
+  bool get isCompleted => _state == GameState.completed;
+  bool get isFamilyDone => _state == GameState.familyDone;
+  int get wordIndex => _currentIndex;
+  int get totalWords => _pendingWords.length;
 
-  void _initGame() {
-    _words = WordBank.getWordList();
-    _currentIndex = _storageService.getCurrentIndex();
-    
-    // Se terminou todas as palavras, volta do início
-    if (_currentIndex >= _words.length) {
-      _currentIndex = 0;
-      _storageService.saveCurrentIndex(_currentIndex);
+  // ────────────────────────────────────────────────
+  // INICIALIZAÇÃO
+  // ────────────────────────────────────────────────
+
+  GameLogic(this._progressService, this._audioManager);
+
+  /// Inicializa com uma família silábica específica.
+  /// Filtra palavras já concluídas para retomar de onde parou.
+  void initWithFamily(SyllabicFamily family) {
+    _family = family;
+    final completed = _progressService.getCompletedWords(family.key);
+
+    // Palavras ainda não concluídas ficam pendentes
+    _pendingWords = family.words
+        .where((e) => !completed.contains(e.word))
+        .toList();
+
+    _currentIndex = 0;
+
+    if (_pendingWords.isEmpty) {
+      // Família já completa — mostrar tela de conclusão
+      _state = GameState.familyDone;
+      _currentWord = '';
+      notifyListeners();
+    } else {
+      _loadCurrentWord();
     }
-    
-    _loadCurrentWord();
   }
 
   void _loadCurrentWord() {
-    _currentWord = _words[_currentIndex];
-    _targetSyllables = WordBank.getSyllablesForWord(_currentWord);
-    
-    // Inicializa os slots como vazios
+    final entry = _pendingWords[_currentIndex];
+    _currentWord = entry.word;
+    _targetSyllables = List<String>.from(entry.syllables);
     _placedSyllables = List<String?>.filled(_targetSyllables.length, null);
-    
-    // Embaralha as sílabas
-    _availableSyllables = List<String>.from(_targetSyllables);
-    _availableSyllables.shuffle(Random());
-    
-    _showCelebration = false;
+
+    // Embaralha sílabas disponíveis
+    _availableSyllables = List<String>.from(_targetSyllables)..shuffle(Random());
+
+    _state = GameState.assembling;
     notifyListeners();
   }
 
-  // Tenta posicionar uma sílaba em um slot
+  // ────────────────────────────────────────────────
+  // INTERAÇÕES DE JOGO
+  // ────────────────────────────────────────────────
+
+  /// Tenta encaixar uma sílaba num slot. Ignorado se palavra já completa.
   void onSyllableDropped(String syllable, int slotIndex) {
-    // Verifica se a sílaba é a correta para aquele slot específico
+    if (_state != GameState.assembling) return;
+
     if (_targetSyllables[slotIndex] == syllable) {
-      // Acertou a sílaba
+      // Sílaba correta
       _placedSyllables[slotIndex] = syllable;
       _availableSyllables.remove(syllable);
-      
-      _audioManager.playSyllable(syllable);
+      _audioManager.playSyllable(syllable.toLowerCase());
       HapticFeedback.lightImpact();
-      
       notifyListeners();
-      
       _checkWordCompletion();
     } else {
-      // Errou a sílaba
-      _audioManager.playSFX('wrong');
+      // Sílaba errada
+      _audioManager.playSFX(SFXType.error);
       HapticFeedback.vibrate();
     }
   }
 
+  /// Verifica se todos os slots foram preenchidos corretamente.
   Future<void> _checkWordCompletion() async {
-    // Se não há mais sílabas nulas, a palavra foi concluída
-    if (!_placedSyllables.contains(null)) {
-      _showCelebration = true;
-      notifyListeners();
-      
-      await _storageService.addCompletedWord(_currentWord);
-      await _storageService.addScore(10);
-      
-      // Tocar som de sucesso e a palavra
-      await _audioManager.playSFX('correct');
-      await Future.delayed(const Duration(milliseconds: 500));
-      await _audioManager.playWord(_currentWord);
-      
-      // Avançar após 2 segundos
-      await Future.delayed(const Duration(seconds: 2));
-      _nextWord();
-    }
+    if (_placedSyllables.contains(null)) return;
+
+    // Palavra completa → travar estado
+    _state = GameState.completed;
+    notifyListeners();
+
+    // Toca SFX de acerto + balões
+    await _audioManager.playSFX(SFXType.correct);
+    await _audioManager.playSFX(SFXType.balloons);
   }
 
-  void _nextWord() {
+  /// Toca a palavra já formada sob demanda (ícone 🔊).
+  /// Aplica debounce de 300ms para evitar toque duplo acidental.
+  Future<void> playFormedWord() async {
+    if (_state != GameState.completed) return;
+
+    final now = DateTime.now();
+    if (_lastWordPlay != null &&
+        now.difference(_lastWordPlay!).inMilliseconds < 300) return;
+
+    _lastWordPlay = now;
+    HapticFeedback.selectionClick();
+    await _audioManager.playWord(_currentWord.toLowerCase());
+  }
+
+  /// Avança para a próxima palavra manualmente (botão "Próxima Palavra").
+  /// Salva progresso antes de avançar.
+  Future<void> goToNextWord() async {
+    if (_state != GameState.completed) return;
+
+    // Persiste progresso da palavra concluída
+    await _progressService.markWordCompleted(_family.key, _currentWord);
+
     _currentIndex++;
-    if (_currentIndex >= _words.length) {
-      _currentIndex = 0; // Loop (poderia ser uma tela de vitória)
+
+    if (_currentIndex >= _pendingWords.length) {
+      // Família toda concluída
+      _state = GameState.familyDone;
+      _currentWord = '';
+      notifyListeners();
+    } else {
+      _loadCurrentWord();
     }
-    _storageService.saveCurrentIndex(_currentIndex);
-    _loadCurrentWord();
   }
 
-  void playWordAudio() {
-    _audioManager.playWord(_currentWord);
+  /// Reinicia a família (usado no modal de "Família Completa").
+  Future<void> restartFamily() async {
+    await _progressService.resetFamily(_family.key);
+    initWithFamily(_family);
   }
 }

@@ -2,9 +2,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class BalloonOverlay extends StatefulWidget {
-  final VoidCallback onAnimationComplete;
+  final VoidCallback? onAnimationComplete;
 
-  const BalloonOverlay({Key? key, required this.onAnimationComplete}) : super(key: key);
+  const BalloonOverlay({Key? key, this.onAnimationComplete}) : super(key: key);
 
   @override
   _BalloonOverlayState createState() => _BalloonOverlayState();
@@ -14,6 +14,7 @@ class _BalloonOverlayState extends State<BalloonOverlay> with SingleTickerProvid
   late AnimationController _controller;
   final List<_Balloon> _balloons = [];
   final Random _random = Random();
+  bool _visible = true;
 
   @override
   void initState() {
@@ -29,7 +30,11 @@ class _BalloonOverlayState extends State<BalloonOverlay> with SingleTickerProvid
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        widget.onAnimationComplete();
+        // Inicia fade-out e notifica o pai
+        setState(() => _visible = false);
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) widget.onAnimationComplete?.call();
+        });
       }
     });
 
@@ -67,9 +72,12 @@ class _BalloonOverlayState extends State<BalloonOverlay> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Stack(
-        children: _balloons.map((balloon) {
+    return AnimatedOpacity(
+      opacity: _visible ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 500),
+      child: IgnorePointer(
+        child: Stack(
+          children: _balloons.map((balloon) {
           // Calculate current Y position based on animation progress
           // Start from bottom (1.0 + size offset) to top (-0.2)
           double startY = 1.2;
@@ -82,6 +90,7 @@ class _BalloonOverlayState extends State<BalloonOverlay> with SingleTickerProvid
             child: _buildBalloonIcon(balloon.color, balloon.size),
           );
         }).toList(),
+        ),
       ),
     );
   }

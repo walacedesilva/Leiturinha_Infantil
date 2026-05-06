@@ -1,54 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'core/theme.dart';
+import 'features/reading_game/presentation/screens/menu_screen.dart';
 import 'features/reading_game/domain/game_logic.dart';
-import 'features/reading_game/presentation/screens/game_screen.dart';
 import 'services/audio_manager.dart';
-import 'services/storage_service.dart';
+import 'services/progress_service.dart';
 
 void main() async {
-  // Garantir que a inicialização de serviços do Flutter está feita
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Travar orientação em Portrait
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  // Travar em Portrait (padrão infantil)
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
-  // Inicializar serviços vitais
-  final storageService = StorageService();
-  await storageService.init();
-
-  final audioManager = AudioManager();
-  await audioManager.init();
+  // Inicializar SharedPreferences para o ProgressService
+  final prefs = await SharedPreferences.getInstance();
 
   runApp(
     MultiProvider(
       providers: [
-        Provider<StorageService>.value(value: storageService),
-        Provider<AudioManager>.value(value: audioManager),
-        ChangeNotifierProvider<GameLogic>(
-          create: (context) => GameLogic(storageService, audioManager),
+        // ProgressService depende de SharedPreferences
+        ChangeNotifierProvider<ProgressService>(
+          create: (_) => ProgressService(prefs),
+        ),
+        // GameLogic depende de ProgressService e AudioManager (singleton)
+        ChangeNotifierProxyProvider<ProgressService, GameLogic>(
+          create: (ctx) => GameLogic(
+            ctx.read<ProgressService>(),
+            AudioManager(),
+          ),
+          update: (ctx, progressService, previous) =>
+              previous ?? GameLogic(progressService, AudioManager()),
         ),
       ],
-      child: const LeiturinhaApp(),
+      child: const LearnToReadApp(),
     ),
   );
 }
 
-class LeiturinhaApp extends StatelessWidget {
-  const LeiturinhaApp({Key? key}) : super(key: key);
+class LearnToReadApp extends StatelessWidget {
+  const LearnToReadApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Leiturinha Infantil',
-      theme: AppTheme.lightTheme,
+      title: 'Aprenda a Ler',
       debugShowCheckedModeBanner: false,
-      home: const GameScreen(),
+      theme: ThemeData(
+        useMaterial3: true,
+        fontFamily: 'Nunito',
+        brightness: Brightness.light,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF4CAF50),
+          brightness: Brightness.light,
+        ),
+        appBarTheme: const AppBarTheme(elevation: 0, centerTitle: true),
+        cardTheme: CardThemeData(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        textTheme: const TextTheme(
+          headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+        ),
+      ),
+      home: const MenuScreen(),
     );
   }
 }
