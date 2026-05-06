@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/theme.dart';
+import '../../../../core/app_themes.dart';
+import '../../../../core/theme_provider.dart';
 import '../../../../services/progress_service.dart';
 import '../../data/word_bank.dart';
-import '../../domain/game_logic.dart';
-import 'game_screen.dart';
+import 'syllable_selector_screen.dart';
 
 /// Tela de seleção de família silábica com indicador de progresso.
 class MenuScreen extends StatelessWidget {
@@ -13,17 +13,16 @@ class MenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.watch<ThemeProvider>().tokens;
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: tokens.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _Header(),
             const SizedBox(height: 8),
-            Expanded(
-              child: _FamilyGrid(),
-            ),
+            Expanded(child: _FamilyGrid()),
           ],
         ),
       ),
@@ -31,36 +30,108 @@ class MenuScreen extends StatelessWidget {
   }
 }
 
+// ── Header ────────────────────────────────────────────────────────────────────
+
 class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final tokens = themeProvider.tokens;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-      child: Column(
+      padding: const EdgeInsets.fromLTRB(24, 24, 16, 8),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Aprenda a Ler! 📖',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppTheme.textColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 30,
-                ),
-          ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.3),
-          const SizedBox(height: 4),
-          Text(
-            'Escolha uma família de sílabas',
-            style: TextStyle(
-              fontSize: 18,
-              color: AppTheme.textColor.withOpacity(0.65),
-              fontWeight: FontWeight.w500,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Aprenda a Ler! ${tokens.familyIcon}',
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: tokens.primary,
+                  ),
+                ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.3),
+                const SizedBox(height: 4),
+                Text(
+                  'Escolha uma família de sílabas',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: tokens.primary.withOpacity(0.65),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ).animate().fadeIn(duration: 400.ms, delay: 150.ms),
+              ],
             ),
-          ).animate().fadeIn(duration: 400.ms, delay: 150.ms),
+          ),
+          _ThemeToggleButton(tokens: tokens, themeProvider: themeProvider),
         ],
       ),
     );
   }
 }
+
+// ── Botão de alternância de tema ──────────────────────────────────────────────
+
+class _ThemeToggleButton extends StatelessWidget {
+  final AppThemeTokens tokens;
+  final ThemeProvider themeProvider;
+
+  const _ThemeToggleButton({
+    required this.tokens,
+    required this.themeProvider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isCars = themeProvider.mode == AppThemeMode.cars;
+    final nextLabel = isCars ? princessTokens.themeLabel : carsTokens.themeLabel;
+    final nextEmoji = isCars ? princessTokens.themeEmoji : carsTokens.themeEmoji;
+
+    return Tooltip(
+      message: 'Tema $nextLabel',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            final next = isCars ? AppThemeMode.princess : AppThemeMode.cars;
+            themeProvider.setTheme(next);
+          },
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: tokens.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: tokens.primary.withOpacity(0.25)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(nextEmoji, style: const TextStyle(fontSize: 22)),
+                const SizedBox(height: 2),
+                Text(
+                  nextLabel,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: tokens.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).animate().fadeIn(duration: 400.ms, delay: 200.ms);
+  }
+}
+
+// ── Grid de famílias ─────────────────────────────────────────────────────────
 
 class _FamilyGrid extends StatelessWidget {
   @override
@@ -90,6 +161,8 @@ class _FamilyGrid extends StatelessWidget {
   }
 }
 
+// ── Card de família ───────────────────────────────────────────────────────────
+
 class _FamilyCard extends StatelessWidget {
   final SyllabicFamily family;
   final Duration animationDelay;
@@ -98,7 +171,6 @@ class _FamilyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Lê progresso em tempo real via Consumer
     return Consumer<ProgressService>(
       builder: (context, progressService, _) {
         final progress =
@@ -136,29 +208,22 @@ class _FamilyCardContent extends StatefulWidget {
 class _FamilyCardContentState extends State<_FamilyCardContent> {
   bool _pressed = false;
 
-  void _navigateToGame(BuildContext context) async {
-    // Inicializa GameLogic com a família selecionada
-    final gameLogic = context.read<GameLogic>();
-    gameLogic.initWithFamily(widget.family);
-
-    await Navigator.of(context).push(
+  void _navigateToSelector(BuildContext context) {
+    Navigator.of(context).push(
       PageRouteBuilder(
-        pageBuilder: (_, animation, __) => const GameScreen(),
-        transitionsBuilder: (_, animation, __, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.05, 0),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-              )),
-              child: child,
-            ),
-          );
-        },
+        pageBuilder: (_, animation, __) =>
+            SyllableSelectorScreen(family: widget.family),
+        transitionsBuilder: (_, animation, __, child) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.05, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+                parent: animation, curve: Curves.easeOutCubic)),
+            child: child,
+          ),
+        ),
         transitionDuration: const Duration(milliseconds: 350),
       ),
     );
@@ -174,7 +239,7 @@ class _FamilyCardContentState extends State<_FamilyCardContent> {
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) {
         setState(() => _pressed = false);
-        _navigateToGame(context);
+        _navigateToSelector(context);
       },
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedScale(
@@ -196,12 +261,12 @@ class _FamilyCardContentState extends State<_FamilyCardContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Badge de completo
               if (isComplete)
                 Align(
                   alignment: Alignment.topRight,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(12),
@@ -217,7 +282,6 @@ class _FamilyCardContentState extends State<_FamilyCardContent> {
                   ),
                 ),
               const Spacer(),
-              // Nome da família
               Text(
                 widget.family.label,
                 style: const TextStyle(
@@ -227,7 +291,6 @@ class _FamilyCardContentState extends State<_FamilyCardContent> {
                 ),
               ),
               const SizedBox(height: 6),
-              // Contagem
               Text(
                 '${p.completedWords}/${p.totalWords} palavras',
                 style: TextStyle(
@@ -237,13 +300,13 @@ class _FamilyCardContentState extends State<_FamilyCardContent> {
                 ),
               ),
               const SizedBox(height: 10),
-              // Barra de progresso
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: LinearProgressIndicator(
                   value: p.percentage,
                   backgroundColor: Colors.white.withOpacity(0.3),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(Colors.white),
                   minHeight: 8,
                 ),
               ),
@@ -252,7 +315,10 @@ class _FamilyCardContentState extends State<_FamilyCardContent> {
         )
             .animate(delay: widget.animationDelay)
             .fadeIn(duration: 350.ms)
-            .slideY(begin: 0.2, duration: 350.ms, curve: Curves.easeOutCubic),
+            .slideY(
+                begin: 0.2,
+                duration: 350.ms,
+                curve: Curves.easeOutCubic),
       ),
     );
   }

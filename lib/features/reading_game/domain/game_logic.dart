@@ -2,8 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../data/word_bank.dart';
-import '../../../../services/audio_manager.dart';
-import '../../../../services/progress_service.dart';
+import '../../../services/audio_manager.dart';
+import '../../../services/progress_service.dart';
 
 /// Estados possíveis do jogo para uma palavra
 enum GameState {
@@ -164,5 +164,42 @@ class GameLogic extends ChangeNotifier {
   Future<void> restartFamily() async {
     await _progressService.resetFamily(_family.key);
     initWithFamily(_family);
+  }
+
+  /// Inicia uma sessão com apenas as sílabas selecionadas na tela de seleção.
+  /// As palavras que não puderem ser formadas com [activeSyllables] são excluídas.
+  /// Se nenhuma palavra for compatível, usa todas as palavras da família.
+  void initWithFamilyAndSyllables(
+    SyllabicFamily family,
+    List<String> activeSyllables,
+  ) {
+    _family = family;
+
+    var filtered = WordBank.filterBySyllables(family, activeSyllables);
+    if (filtered.isEmpty) {
+      // fallback: usa palavras não concluídas sem filtro de sílabas
+      final completed = _progressService.getCompletedWords(family.key);
+      filtered = family.words
+          .where((e) => !completed.contains(e.word))
+          .toList();
+    } else {
+      // Remove já concluídas do lote filtrado
+      final completed = _progressService.getCompletedWords(family.key);
+      final remaining = filtered
+          .where((e) => !completed.contains(e.word))
+          .toList();
+      filtered = remaining.isNotEmpty ? remaining : filtered;
+    }
+
+    _pendingWords = List.from(filtered)..shuffle(Random());
+    _currentIndex = 0;
+
+    if (_pendingWords.isEmpty) {
+      _state = GameState.familyDone;
+      _currentWord = '';
+      notifyListeners();
+    } else {
+      _loadCurrentWord();
+    }
   }
 }

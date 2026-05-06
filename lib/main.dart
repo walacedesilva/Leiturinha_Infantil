@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/theme_provider.dart';
 import 'features/reading_game/presentation/screens/menu_screen.dart';
 import 'features/reading_game/domain/game_logic.dart';
 import 'services/audio_manager.dart';
@@ -15,12 +16,15 @@ void main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
-  // Inicializar SharedPreferences para o ProgressService
+  // Inicializar SharedPreferences para o ProgressService e ThemeProvider
   final prefs = await SharedPreferences.getInstance();
+  final themeProvider = await ThemeProvider.load();
 
   runApp(
     MultiProvider(
       providers: [
+        // Tema visual (princesa ou carros)
+        ChangeNotifierProvider<ThemeProvider>.value(value: themeProvider),
         // ProgressService depende de SharedPreferences
         ChangeNotifierProvider<ProgressService>(
           create: (_) => ProgressService(prefs),
@@ -45,28 +49,15 @@ class LearnToReadApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Aprenda a Ler',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        fontFamily: 'Nunito',
-        brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF4CAF50),
-          brightness: Brightness.light,
-        ),
-        appBarTheme: const AppBarTheme(elevation: 0, centerTitle: true),
-        cardTheme: CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-        textTheme: const TextTheme(
-          headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-          titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-        ),
-      ),
-      home: const MenuScreen(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return MaterialApp(
+          title: 'Aprenda a Ler',
+          debugShowCheckedModeBanner: false,
+          theme: themeProvider.themeData,
+          home: const MenuScreen(),
+        );
+      },
     );
   }
 }

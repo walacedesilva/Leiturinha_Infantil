@@ -228,4 +228,29 @@ class WordBank {
   static List<String> getWordList() {
     return families.expand((f) => f.words.map((w) => w.word)).toList();
   }
+
+  /// Retorna todas as sílabas únicas de uma família (ex: ['BA','BE','BI','BO','BU']).
+  static List<String> getSyllablesOfFamily(SyllabicFamily family) {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final entry in family.words) {
+      for (final syl in entry.syllables) {
+        if (seen.add(syl)) result.add(syl);
+      }
+    }
+    return result;
+  }
+
+  /// Filtra palavras de [family] cujas sílabas estão TODAS em [selected].
+  /// Retorna lista vazia se nenhuma palavra puder ser formada.
+  static List<WordEntry> filterBySyllables(
+    SyllabicFamily family,
+    List<String> selected,
+  ) {
+    if (selected.isEmpty) return [];
+    final set = selected.toSet();
+    return family.words
+        .where((e) => e.syllables.every((s) => set.contains(s)))
+        .toList();
+  }
 }

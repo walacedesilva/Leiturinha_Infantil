@@ -3,63 +3,81 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-/// Tipos de efeitos sonoros pré-definidos
+/// Tipos de efeitos sonoros pre-definidos
 enum SFXType { correct, balloons, pop, error }
 
-/// Singleton gerenciador de áudio 100% offline.
-/// Usa TTS do Android (pt-BR) para sílabas e palavras,
-/// e AudioPlayer para SFX com WAV reais.
+/// Singleton gerenciador de audio 100% offline.
+/// Usa TTS do Android (pt-BR) para silabas e palavras;
+/// AudioPlayer para SFX com WAV de tons reais.
 class AudioManager {
   static final AudioManager _instance = AudioManager._internal();
   factory AudioManager() => _instance;
   AudioManager._internal();
 
   final FlutterTts _tts = FlutterTts();
-
-  // Mantém referências ativas para evitar GC prematuro durante SFX
   final List<AudioPlayer> _activePlayers = [];
 
   bool _ttsReady = false;
 
+  // Debounce para playSyllableInstant (150ms)
+  DateTime? _lastSyllablePlay;
+  String? _lastSyllablePlayed;
+
   Future<void> _ensureTTS() async {
     if (_ttsReady) return;
     await _tts.setLanguage('pt-BR');
-    await _tts.setSpeechRate(0.45); // lento para crianças
-    await _tts.setPitch(1.1); // voz ligeiramente mais aguda
+    await _tts.setSpeechRate(0.45);
+    await _tts.setPitch(1.1);
     await _tts.setVolume(1.0);
     _ttsReady = true;
   }
 
-  /// Pré-carrega TTS. Sílabas e palavras usam TTS — sem arquivos de áudio.
-  Future<void> preloadAssets(List<String> syllables) async {
+  /// Pre-carrega TTS para as silabas da sessao atual.
+  Future<void> preloadSyllables(List<String> syllables) async {
     await _ensureTTS();
-    debugPrint('?? AudioManager TTS pronto (${syllables.length} sílabas declaradas)');
+    debugPrint('TTS pronto - ${syllables.length} silabas na sessao');
   }
 
-  /// Fala a sílaba usando TTS pt-BR.
-  Future<void> playSyllable(String syllable) async {
+  /// Alias mantido para compatibilidade com GameLogic.
+  Future<void> preloadAssets(List<String> syllables) =>
+      preloadSyllables(syllables);
+
+  /// Toca silaba com debounce de 150ms.
+  Future<void> playSyllableInstant(String syllable) async {
+    final now = DateTime.now();
+    if (_lastSyllablePlayed == syllable &&
+        _lastSyllablePlay != null &&
+        now.difference(_lastSyllablePlay!).inMilliseconds < 150) return;
+
+    _lastSyllablePlay = now;
+    _lastSyllablePlayed = syllable;
+
     try {
       await _ensureTTS();
       await _tts.speak(syllable.toUpperCase());
     } catch (e) {
-      debugPrint('?? TTS falhou para sílaba: $syllable — $e');
+      debugPrint('TTS silaba: $syllable - $e');
       _fallbackFeedback();
     }
   }
 
-  /// Fala a palavra usando TTS pt-BR.
+  /// Fala a silaba (usado internamente pelo GameLogic).
+  Future<void> playSyllable(String syllable) =>
+      playSyllableInstant(syllable);
+
+  /// Fala a palavra completa.
   Future<void> playWord(String word) async {
     try {
       await _ensureTTS();
       await _tts.stop();
       await _tts.speak(word.toUpperCase());
     } catch (e) {
-      debugPrint('?? TTS falhou para palavra: $word — $e');
+      debugPrint('TTS palavra: $word - $e');
       _fallbackFeedback();
     }
   }
 
-  /// Toca efeito sonoro (WAV com tom real) em player descartável.
+  /// Toca efeito sonoro em player descartavel.
   Future<void> playSFX(SFXType type) async {
     final file = switch (type) {
       SFXType.correct => 'correct.wav',
@@ -76,16 +94,12 @@ class AudioManager {
         _activePlayers.remove(player);
       });
     } catch (e) {
-      debugPrint('?? SFX falhou: $file — $e');
+      debugPrint('SFX: $file - $e');
     }
   }
 
-  /// Fallback tátil caso o áudio falhe (segurança offline)
-  void _fallbackFeedback() {
-    HapticFeedback.mediumImpact();
-  }
+  void _fallbackFeedback() => HapticFeedback.mediumImpact();
 
-  /// Libera recursos
   void dispose() {
     _tts.stop();
     for (final p in _activePlayers) {
