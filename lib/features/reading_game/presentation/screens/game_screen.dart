@@ -3,9 +3,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme.dart';
 import '../../domain/game_logic.dart';
+import '../../../../services/speech_validator.dart';
 import '../widgets/syllable_pool.dart';
 import '../widgets/word_slots.dart';
 import '../widgets/balloon_overlay.dart';
+import '../widgets/mic_button.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -27,7 +29,7 @@ class _GameScreenState extends State<GameScreen> {
           builder: (context, gameLogic, _) {
             // ── Família completa ──────────────────────────────────
             if (gameLogic.isFamilyDone) {
-              return _FamilyDoneView(familyLabel: gameLogic.family.label);
+              return _FamilyDoneView(familyLabel: gameLogic.sessionLabel);
             }
 
             // ── Carregando ────────────────────────────────────────
@@ -35,14 +37,17 @@ class _GameScreenState extends State<GameScreen> {
               return const Center(child: CircularProgressIndicator());
             }
 
-            // Ativa o botão de próxima após 500ms quando palavra completa
-            if (gameLogic.isCompleted && !_nextButtonEnabled) {
+            // Ativa o botão de próxima após 500ms quando palavra completa ou validada
+            final isPostAssembly = gameLogic.isCompleted ||
+                gameLogic.isValidating ||
+                gameLogic.isValidated;
+
+            if (isPostAssembly && !_nextButtonEnabled) {
               Future.delayed(const Duration(milliseconds: 500), () {
                 if (mounted) setState(() => _nextButtonEnabled = true);
               });
             }
-            if (!gameLogic.isCompleted && _nextButtonEnabled) {
-              // Reset quando carrega nova palavra
+            if (!isPostAssembly && _nextButtonEnabled) {
               _nextButtonEnabled = false;
             }
 
@@ -51,7 +56,7 @@ class _GameScreenState extends State<GameScreen> {
                 Column(
                   children: [
                     // ── Top bar ─────────────────────────────────────
-                    _TopBar(familyLabel: gameLogic.family.label),
+                    _TopBar(familyLabel: gameLogic.sessionLabel),
 
                     // ── Contador de palavras ─────────────────────────
                     Padding(
@@ -66,49 +71,111 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 32),
+                    // ── Área principal rolável ───────────────────────
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 28),
 
-                    // ── Slots da palavra ────────────────────────────
-                    WordSlots(gameLogic: gameLogic),
+                            // ── Slots da palavra ──────────────────────
+                            WordSlots(gameLogic: gameLogic),
 
-                    const SizedBox(height: 24),
+                            const SizedBox(height: 20),
 
-                    // ── Ícone de áudio 🔊 (só visível após acerto) ──
-                    AnimatedOpacity(
-                      opacity: gameLogic.isCompleted ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 400),
-                      child: gameLogic.isCompleted
-                          ? _AudioButton(onPressed: gameLogic.playFormedWord)
-                          : const SizedBox(height: 80),
-                    ),
+                            // ── Botão de áudio 🔊 (pós-acerto) ────────
+                            AnimatedOpacity(
+                              opacity: isPostAssembly ? 1.0 : 0.0,
+                              duration: const Duration(milliseconds: 400),
+                              child: isPostAssembly
+                                  ? _AudioButton(
+                                      onPressed: gameLogic.playFormedWord)
+                                  : const SizedBox(height: 80),
+                            ),
 
-                    const Spacer(),
+                            const SizedBox(height: 16),
 
-                    // ── Pool de sílabas (travado após acerto) ────────
-                    AnimatedOpacity(
-                      opacity: gameLogic.isCompleted ? 0.35 : 1.0,
-                      duration: const Duration(milliseconds: 300),
-                      child: IgnorePointer(
-                        ignoring: gameLogic.isCompleted,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: SyllablePool(
-                            availableSyllables: gameLogic.availableSyllables,
-                          ),
+                            // ── Botão de microfone (sempre visível pós-acerto) ──
+                            if (isPostAssembly)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24),
+                                child: MicButton(
+                                  state: gameLogic.isValidating
+                                      ? MicState.recording
+                                      : MicState.idle,
+                                  partialText: gameLogic.isValidating
+                                      ? gameLogic.partialTranscript
+                                      : null,
+                                  onTap: gameLogic.isValidating
+                                      ? () {}
+                                      : () => gameLogic.startSpeechValidation(),
+                                  onCancel: gameLogic.isValidating
+                                      ? gameLogic.cancelSpeechValidation
+                                      : null,
+                                ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.25),
+                              ),
+
+                            // ── Card de feedback (aparece após validação) ──
+                            if (gameLogic.isValidated &&
+                                gameLogic.lastValidation != null)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24),
+                                child: ValidationFeedbackCard(
+                                  key: const ValueKey('feedback_card'),
+                                  data: _buildFeedbackData(
+                                    gameLogic.lastValidation!,
+                                    gameLogic.canRetryValidation,
+                                  ),
+                                  onRetry: () =>
+                                      gameLogic.startSpeechValidation(),
+                                  onAdvance: () async {
+                                    setState(
+                                        () => _nextButtonEnabled = false);
+                                    await gameLogic.goToNextWord();
+                                  },
+                                ),
+                              ),
+
+                            const SizedBox(height: 16),
+
+                            // ── Pool de sílabas (travado pós-acerto) ───
+                            if (!gameLogic.isValidated)
+                              AnimatedOpacity(
+                                opacity: isPostAssembly ? 0.35 : 1.0,
+                                duration: const Duration(milliseconds: 300),
+                                child: IgnorePointer(
+                                  ignoring: isPostAssembly,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 24),
+                                    child: SyllablePool(
+                                      availableSyllables:
+                                          gameLogic.availableSyllables,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                            const SizedBox(height: 16),
+                          ],
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 16),
-
-                    // ── Botão "Próxima Palavra" ───────────────────────
+                    // ── Botão "Próxima Palavra" (fixo no rodapé) ────
                     AnimatedOpacity(
-                      opacity: gameLogic.isCompleted ? 1.0 : 0.0,
+                      opacity: isPostAssembly && !gameLogic.isValidating
+                          ? 1.0
+                          : 0.0,
                       duration: const Duration(milliseconds: 400),
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                         child: _NextButton(
-                          enabled: gameLogic.isCompleted && _nextButtonEnabled,
+                          enabled: (gameLogic.isCompleted ||
+                                  gameLogic.isValidated) &&
+                              _nextButtonEnabled,
                           onPressed: () async {
                             setState(() => _nextButtonEnabled = false);
                             await gameLogic.goToNextWord();
@@ -120,7 +187,7 @@ class _GameScreenState extends State<GameScreen> {
                 ),
 
                 // ── Balões de celebração ──────────────────────────
-                if (gameLogic.isCompleted)
+                if (isPostAssembly)
                   const IgnorePointer(child: BalloonOverlay()),
               ],
             );
@@ -155,6 +222,8 @@ class _TopBar extends StatelessWidget {
             child: Text(
               familyLabel,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -162,7 +231,7 @@ class _TopBar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 48), // Equilíbrio visual
+          const SizedBox(width: 48),
         ],
       ),
     );
@@ -176,11 +245,13 @@ class _AudioButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = (MediaQuery.of(context).size.width * 0.20).clamp(60.0, 80.0);
+    final iconSize = size * 0.55;
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: 80,
-        height: 80,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           color: AppTheme.primaryColor,
           shape: BoxShape.circle,
@@ -192,9 +263,9 @@ class _AudioButton extends StatelessWidget {
             ),
           ],
         ),
-        child: const Icon(
+        child: Icon(
           Icons.volume_up_rounded,
-          size: 44,
+          size: iconSize,
           color: Colors.white,
         ),
       )
@@ -233,6 +304,8 @@ class _NextButton extends StatelessWidget {
         label: const Text(
           'Próxima Palavra',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.successColor,
@@ -251,7 +324,61 @@ class _NextButton extends StatelessWidget {
   }
 }
 
-/// Tela exibida quando todas as palavras da família foram concluídas.
+/// Converte [ValidationResult] em dados visuais para o card de feedback.
+ValidationFeedbackData _buildFeedbackData(
+    ValidationResult r, bool canRetry) {
+  return switch (r.status) {
+    ValidationStatus.excellent => ValidationFeedbackData(
+        emoji: '🌟',
+        title: 'Excelente!',
+        message: r.feedbackMessage,
+        confidence: r.confidence,
+        backgroundColor: const Color(0xFFE8F8E8),
+        borderColor: Colors.green,
+        titleColor: Colors.green,
+        showRetry: false,
+        nextAction: 'advance',
+        advanceLabel: 'Próxima Palavra!',
+      ),
+    ValidationStatus.almostThere => ValidationFeedbackData(
+        emoji: '👍',
+        title: 'Quase Lá!',
+        message: r.feedbackMessage,
+        confidence: r.confidence,
+        backgroundColor: const Color(0xFFFFF9E6),
+        borderColor: Colors.amber,
+        titleColor: Colors.orange,
+        showRetry: canRetry,
+        nextAction: 'advance',
+        advanceLabel: 'Continuar',
+      ),
+    ValidationStatus.tryAgain => ValidationFeedbackData(
+        emoji: '🔄',
+        title: 'Tente Mais Uma Vez',
+        message: r.feedbackMessage,
+        confidence: r.confidence,
+        backgroundColor: const Color(0xFFFFF3F3),
+        borderColor: Colors.deepOrange,
+        titleColor: Colors.deepOrange,
+        showRetry: canRetry,
+        nextAction: 'retry',
+        advanceLabel: 'Pular',
+      ),
+    ValidationStatus.listenRepeat => ValidationFeedbackData(
+        emoji: '🎧',
+        title: 'Vamos Ouvir Juntos',
+        message: r.feedbackMessage,
+        confidence: r.confidence,
+        backgroundColor: const Color(0xFFEFF5FF),
+        borderColor: Colors.blueAccent,
+        titleColor: Colors.blueAccent,
+        showRetry: canRetry,
+        nextAction: 'reinforce',
+        advanceLabel: 'Próxima Palavra',
+      ),
+  };
+}
+
 class _FamilyDoneView extends StatelessWidget {
   final String familyLabel;
   const _FamilyDoneView({required this.familyLabel});

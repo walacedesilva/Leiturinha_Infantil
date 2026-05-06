@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/theme_provider.dart';
-import 'features/reading_game/presentation/screens/menu_screen.dart';
+import 'splash_screen.dart';
 import 'features/reading_game/domain/game_logic.dart';
 import 'services/audio_manager.dart';
 import 'services/progress_service.dart';
@@ -55,7 +55,7 @@ class LearnToReadApp extends StatelessWidget {
           title: 'Aprenda a Ler',
           debugShowCheckedModeBanner: false,
           theme: themeProvider.themeData,
-          home: const MenuScreen(),
+          home: const SplashScreen(),
         );
       },
     );

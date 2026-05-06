@@ -51,10 +51,12 @@ class _Header extends StatelessWidget {
                   'Aprenda a Ler! ${tokens.familyIcon}',
                   style: TextStyle(
                     fontFamily: 'Nunito',
-                    fontSize: 28,
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
                     color: tokens.primary,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.3),
                 const SizedBox(height: 4),
                 Text(
@@ -282,12 +284,16 @@ class _FamilyCardContentState extends State<_FamilyCardContent> {
                   ),
                 ),
               const Spacer(),
-              Text(
-                widget.family.label,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  widget.family.label,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               const SizedBox(height: 6),

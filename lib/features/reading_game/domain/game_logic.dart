@@ -4,12 +4,15 @@ import 'package:flutter/services.dart';
 import '../data/word_bank.dart';
 import '../../../services/audio_manager.dart';
 import '../../../services/progress_service.dart';
+import '../../../services/speech_validator.dart';
 
 /// Estados possíveis do jogo para uma palavra
 enum GameState {
-  assembling,  // Criança está montando a palavra
-  completed,   // Palavra montada corretamente — aguarda interação manual
-  familyDone,  // Todas as palavras da família foram concluídas
+  assembling,    // Criança está montando a palavra
+  completed,     // Palavra montada — aguarda interação manual
+  validating,    // Microfone ativo — ouvindo a pronúncia
+  validated,     // Resultado de validação disponível
+  familyDone,    // Todas as palavras da família foram concluídas
 }
 
 /// Controlador de jogo por família silábica.
@@ -33,20 +36,37 @@ class GameLogic extends ChangeNotifier {
   // Debounce para playFormedWord
   DateTime? _lastWordPlay;
 
+  // Config da sessão (pode ser dual-family)
+  DualFamilyConfig? _dualConfig;
+
+  // Validação fonética
+  ValidationResult? _lastValidation;
+  String _partialTranscript = '';
+  int _validationAttempts = 0;
+  static const int _maxAttempts = 3;
+  ValidationLevel validationLevel = ValidationLevel.beginner;
+
   // ────────────────────────────────────────────────
   // GETTERS
   // ────────────────────────────────────────────────
 
   String get currentWord => _currentWord;
   SyllabicFamily get family => _family;
+  String get sessionLabel => _dualConfig?.displayLabel ?? _family.label;
   List<String> get availableSyllables => List.unmodifiable(_availableSyllables);
   List<String?> get placedSyllables => List.unmodifiable(_placedSyllables);
   List<String> get targetSyllables => List.unmodifiable(_targetSyllables);
   GameState get state => _state;
   bool get isCompleted => _state == GameState.completed;
+  bool get isValidating => _state == GameState.validating;
+  bool get isValidated => _state == GameState.validated;
   bool get isFamilyDone => _state == GameState.familyDone;
   int get wordIndex => _currentIndex;
   int get totalWords => _pendingWords.length;
+  ValidationResult? get lastValidation => _lastValidation;
+  String get partialTranscript => _partialTranscript;
+  int get validationAttempts => _validationAttempts;
+  bool get canRetryValidation => _validationAttempts < _maxAttempts;
 
   // ────────────────────────────────────────────────
   // INICIALIZAÇÃO
@@ -82,11 +102,11 @@ class GameLogic extends ChangeNotifier {
     _currentWord = entry.word;
     _targetSyllables = List<String>.from(entry.syllables);
     _placedSyllables = List<String?>.filled(_targetSyllables.length, null);
-
-    // Embaralha sílabas disponíveis
     _availableSyllables = List<String>.from(_targetSyllables)..shuffle(Random());
-
     _state = GameState.assembling;
+    _lastValidation = null;
+    _partialTranscript = '';
+    _validationAttempts = 0;
     notifyListeners();
   }
 
@@ -129,7 +149,7 @@ class GameLogic extends ChangeNotifier {
   /// Toca a palavra já formada sob demanda (ícone 🔊).
   /// Aplica debounce de 300ms para evitar toque duplo acidental.
   Future<void> playFormedWord() async {
-    if (_state != GameState.completed) return;
+    if (_state != GameState.completed && _state != GameState.validated) return;
 
     final now = DateTime.now();
     if (_lastWordPlay != null &&
@@ -140,13 +160,82 @@ class GameLogic extends ChangeNotifier {
     await _audioManager.playWord(_currentWord.toLowerCase());
   }
 
-  /// Avança para a próxima palavra manualmente (botão "Próxima Palavra").
-  /// Salva progresso antes de avançar.
-  Future<void> goToNextWord() async {
-    if (_state != GameState.completed) return;
+  // ────────────────────────────────────────────────
+  // VALIDAÇÃO FONÉTICA
+  // ────────────────────────────────────────────────
 
-    // Persiste progresso da palavra concluída
-    await _progressService.markWordCompleted(_family.key, _currentWord);
+  /// Inicia captura e validação de voz da criança.
+  Future<void> startSpeechValidation({
+    ValidationLevel? level,
+  }) async {
+    debugPrint('[GAME] startSpeechValidation(): state=$_state, attempts=$_validationAttempts/$_maxAttempts, word="$_currentWord"');
+    if (_state != GameState.completed && _state != GameState.validated) {
+      debugPrint('[GAME] startSpeechValidation(): estado inválido ($_state) — ignorado');
+      return;
+    }
+    if (_validationAttempts >= _maxAttempts) {
+      debugPrint('[GAME] startSpeechValidation(): tentativas esgotadas — ignorado');
+      return;
+    }
+
+    _state = GameState.validating;
+    _partialTranscript = '';
+    _validationAttempts++;
+    debugPrint('[GAME] → estado: validating (tentativa $_validationAttempts)');
+    notifyListeners();
+
+    await SpeechValidator().startListening(
+      targetWord: _currentWord,
+      syllables: _targetSyllables,
+      level: level ?? validationLevel,
+      onPartial: (partial) {
+        debugPrint('[GAME] onPartial: "$partial"');
+        _partialTranscript = partial;
+        notifyListeners();
+      },
+      onValidated: (result) {
+        debugPrint('[GAME] onValidated: status=${result.status}, confidence=${result.confidence.toStringAsFixed(2)}, transcript="${result.transcript}"');
+
+        // Se o STT falhou tecnicamente (sem fala), não conta como tentativa real
+        final isTechnicalFailure = result.status == ValidationStatus.listenRepeat &&
+            result.transcript.isEmpty &&
+            (result.detectedVariations.contains('stt_nao_iniciou') ||
+                result.detectedVariations.contains('stt_indisponivel') ||
+                result.detectedVariations.contains('silencio'));
+        if (isTechnicalFailure) {
+          debugPrint('[GAME] falha técnica (sem fala real) → devolvendo tentativa');
+          _validationAttempts = (_validationAttempts - 1).clamp(0, _maxAttempts);
+        }
+
+        _lastValidation = result;
+        _state = GameState.validated;
+        debugPrint('[GAME] → estado: validated (attempts=$_validationAttempts)');
+        HapticFeedback.mediumImpact();
+        notifyListeners();
+      },
+    );
+  }
+
+  /// Cancela validação em andamento e retorna ao estado completed.
+  Future<void> cancelSpeechValidation() async {
+    debugPrint('[GAME] cancelSpeechValidation(): state=$_state');
+    if (_state != GameState.validating) return;
+    await SpeechValidator().cancelListening();
+    _state = GameState.completed;
+    _partialTranscript = '';
+    debugPrint('[GAME] → estado: completed (cancelado)');
+    notifyListeners();
+  }
+
+  /// Avança para a próxima palavra manualmente (botão "Próxima Palavra").
+  /// Salva progresso apenas em sessões de família única.
+  Future<void> goToNextWord() async {
+    if (_state != GameState.completed && _state != GameState.validated) return;
+
+    // Sessões dual-family não rastreiam progresso individual
+    if (_dualConfig == null || !_dualConfig!.isDual) {
+      await _progressService.markWordCompleted(_family.key, _currentWord);
+    }
 
     _currentIndex++;
 
@@ -160,15 +249,42 @@ class GameLogic extends ChangeNotifier {
     }
   }
 
-  /// Reinicia a família (usado no modal de "Família Completa").
+  /// Reinicia a sessão atual (família única ou dual).
   Future<void> restartFamily() async {
+    if (_dualConfig != null && _dualConfig!.isDual) {
+      initWithDualFamilies(_dualConfig!);
+      return;
+    }
     await _progressService.resetFamily(_family.key);
     initWithFamily(_family);
   }
 
-  /// Inicia uma sessão com apenas as sílabas selecionadas na tela de seleção.
-  /// As palavras que não puderem ser formadas com [activeSyllables] são excluídas.
-  /// Se nenhuma palavra for compatível, usa todas as palavras da família.
+  /// Inicia uma sessão a partir de um [DualFamilyConfig] (uma ou duas famílias).
+  /// Substitui o fluxo anterior — [initWithFamilyAndSyllables] mantido para compat.
+  void initWithDualFamilies(DualFamilyConfig config) {
+    _family = config.primary;
+    _dualConfig = config;
+
+    final allWords = WordBank.filterByDualFamilies(
+      config.primary,
+      config.activePrimary,
+      config.secondary,
+      config.activeSecondary,
+    );
+
+    if (allWords.isEmpty) {
+      _state = GameState.familyDone;
+      _currentWord = '';
+      notifyListeners();
+      return;
+    }
+
+    _pendingWords = List.from(allWords)..shuffle(Random());
+    _currentIndex = 0;
+    _loadCurrentWord();
+  }
+
+  /// Compat: chama [initWithDualFamilies] internamente.
   void initWithFamilyAndSyllables(
     SyllabicFamily family,
     List<String> activeSyllables,

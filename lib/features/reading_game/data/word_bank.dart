@@ -20,6 +20,24 @@ class SyllabicFamily {
   });
 
   int get totalWords => words.length;
+
+  /// Sílabas canônicas da família: apenas as que começam com [key].
+  /// Ex: família B → [BA, BE, BI, BO, BU].
+  List<String> get canonicalSyllables {
+    final keyUpper = key.toUpperCase();
+    final result = <String>[];
+    final seen = <String>{};
+    for (final entry in words) {
+      for (final syl in entry.syllables) {
+        final s = syl.toUpperCase();
+        if (s.startsWith(keyUpper) && seen.add(s)) result.add(s);
+      }
+    }
+    if (result.isEmpty) {
+      for (final v in ['A', 'E', 'I', 'O', 'U']) result.add('$keyUpper$v');
+    }
+    return result;
+  }
 }
 
 /// Banco de palavras com todas as famílias silábicas do alfabeto.
@@ -229,28 +247,172 @@ class WordBank {
     return families.expand((f) => f.words.map((w) => w.word)).toList();
   }
 
-  /// Retorna todas as sílabas únicas de uma família (ex: ['BA','BE','BI','BO','BU']).
+  /// Retorna apenas as sílabas canônicas de uma família (ex: ['BA','BE','BI','BO','BU']).
+  /// Sílabas secundárias das palavras (ex: LA de BALA) não são exibidas no seletor.
   static List<String> getSyllablesOfFamily(SyllabicFamily family) {
-    final seen = <String>{};
-    final result = <String>[];
-    for (final entry in family.words) {
-      for (final syl in entry.syllables) {
-        if (seen.add(syl)) result.add(syl);
-      }
-    }
-    return result;
+    return family.canonicalSyllables;
   }
 
-  /// Filtra palavras de [family] cujas sílabas estão TODAS em [selected].
-  /// Retorna lista vazia se nenhuma palavra puder ser formada.
+  /// Filtra palavras de [family] cuja sílaba canônica (começa com a chave da família)
+  /// está presente em [selected]. Sílabas secundárias não são exigidas.
   static List<WordEntry> filterBySyllables(
     SyllabicFamily family,
     List<String> selected,
   ) {
     if (selected.isEmpty) return [];
     final set = selected.toSet();
+    final keyUpper = family.key.toUpperCase();
     return family.words
-        .where((e) => e.syllables.every((s) => set.contains(s)))
+        .where((e) => e.syllables.any(
+              (s) => s.toUpperCase().startsWith(keyUpper) && set.contains(s),
+            ))
         .toList();
+  }
+
+  // ── Palavras exclusivamente cross-family (não presentes em nenhuma família) ──
+
+  static const Map<String, List<WordEntry>> _crossWords = {
+    // B + C
+    'B_C': [
+      WordEntry(word: 'BOCA',   syllables: ['BO', 'CA']),
+      WordEntry(word: 'CABO',   syllables: ['CA', 'BO']),
+      WordEntry(word: 'BECO',   syllables: ['BE', 'CO']),
+      WordEntry(word: 'CUBA',   syllables: ['CU', 'BA']),
+      WordEntry(word: 'CABE',   syllables: ['CA', 'BE']),
+      WordEntry(word: 'BOBOCA', syllables: ['BO', 'BO', 'CA']),
+      WordEntry(word: 'BICOCA', syllables: ['BI', 'CO', 'CA']),
+    ],
+    // D + T
+    'D_T': [
+      WordEntry(word: 'TUDO',   syllables: ['TU', 'DO']),
+      WordEntry(word: 'DATA',   syllables: ['DA', 'TA']),
+      WordEntry(word: 'DITO',   syllables: ['DI', 'TO']),
+      WordEntry(word: 'TODO',   syllables: ['TO', 'DO']),
+      WordEntry(word: 'TODA',   syllables: ['TO', 'DA']),
+      WordEntry(word: 'DOTE',   syllables: ['DO', 'TE']),
+      WordEntry(word: 'DITADO', syllables: ['DI', 'TA', 'DO']),
+    ],
+    // F + V
+    'F_V': [
+      WordEntry(word: 'FAVO', syllables: ['FA', 'VO']),
+      WordEntry(word: 'FAVA', syllables: ['FA', 'VA']),
+    ],
+    // L + R
+    'L_R': [
+      WordEntry(word: 'ROLA', syllables: ['RO', 'LA']),
+      WordEntry(word: 'LIRA', syllables: ['LI', 'RA']),
+      WordEntry(word: 'ROLO', syllables: ['RO', 'LO']),
+      WordEntry(word: 'RELA', syllables: ['RE', 'LA']),
+      WordEntry(word: 'RELE', syllables: ['RE', 'LE']),
+      WordEntry(word: 'LERO', syllables: ['LE', 'RO']),
+      WordEntry(word: 'LORO', syllables: ['LO', 'RO']),
+    ],
+    // M + P
+    'M_P': [
+      WordEntry(word: 'MAPA', syllables: ['MA', 'PA']),
+      WordEntry(word: 'PUMA', syllables: ['PU', 'MA']),
+    ],
+    // C + S  (CASA é palavra-âncora essencial)
+    'C_S': [
+      WordEntry(word: 'CASA', syllables: ['CA', 'SA']),
+      WordEntry(word: 'SACO', syllables: ['SA', 'CO']),
+      WordEntry(word: 'SOCA', syllables: ['SO', 'CA']),
+      WordEntry(word: 'SOCO', syllables: ['SO', 'CO']),
+    ],
+    // B + S
+    'B_S': [
+      WordEntry(word: 'SABE', syllables: ['SA', 'BE']),
+      WordEntry(word: 'SOBE', syllables: ['SO', 'BE']),
+    ],
+    // M + S
+    'M_S': [
+      WordEntry(word: 'SOMA', syllables: ['SO', 'MA']),
+      WordEntry(word: 'SUMO', syllables: ['SU', 'MO']),
+    ],
+  };
+
+  /// Filtra palavras de TODAS as famílias cujas sílabas estão em
+  /// [activePrimary] ∪ [activeSecondary], incluindo palavras cross-family.
+  /// Garante sem duplicatas via set interno.
+  static List<WordEntry> filterByDualFamilies(
+    SyllabicFamily primary,
+    List<String> activePrimary,
+    SyllabicFamily? secondary,
+    List<String> activeSecondary,
+  ) {
+    final allActive = {...activePrimary, ...activeSecondary};
+    if (allActive.isEmpty) return [];
+
+    final result = <WordEntry>[];
+    final seen = <String>{};
+
+    // Apenas palavras da família primária
+    for (final entry in primary.words) {
+      if (seen.contains(entry.word)) continue;
+      if (entry.syllables.every((s) => allActive.contains(s))) {
+        seen.add(entry.word);
+        result.add(entry);
+      }
+    }
+
+    // Palavras da família secundária (modo dual)
+    if (secondary != null) {
+      for (final entry in secondary.words) {
+        if (seen.contains(entry.word)) continue;
+        if (entry.syllables.every((s) => allActive.contains(s))) {
+          seen.add(entry.word);
+          result.add(entry);
+        }
+      }
+
+      // Palavras cross-family específicas do par
+      final keys = [primary.key, secondary.key]..sort();
+      final pairKey = keys.join('_');
+      for (final entry in _crossWords[pairKey] ?? const <WordEntry>[]) {
+        if (seen.contains(entry.word)) continue;
+        if (entry.syllables.every((s) => allActive.contains(s))) {
+          seen.add(entry.word);
+          result.add(entry);
+        }
+      }
+    }
+
+    return result;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Configuração de sessão com uma ou duas famílias silábicas
+// ─────────────────────────────────────────────────────────────────────────────
+
+class DualFamilyConfig {
+  final SyllabicFamily primary;
+  final List<String> activePrimary;
+  final SyllabicFamily? secondary;
+  final List<String> activeSecondary;
+
+  const DualFamilyConfig({
+    required this.primary,
+    required this.activePrimary,
+    this.secondary,
+    this.activeSecondary = const [],
+  });
+
+  bool get isDual => secondary != null && activeSecondary.isNotEmpty;
+
+  /// União de todas as sílabas ativas (primária + secundária).
+  List<String> get allActiveSyllables => [...activePrimary, ...activeSecondary];
+
+  /// Chave canônica da sessão (ex: 'B' ou 'B_C').
+  String get sessionKey {
+    if (!isDual) return primary.key;
+    final keys = [primary.key, secondary!.key]..sort();
+    return keys.join('_');
+  }
+
+  /// Rótulo de exibição (ex: 'Família B + C').
+  String get displayLabel {
+    if (!isDual) return primary.label;
+    return 'Família ${primary.key} + ${secondary!.key}';
   }
 }
