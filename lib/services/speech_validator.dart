@@ -169,10 +169,10 @@ class SpeechValidator {
       return;
     }
 
-    // No Android o SpeechRecognizer é de uso único — sempre re-inicializa antes de ouvir.
-    _initialized = false;
+    // O plugin Kotlin gerencia o ciclo de vida do SpeechRecognizer internamente.
+    // Só inicializa na primeira vez ou após erro permanente (_initialized=false).
     _deliverOnStatus = null;
-    debugPrint('[MIC] startListening(): inicializando STT...');
+    debugPrint('[MIC] startListening(): inicializando STT (se necessário)...');
     final ok = await initialize();
     debugPrint('[MIC] startListening(): initialize() = $ok');
     if (!ok) {
@@ -200,8 +200,6 @@ class SpeechValidator {
       delivered = true;
       _deliverOnStatus = null;
       _listening = false;
-      // Marca como não inicializado para que a próxima tentativa re-inicialize o recognizer
-      _initialized = false;
       onValidated(r);
     }
 
@@ -242,7 +240,7 @@ class SpeechValidator {
       await _stt.listen(
         localeId: _localeId,
         listenFor: timeout,
-        pauseFor: const Duration(seconds: 3),
+        pauseFor: const Duration(seconds: 6),
         listenOptions: SpeechListenOptions(
           partialResults: true,
           cancelOnError: false,
