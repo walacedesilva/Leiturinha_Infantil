@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
+import '../../../../services/progress_service.dart';
 import 'vowel_practice_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -123,12 +124,52 @@ const _kLevels = <_VowelLevel>[
 // SCREEN
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// Computes real card state and progress for each vowel from ProgressService.
+List<_VowelLevel> _computeLevels(ProgressService progress) {
+  final computed = <_VowelLevel>[];
+  bool previousCompleted = true; // First vowel (A) is always unlocked
+  for (final base in _kLevels) {
+    final key = 'vogal_${base.vowel}';
+    final fp = progress.getFamilyProgress(key, base.total);
+    final _CardState state;
+    if (!previousCompleted) {
+      state = _CardState.locked;
+    } else if (fp.isCompleted) {
+      state = _CardState.completed;
+    } else {
+      state = _CardState.active;
+    }
+    previousCompleted = fp.isCompleted;
+    computed.add(_VowelLevel(
+      vowel: base.vowel,
+      emoji: base.emoji,
+      label: base.label,
+      primary: base.primary,
+      light: base.light,
+      dark: base.dark,
+      exampleWords: base.exampleWords,
+      state: state,
+      progress: fp.completedWords,
+      total: base.total,
+      soundPhrase: base.soundPhrase,
+      objectEmojis: base.objectEmojis,
+    ));
+  }
+  return computed;
+}
+
 class VilaDasVogaisScreen extends StatelessWidget {
   const VilaDasVogaisScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final gam = context.watch<GamificationService>();
+    final progress = context.watch<ProgressService>();
+    final computedLevels = _computeLevels(progress);
+    final firstActive = computedLevels.firstWhere(
+      (l) => l.state == _CardState.active,
+      orElse: () => computedLevels.first,
+    );
     return Scaffold(
       backgroundColor: const Color(0xFF1E40AF),
       body: SafeArea(
@@ -138,7 +179,7 @@ class VilaDasVogaisScreen extends StatelessWidget {
             const _MapTitle(),
             const Expanded(child: _LevelList()),
             _PlayButton(
-              onTap: () => _navigateToInterior(context, _kLevels[1]),
+              onTap: () => _navigateToInterior(context, firstActive),
             ),
             const _BottomNav(),
           ],
@@ -295,6 +336,10 @@ class _MapTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final progress = context.watch<ProgressService>();
+    final completed = _kLevels.where((l) =>
+      progress.getFamilyProgress('vogal_${l.vowel}', l.total).isCompleted
+    ).length;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -323,9 +368,9 @@ class _MapTitle extends StatelessWidget {
               color: Colors.white.withOpacity(0.15),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
-              '🌟  1 de 5 concluído',
-              style: TextStyle(
+            child: Text(
+              '🌟  $completed de ${_kLevels.length} concluído',
+              style: const TextStyle(
                 fontFamily: 'Nunito',
                 fontSize: 13,
                 color: Colors.white70,
@@ -348,12 +393,14 @@ class _LevelList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final progress = context.watch<ProgressService>();
+    final levels = _computeLevels(progress);
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      itemCount: _kLevels.length,
+      itemCount: levels.length,
       itemBuilder: (context, idx) {
         return _LevelCard(
-          level: _kLevels[idx],
+          level: levels[idx],
           index: idx,
         )
             .animate(delay: Duration(milliseconds: 80 * idx))

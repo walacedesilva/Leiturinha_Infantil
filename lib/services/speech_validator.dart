@@ -412,6 +412,54 @@ class SpeechValidator {
       );
     }
 
+    // ── Atalho: alvo de vogal única (A/E/I/O/U) ─────────────────────────────
+    // O STT pt-BR raramente retorna a letra isolada — devolve palavras curtas
+    // como "eu", "oi", "há", "ei", "um", "ah", etc.
+    if (target.length == 1 && 'aeiou'.contains(target)) {
+      // Caso 1: heard contém a vogal-alvo (ex: "ah"→'a', "ai"→'a', "eu"→'e')
+      if (heard.contains(target)) {
+        return _buildResult(
+          status: ValidationStatus.excellent,
+          confidence: 1.0,
+          transcript: transcript,
+          targetWord: targetWord,
+          syllables: syllables,
+          level: level,
+          variations: [],
+        );
+      }
+      // Caso 2: 'h' inicial mudo — "há"→"ha", remove h e testa início
+      final withoutLeadingH = heard.replaceFirst(RegExp(r'^h+'), '');
+      if (withoutLeadingH.startsWith(target)) {
+        return _buildResult(
+          status: ValidationStatus.excellent,
+          confidence: 1.0,
+          transcript: transcript,
+          targetWord: targetWord,
+          syllables: syllables,
+          level: level,
+          variations: [],
+        );
+      }
+      // Caso 3 (beginner): heard curto (≤ 4 chars) composto quase só de vogais —
+      // STT confundiu o fonema vocálico (ex: "a" transcrito como "ei", "e", "oi").
+      // Criança claramente tentou emitir um som vocálico.
+      if (level == ValidationLevel.beginner &&
+          heard.isNotEmpty &&
+          heard.length <= 4 &&
+          heard.replaceAll(RegExp(r'[aeiouhy]'), '').length <= 1) {
+        return _buildResult(
+          status: ValidationStatus.excellent,
+          confidence: 1.0,
+          transcript: transcript,
+          targetWord: targetWord,
+          syllables: syllables,
+          level: level,
+          variations: [],
+        );
+      }
+    }
+
     // Normaliza variações fonéticas comuns
     final heardAdjusted = _applyPhoneticNormalization(heard);
     final targetAdjusted = _applyPhoneticNormalization(target);

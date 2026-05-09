@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../services/audio_manager.dart';
 import '../../../../services/speech_validator.dart';
+import 'word_practice_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VOWEL PRACTICE SCREEN
@@ -173,8 +174,35 @@ class _VowelPracticeScreenState extends State<VowelPracticeScreen>
         });
         if (ok) {
           AudioManager().playWord('Muito bem!');
-          Future.delayed(const Duration(milliseconds: 2000), () {
-            if (mounted) Navigator.of(context).pop();
+          Future.delayed(const Duration(milliseconds: 1800), () {
+            if (!mounted) return;
+            Navigator.of(context).pushReplacement(
+              PageRouteBuilder(
+                pageBuilder: (_, animation, __) => WordPracticeScreen(
+                  vowel: widget.vowel,
+                  primary: widget.primary,
+                  light: widget.light,
+                  dark: widget.dark,
+                ),
+                transitionsBuilder: (_, animation, __, child) {
+                  final curved = CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  );
+                  return FadeTransition(
+                    opacity: curved,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.08, 0),
+                        end: Offset.zero,
+                      ).animate(curved),
+                      child: child,
+                    ),
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 400),
+              ),
+            );
           });
         } else {
           Future.delayed(const Duration(milliseconds: 2500), () {
