@@ -77,6 +77,25 @@ class AudioManager {
     }
   }
 
+  /// Fala a palavra completa em velocidade reduzida (0.25x) para aprendizado.
+  Future<void> playWordSlow(String word) async {
+    try {
+      await _ensureTTS();
+      await _tts.stop();
+      await _tts.setSpeechRate(0.25);
+      await _tts.speak(word.toUpperCase());
+      // Restaura velocidade normal após conclusão
+      _tts.setCompletionHandler(() async {
+        await _tts.setSpeechRate(0.45);
+      });
+    } catch (e) {
+      debugPrint('TTS palavra lenta: $word - $e');
+      _fallbackFeedback();
+      // Garante restauração da velocidade em caso de erro
+      try { await _tts.setSpeechRate(0.45); } catch (_) {}
+    }
+  }
+
   /// Toca efeito sonoro em player descartavel.
   Future<void> playSFX(SFXType type) async {
     final file = switch (type) {

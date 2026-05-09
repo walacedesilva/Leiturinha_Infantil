@@ -11,6 +11,15 @@ enum ValidationStatus { excellent, almostThere, tryAgain, listenRepeat }
 
 enum ValidationLevel { beginner, intermediate, advanced }
 
+/// Tipo de padrão de soletração detectado no transcript STT.
+/// [none] = pronúncia normal (sem soletração detectada).
+enum SpellingType {
+  none,             // Pronúncia normal — sem soletração
+  letterSpelling,   // Nomeia as letras: "bê-a" ao invés de "ba"
+  separatedLetters, // Letras isoladas: "b... a"
+  supportVowel,     // Vogal de apoio: consoante+"ê" → "bêa" ao invés de "ba"
+}
+
 class SyllableResult {
   final String syllable;
   final double accuracy;
@@ -36,6 +45,10 @@ class ValidationResult {
   final String feedbackEmoji;
   final String nextAction; // 'advance' | 'retry' | 'reinforce'
 
+  // Soletração detectada
+  final SpellingType spellingType;
+  final String spellingExplanation;
+
   const ValidationResult({
     required this.status,
     required this.confidence,
@@ -47,11 +60,15 @@ class ValidationResult {
     required this.feedbackMessage,
     required this.feedbackEmoji,
     required this.nextAction,
+    this.spellingType = SpellingType.none,
+    this.spellingExplanation = '',
   });
 
+  /// Sucesso apenas quando não há soletração detectada E o status é positivo.
   bool get isSuccess =>
-      status == ValidationStatus.excellent ||
-      status == ValidationStatus.almostThere;
+      spellingType == SpellingType.none &&
+      (status == ValidationStatus.excellent ||
+          status == ValidationStatus.almostThere);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -323,6 +340,38 @@ class SpeechValidator {
   }
 
   // ────────────────────────────────────────────────
+  // HOOKS DE TESTE (não usar em produção)
+  // ────────────────────────────────────────────────
+
+  /// Exposto apenas para testes unitários.
+  @visibleForTesting
+  SpellingType detectSpellingPatternForTest({
+    required String rawTranscript,
+    required String targetWord,
+    required List<String> syllables,
+  }) =>
+      _detectSpellingPattern(
+        rawTranscript: rawTranscript,
+        targetWord: targetWord,
+        syllables: syllables,
+      );
+
+  /// Exposto apenas para testes unitários.
+  @visibleForTesting
+  ValidationResult validateForTest({
+    required String transcript,
+    required String targetWord,
+    required List<String> syllables,
+    ValidationLevel level = ValidationLevel.beginner,
+  }) =>
+      _validate(
+        transcript: transcript,
+        targetWord: targetWord,
+        syllables: syllables,
+        level: level,
+      );
+
+  // ────────────────────────────────────────────────
   // VALIDAÇÃO FONÉTICA
   // ────────────────────────────────────────────────
 
@@ -344,6 +393,22 @@ class SpeechValidator {
         syllables: syllables,
         level: level,
         variations: ['silencio'],
+      );
+    }
+
+    // ── Detecção de soletração (sobre transcript bruto, antes de normalizar) ──
+    final spellingType = _detectSpellingPattern(
+      rawTranscript: transcript,
+      targetWord: targetWord,
+      syllables: syllables,
+    );
+    if (spellingType != SpellingType.none) {
+      return _buildSpellingResult(
+        spellingType: spellingType,
+        transcript: transcript,
+        targetWord: targetWord,
+        syllables: syllables,
+        level: level,
       );
     }
 
@@ -457,6 +522,111 @@ class SpeechValidator {
   // ────────────────────────────────────────────────
   // UTILIDADES FONÉTICAS
   // ────────────────────────────────────────────────
+
+  /// Detecta se o transcript bruto (pré-normalização) indica soletração.
+  /// Opera sobre o texto cru para preservar acentos diagnósticos (ê, é).
+  SpellingType _detectSpellingPattern({
+    required String rawTranscript,
+    required String targetWord,
+    required List<String> syllables,
+  }) {
+    if (rawTranscript.trim().isEmpty) return SpellingType.none;
+    final lower = rawTranscript.toLowerCase().trim();
+    final tokens = lower.split(RegExp(r'\s+'));
+
+    // ── 1. Nomes de letras reconhecíveis (sem ambiguidade no contexto) ─
+    // Verificado ANTES do regex de vogal de apoio porque "bê", "pê", etc.
+    // correspondem a ambos os critérios — aqui a intenção é sempre letra nomeada.
+    const letterNames = {
+      'eme', 'ene', 'erre', 'jota', 'efe', 'xis',
+      'agá', 'aga', 'dábliu', 'dabliu', 'ípsilon', 'ipsilon',
+      'bê', 'pê', 'tê', 'cê', 'gê', 'zê', 'quê', 'ká', 'ka',
+    };
+    for (final token in tokens) {
+      if (letterNames.contains(token)) {
+        return SpellingType.letterSpelling;
+      }
+    }
+
+    // ── 2. Vogal de apoio: token = [consoante][ê/é] ──────────────────
+    // Ex: criança diz "fê" ao invés de "fa", "mé" ao invés de "ma"
+    // (letras nomeadas como "bê"/"pê" já foram capturadas acima)
+    final supportVowelToken = RegExp(r'^[bcdfghjklmnpqrstvwxyz][êé]$');
+    for (final token in tokens) {
+      if (supportVowelToken.hasMatch(token)) {
+        return SpellingType.supportVowel;
+      }
+    }
+
+    // ── 3. Letras separadas formando a palavra-alvo ──────────────────
+    // Ex: "b a" para "BA" ou "b o l a" para "BOLA"
+    if (tokens.length >= 2) {
+      final singleAlphaRe = RegExp(r'^[a-záéíóúâêîôûãõç]$');
+      final allSingleAlpha = tokens.every((t) => singleAlphaRe.hasMatch(t));
+      if (allSingleAlpha) {
+        final joined = tokens.join('');
+        final targetNorm = _normalize(targetWord);
+        if (_levenshtein(joined, targetNorm) <= 1) {
+          return SpellingType.separatedLetters;
+        }
+      }
+    }
+
+    return SpellingType.none;
+  }
+
+  /// Constrói [ValidationResult] específico para soletração detectada.
+  ValidationResult _buildSpellingResult({
+    required SpellingType spellingType,
+    required String transcript,
+    required String targetWord,
+    required List<String> syllables,
+    required ValidationLevel level,
+  }) {
+    final heardNorm = _applyPhoneticNormalization(_normalize(transcript));
+    final syllableResults = _scoreSyllables(
+      syllables: syllables,
+      heardText: heardNorm,
+      level: level,
+    );
+
+    final sylFormatted = _formatSyllables(syllables);
+    final wordUpper = syllables.map((s) => s.toUpperCase()).join('');
+
+    final (String msg, String explanation, String emoji) = switch (spellingType) {
+      SpellingType.letterSpelling => (
+        'Fale a palavra toda: $sylFormatted',
+        'Você está soletrando as letrinhas! Em vez de dizer cada letra, fale a palavra inteira: $wordUpper!',
+        '🔤',
+      ),
+      SpellingType.separatedLetters => (
+        'Junte as letrinhas! Fale: $sylFormatted',
+        'As letras precisam ficar juntinhas! Fale assim: $wordUpper (tudo junto!)',
+        '🔗',
+      ),
+      SpellingType.supportVowel => (
+        'Tire o "Ê" do meio! Fala: $sylFormatted',
+        'Não precisa do "ê"! Fale direto: ${syllables.first.toUpperCase()} (tudo junto!)',
+        '👄',
+      ),
+      SpellingType.none => ('', '', ''), // inalcançável
+    };
+
+    return ValidationResult(
+      status: ValidationStatus.tryAgain,
+      confidence: 0.0,
+      transcript: transcript,
+      targetWord: targetWord,
+      syllableResults: syllableResults,
+      detectedVariations: const [],
+      variationsAllowed: true,
+      feedbackMessage: msg,
+      feedbackEmoji: emoji,
+      nextAction: 'retry',
+      spellingType: spellingType,
+      spellingExplanation: explanation,
+    );
+  }
 
   String _normalize(String s) {
     return s

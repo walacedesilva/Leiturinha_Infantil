@@ -44,6 +44,10 @@ class GameLogic extends ChangeNotifier {
   // Config da sessão (pode ser dual-family)
   DualFamilyConfig? _dualConfig;
 
+  // Modo direto: pula montagem por arrastar, exibe palavra completa imediatamente
+  bool _directMode = false;
+  bool get directMode => _directMode;
+
   // Validação fonética
   ValidationResult? _lastValidation;
   String _partialTranscript = '';
@@ -72,6 +76,7 @@ class GameLogic extends ChangeNotifier {
   String get partialTranscript => _partialTranscript;
   int get validationAttempts => _validationAttempts;
   bool get canRetryValidation => _validationAttempts < _maxAttempts;
+  int get maxValidationAttempts => _maxAttempts;
 
   // ────────────────────────────────────────────────
   // INICIALIZAÇÃO
@@ -132,6 +137,44 @@ class GameLogic extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Modo direto (Desafio de Pronúncia): inicializa a família sem fase de montagem.
+  /// Cada palavra aparece já formada — a criança só precisa pronunciar.
+  void initWithFamilyDirect(SyllabicFamily family) {
+    _family = family;
+    _directMode = true;
+    _dualConfig = null;
+    sessionTracking.startSession();
+    _sessionCoins = 0;
+    _sessionXp = 0;
+    _sessionBadges = [];
+    final completed = _progressService.getCompletedWords(family.key);
+    _pendingWords = family.words
+        .where((e) => !completed.contains(e.word))
+        .toList();
+    _currentIndex = 0;
+    if (_pendingWords.isEmpty) {
+      _state = GameState.familyDone;
+      _currentWord = '';
+      notifyListeners();
+    } else {
+      _loadCurrentWordDirect();
+    }
+  }
+
+  void _loadCurrentWordDirect() {
+    final entry = _pendingWords[_currentIndex];
+    _currentWord = entry.word;
+    _targetSyllables = List<String>.from(entry.syllables);
+    // Palavra já "montada": todos os slots preenchidos com a sílaba correta
+    _placedSyllables = List<String?>.from(entry.syllables);
+    _availableSyllables = [];
+    _state = GameState.completed; // pula montagem
+    _lastValidation = null;
+    _partialTranscript = '';
+    _validationAttempts = 0;
+    notifyListeners();
+  }
+
   // ────────────────────────────────────────────────
   // INTERAÇÕES DE JOGO
   // ────────────────────────────────────────────────
@@ -180,6 +223,19 @@ class GameLogic extends ChangeNotifier {
     _lastWordPlay = now;
     HapticFeedback.selectionClick();
     await _audioManager.playWord(_currentWord.toLowerCase());
+  }
+
+  /// Toca a palavra em velocidade reduzida para facilitar aprendizado (🐌).
+  Future<void> playFormedWordSlow() async {
+    if (_state != GameState.completed && _state != GameState.validated) return;
+
+    final now = DateTime.now();
+    if (_lastWordPlay != null &&
+        now.difference(_lastWordPlay!).inMilliseconds < 300) return;
+
+    _lastWordPlay = now;
+    HapticFeedback.selectionClick();
+    await _audioManager.playWordSlow(_currentWord.toLowerCase());
   }
 
   // ────────────────────────────────────────────────
@@ -299,7 +355,11 @@ class GameLogic extends ChangeNotifier {
       lastSession = await sessionTracking.endSession();
       notifyListeners();
     } else {
-      _loadCurrentWord();
+      if (_directMode) {
+        _loadCurrentWordDirect();
+      } else {
+        _loadCurrentWord();
+      }
     }
   }
 

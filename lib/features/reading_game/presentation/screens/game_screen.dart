@@ -344,8 +344,63 @@ class _NextButton extends StatelessWidget {
 }
 
 /// Converte [ValidationResult] em dados visuais para o card de feedback.
+/// Converte [ValidationResult] em dados visuais para o card de feedback.
 ValidationFeedbackData _buildFeedbackData(
     ValidationResult r, bool canRetry) {
+  // ── Soletração detectada → feedback pedagógico específico ──────────
+  if (r.spellingType != SpellingType.none) {
+    return switch (r.spellingType) {
+      SpellingType.letterSpelling => ValidationFeedbackData(
+          emoji: '🔤',
+          title: 'Soletrando!',
+          message: r.spellingExplanation,
+          confidence: 0.0,
+          backgroundColor: const Color(0xFFFFF3E0),
+          borderColor: Colors.deepOrange,
+          titleColor: Colors.deepOrange,
+          showRetry: canRetry,
+          nextAction: 'retry',
+          advanceLabel: 'Pular',
+        ),
+      SpellingType.separatedLetters => ValidationFeedbackData(
+          emoji: '🔗',
+          title: 'Junte as Letras!',
+          message: r.spellingExplanation,
+          confidence: 0.0,
+          backgroundColor: const Color(0xFFFFF9E6),
+          borderColor: Colors.amber,
+          titleColor: Colors.orange,
+          showRetry: canRetry,
+          nextAction: 'retry',
+          advanceLabel: 'Pular',
+        ),
+      SpellingType.supportVowel => ValidationFeedbackData(
+          emoji: '👄',
+          title: 'Quase Lá!',
+          message: r.spellingExplanation,
+          confidence: 0.0,
+          backgroundColor: const Color(0xFFFFF3E0),
+          borderColor: Colors.orange,
+          titleColor: Colors.orange,
+          showRetry: canRetry,
+          nextAction: 'retry',
+          advanceLabel: 'Pular',
+        ),
+      SpellingType.none => ValidationFeedbackData(
+          emoji: '🔄',
+          title: 'Tente Mais Uma Vez',
+          message: r.feedbackMessage,
+          confidence: r.confidence,
+          backgroundColor: const Color(0xFFFFF3F3),
+          borderColor: Colors.deepOrange,
+          titleColor: Colors.deepOrange,
+          showRetry: canRetry,
+          nextAction: 'retry',
+          advanceLabel: 'Pular',
+        ),
+    };
+  }
+
   return switch (r.status) {
     ValidationStatus.excellent => ValidationFeedbackData(
         emoji: '🌟',

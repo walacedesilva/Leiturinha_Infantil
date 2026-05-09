@@ -29,6 +29,7 @@ class ProgressService extends ChangeNotifier {
   final SharedPreferences _prefs;
 
   static const String _progressPrefix = 'progress_';
+  static const String _lastFamilyKey = 'last_played_family';
 
   ProgressService(this._prefs);
 
@@ -85,6 +86,18 @@ class ProgressService extends ChangeNotifier {
       await _prefs.remove('$_progressPrefix$key');
     }
     notifyListeners();
+  }
+
+  // ────────────────────────────────────────────────
+  // ÚLTIMA FAMÍLIA JOGADA
+  // ────────────────────────────────────────────────
+
+  /// Retorna a chave da última família jogada, ou null se nunca jogou.
+  String? getLastPlayedFamilyKey() => _prefs.getString(_lastFamilyKey);
+
+  /// Salva a última família jogada.
+  Future<void> saveLastPlayedFamily(String familyKey) async {
+    await _prefs.setString(_lastFamilyKey, familyKey);
   }
 
   // ────────────────────────────────────────────────

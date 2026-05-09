@@ -222,6 +222,19 @@ class GamificationService extends ChangeNotifier {
   }
 
   // ────────────────────────────────────────────────────────────────────────
+  // LOJA — gastar moedas
+  // ────────────────────────────────────────────────────────────────────────
+
+  /// Tenta gastar [amount] moedas. Retorna `true` se havia saldo suficiente.
+  Future<bool> spendCoins(int amount) async {
+    if (_state.coins < amount) return false;
+    _state = _state.copyWith(coins: _state.coins - amount);
+    await _save();
+    notifyListeners();
+    return true;
+  }
+
+  // ────────────────────────────────────────────────────────────────────────
   // ADAPTAÇÃO DINÂMICA
   // ────────────────────────────────────────────────────────────────────────
 
