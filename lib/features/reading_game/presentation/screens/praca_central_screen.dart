@@ -9,9 +9,14 @@ import 'castelo_das_palavras_screen.dart';
 import 'circo_das_rimas_screen.dart';
 import 'distrito_da_construcao_screen.dart';
 import 'ilha_das_palavras_screen.dart';
+import 'distrito_da_aventura_screen.dart';
+import 'distrito_digrafos_screen.dart';
+import 'distrito_encontros_screen.dart';
 import 'metro_transition_screen.dart';
 import 'parque_das_familias_screen.dart';
 import 'vila_das_vogais_screen.dart';
+import '../../../../services/avatar_service.dart';
+import 'perfil_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA MODEL
@@ -101,7 +106,7 @@ const _kDistricts = <_DistrictDef>[
     emoji: '🚀',
     primary: Color(0xFF1565C0),
     light: Color(0xFFE3F2FD),
-    comingSoon: true,
+    comingSoon: false,
   ),
   _DistrictDef(
     id: 'digrafos',
@@ -110,16 +115,16 @@ const _kDistricts = <_DistrictDef>[
     emoji: '🔮',
     primary: Color(0xFF5E35B1),
     light: Color(0xFFEDE7F6),
-    comingSoon: true,
+    comingSoon: false,
   ),
   _DistrictDef(
     id: 'encontros',
     name: 'Encontros Cons.',
     subtitle: 'BR · CL · TR · FL',
     emoji: '🏭',
-    primary: Color(0xFF00897B),
-    light: Color(0xFFE0F2F1),
-    comingSoon: true,
+    primary: Color(0xFFF97316),
+    light: Color(0xFFFFF7ED),
+    comingSoon: false,
   ),
 ];
 
@@ -234,6 +239,21 @@ class _PracaCentralScreenState extends State<PracaCentralScreen>
         screen = const MetroTransitionScreen(
           districtName: 'Circo das Rimas',
           destination: CircoDasRimasScreen(),
+        );
+      case 'aventura':
+        screen = const MetroTransitionScreen(
+          districtName: 'Distrito da Aventura',
+          destination: DistritoAventuraScreen(),
+        );
+      case 'digrafos':
+        screen = const MetroTransitionScreen(
+          districtName: 'Distrito dos Dígrafos',
+          destination: DistritoDigrafosScreen(),
+        );
+      case 'encontros':
+        screen = const MetroTransitionScreen(
+          districtName: 'Encontros Consonantais',
+          destination: DistritoEncontrosScreen(),
         );
     }
     if (screen == null) {
@@ -593,24 +613,35 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
       child: Row(
         children: [
-          // Avatar
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF8B5CF6), width: 3.5),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.30),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+          // Avatar (toca → Perfil)
+          GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const PerfilScreen()),
             ),
-            child:
-                const Center(child: Text('👦', style: TextStyle(fontSize: 26))),
+            child: Consumer<AvatarService>(
+              builder: (ctx, av, _) {
+                final emoji = av.activeStyle?.emoji ?? '🧒';
+                return Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFF8B5CF6), width: 3.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF8B5CF6).withOpacity(0.30),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(emoji, style: const TextStyle(fontSize: 26)),
+                  ),
+                );
+              },
+            ),
           ),
           const SizedBox(width: 12),
           // Title + level

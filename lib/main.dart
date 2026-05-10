@@ -10,6 +10,7 @@ import 'services/audio_manager.dart';
 import 'services/gamification_service.dart';
 import 'services/progress_service.dart';
 import 'services/session_tracking_service.dart';
+import 'services/avatar_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,10 @@ void main() async {
         // SessionTrackingService depende de SharedPreferences
         ChangeNotifierProvider<SessionTrackingService>(
           create: (_) => SessionTrackingService(prefs),
+        ),
+        // AvatarService — personalização do avatar
+        ChangeNotifierProvider<AvatarService>(
+          create: (_) => AvatarService(prefs),
         ),
         // GameLogic depende de ProgressService, AudioManager, GamificationService e SessionTrackingService
         ChangeNotifierProxyProvider3<ProgressService, GamificationService,

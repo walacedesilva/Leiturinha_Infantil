@@ -258,6 +258,26 @@ class GamificationService extends ChangeNotifier {
     await _save();
     notifyListeners();
   }
+
+  // ────────────────────────────────────────────────────────────────────────
+  // HELPERS: recompensas diretas (usadas por mini-atividades externas)
+  // ────────────────────────────────────────────────────────────────────────
+
+  /// Adiciona XP diretamente. [source] é apenas informativo para logs.
+  Future<void> addXp(int amount, {String source = ''}) async {
+    if (amount <= 0) return;
+    _state = _state.copyWith(xp: _state.xp + amount);
+    await _save();
+    notifyListeners();
+  }
+
+  /// Adiciona moedas diretamente.
+  Future<void> addCoins(int amount) async {
+    if (amount <= 0) return;
+    _state = _state.copyWith(coins: _state.coins + amount);
+    await _save();
+    notifyListeners();
+  }
 }
 
 enum DifficultyHint { normal, increaseChallenge, offerHelp }
