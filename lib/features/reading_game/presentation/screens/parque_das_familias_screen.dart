@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
+import '../../../../services/progress_service.dart';
 import '../../data/word_bank.dart';
 import 'syllable_selector_screen.dart';
 
@@ -13,27 +14,27 @@ import 'syllable_selector_screen.dart';
 // CONSTANTS & DATA MODEL
 // ─────────────────────────────────────────────────────────────────────────────
 
-enum _BCardState { completed, active, locked }
+enum _PCardState { completed, active, locked }
 
-class _FamilyBuilding {
+class _ParkFamily {
   final String letter;
-  final String buildingEmoji;
-  final String buildingType;
+  final String attractionEmoji;
+  final String attractionName;
   final String mascot;
   final Color primary;
   final Color light;
   final Color dark;
   final List<String> syllables;
   final List<String> exampleWords;
-  final _BCardState state;
+  final _PCardState state;
   final int progress;
   final int total;
   final String familyKey;
 
-  const _FamilyBuilding({
+  const _ParkFamily({
     required this.letter,
-    required this.buildingEmoji,
-    required this.buildingType,
+    required this.attractionEmoji,
+    required this.attractionName,
     required this.mascot,
     required this.primary,
     required this.light,
@@ -47,81 +48,66 @@ class _FamilyBuilding {
   });
 }
 
-const _kBuildings = <_FamilyBuilding>[
-  _FamilyBuilding(
-    letter: 'B',
-    buildingEmoji: '🏢',
-    buildingType: 'Prédio do B',
-    mascot: '🐝',
-    primary: Color(0xFFF97316),
-    light: Color(0xFFFFEDD5),
-    dark: Color(0xFFC2410C),
-    syllables: ['BA', 'BE', 'BI', 'BO', 'BU'],
-    exampleWords: ['BALA', 'BELO', 'BICO', 'BOLO', 'BULE'],
-    state: _BCardState.completed,
-    progress: 5,
-    total: 5,
-    familyKey: 'B',
-  ),
-  _FamilyBuilding(
-    letter: 'C',
-    buildingEmoji: '🏫',
-    buildingType: 'Escola do C',
-    mascot: '🐛',
-    primary: Color(0xFF22C55E),
-    light: Color(0xFFDCFCE7),
-    dark: Color(0xFF166534),
-    syllables: ['CA', 'CE', 'CI', 'CO', 'CU'],
-    exampleWords: ['CAMA', 'CEDO', 'CIMA', 'COCO', 'CUBO'],
-    state: _BCardState.active,
-    progress: 2,
-    total: 5,
-    familyKey: 'C',
-  ),
-  _FamilyBuilding(
-    letter: 'D',
-    buildingEmoji: '🚒',
-    buildingType: 'Bombeiros do D',
-    mascot: '🦆',
-    primary: Color(0xFF3B82F6),
-    light: Color(0xFFDBEAFE),
-    dark: Color(0xFF1D4ED8),
-    syllables: ['DA', 'DE', 'DI', 'DO', 'DU'],
-    exampleWords: ['DADO', 'DEDO', 'DICA', 'DOCE', 'DUNA'],
-    state: _BCardState.locked,
+const _kFamilies = <_ParkFamily>[
+  _ParkFamily(
+    letter: 'J',
+    attractionEmoji: '🎡',
+    attractionName: 'Parquinho do J',
+    mascot: '🦎',
+    primary: Color(0xFF7C3AED),
+    light: Color(0xFFEDE9FE),
+    dark: Color(0xFF4C1D95),
+    syllables: ['JA', 'JE', 'JI', 'JO', 'JU'],
+    exampleWords: ['JACA', 'JATO', 'JIPE', 'JOGO', 'JUBA'],
+    state: _PCardState.active,
     progress: 0,
     total: 5,
-    familyKey: 'D',
+    familyKey: 'J',
   ),
-  _FamilyBuilding(
-    letter: 'F',
-    buildingEmoji: '🍞',
-    buildingType: 'Padaria do F',
-    mascot: '🦋',
-    primary: Color(0xFFA855F7),
-    light: Color(0xFFF3E8FF),
-    dark: Color(0xFF6B21A8),
-    syllables: ['FA', 'FE', 'FI', 'FO', 'FU'],
-    exampleWords: ['FADA', 'FETO', 'FITA', 'FOCA', 'FUMO'],
-    state: _BCardState.locked,
+  _ParkFamily(
+    letter: 'L',
+    attractionEmoji: '🌊',
+    attractionName: 'Lagoa do L',
+    mascot: '🦁',
+    primary: Color(0xFF0284C7),
+    light: Color(0xFFE0F2FE),
+    dark: Color(0xFF0C4A6E),
+    syllables: ['LA', 'LE', 'LI', 'LO', 'LU'],
+    exampleWords: ['LAMA', 'LEVE', 'LIMA', 'LONA', 'LUPA'],
+    state: _PCardState.locked,
     progress: 0,
     total: 5,
-    familyKey: 'F',
+    familyKey: 'L',
   ),
-  _FamilyBuilding(
+  _ParkFamily(
     letter: 'M',
-    buildingEmoji: '📚',
-    buildingType: 'Biblioteca do M',
-    mascot: '🐛',
-    primary: Color(0xFFEF4444),
-    light: Color(0xFFFEE2E2),
-    dark: Color(0xFF991B1B),
+    attractionEmoji: '🌺',
+    attractionName: 'Jardim do M',
+    mascot: '🦋',
+    primary: Color(0xFFDB2777),
+    light: Color(0xFFFCE7F3),
+    dark: Color(0xFF831843),
     syllables: ['MA', 'ME', 'MI', 'MO', 'MU'],
-    exampleWords: ['MALA', 'MEDO', 'MICO', 'MOTO', 'MULA'],
-    state: _BCardState.locked,
+    exampleWords: ['MALA', 'MESA', 'MICO', 'MOLA', 'MULA'],
+    state: _PCardState.locked,
     progress: 0,
     total: 5,
     familyKey: 'M',
+  ),
+  _ParkFamily(
+    letter: 'N',
+    attractionEmoji: '🌿',
+    attractionName: 'Natureza do N',
+    mascot: '🐦',
+    primary: Color(0xFF059669),
+    light: Color(0xFFD1FAE5),
+    dark: Color(0xFF064E3B),
+    syllables: ['NA', 'NE', 'NI', 'NO', 'NU'],
+    exampleWords: ['NABO', 'NENE', 'NIDO', 'NOTA', 'NUCA'],
+    state: _PCardState.locked,
+    progress: 0,
+    total: 5,
+    familyKey: 'N',
   ),
 ];
 
@@ -129,22 +115,33 @@ const _kBuildings = <_FamilyBuilding>[
 // SCREEN
 // ─────────────────────────────────────────────────────────────────────────────
 
-class BairroDasFamiliasScreen extends StatelessWidget {
-  const BairroDasFamiliasScreen({super.key});
+class ParqueDasFamiliasScreen extends StatelessWidget {
+  const ParqueDasFamiliasScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final gam = context.watch<GamificationService>();
+    final progress = context.watch<ProgressService>();
+    final families = _buildFamilies(progress);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF14532D),
+      backgroundColor: const Color(0xFF1B5E20),
       body: SafeArea(
         child: Column(
           children: [
             _Header(coins: gam.state.coins),
-            const _MapTitle(),
-            const Expanded(child: _BuildingList()),
+            const _ParkTitle(),
+            Expanded(
+              child: _FamilyList(families: families),
+            ),
             _PlayButton(
-              onTap: () => _openBuilding(context, _kBuildings[1]),
+              onTap: () {
+                final first = families.firstWhere(
+                  (f) => f.state != _PCardState.locked,
+                  orElse: () => families.first,
+                );
+                _openFamily(context, first);
+              },
             ),
             const _BottomNav(),
           ],
@@ -153,13 +150,55 @@ class BairroDasFamiliasScreen extends StatelessWidget {
     );
   }
 
-  static void _openBuilding(BuildContext context, _FamilyBuilding building) {
-    if (building.state == _BCardState.locked) return;
+  /// Builds family list with dynamic state from ProgressService.
+  List<_ParkFamily> _buildFamilies(ProgressService progress) {
+    return _kFamilies.map((f) {
+      final fp = progress.getFamilyProgress('consonant_${f.familyKey}', f.total);
+      final done = fp.completedWords;
+      _PCardState state;
+      if (done >= f.total) {
+        state = _PCardState.completed;
+      } else if (done > 0 || f == _kFamilies.first) {
+        state = _PCardState.active;
+      } else {
+        // Unlock if previous family is completed
+        final idx = _kFamilies.indexOf(f);
+        if (idx > 0) {
+          final prevKey = _kFamilies[idx - 1].familyKey;
+          final prevFp =
+              progress.getFamilyProgress('consonant_$prevKey', _kFamilies[idx - 1].total);
+          state = prevFp.completedWords >= _kFamilies[idx - 1].total
+              ? _PCardState.active
+              : _PCardState.locked;
+        } else {
+          state = _PCardState.active;
+        }
+      }
+      return _ParkFamily(
+        letter: f.letter,
+        attractionEmoji: f.attractionEmoji,
+        attractionName: f.attractionName,
+        mascot: f.mascot,
+        primary: f.primary,
+        light: f.light,
+        dark: f.dark,
+        syllables: f.syllables,
+        exampleWords: f.exampleWords,
+        state: state,
+        progress: done,
+        total: f.total,
+        familyKey: f.familyKey,
+      );
+    }).toList();
+  }
+
+  static void _openFamily(BuildContext context, _ParkFamily family) {
+    if (family.state == _PCardState.locked) return;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _BuildingSheet(building: building),
+      builder: (_) => _FamilySheet(family: family),
     );
   }
 }
@@ -201,7 +240,7 @@ class _Header extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const LinearGradient(
-                colors: [Color(0xFF4ADE80), Color(0xFF22C55E)],
+                colors: [Color(0xFF4ADE80), Color(0xFF16A34A)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -215,7 +254,7 @@ class _Header extends StatelessWidget {
               ],
             ),
             child: const Center(
-              child: Text('🧒', style: TextStyle(fontSize: 22)),
+              child: Text('🐻', style: TextStyle(fontSize: 22)),
             ),
           ),
           const SizedBox(width: 10),
@@ -223,9 +262,9 @@ class _Header extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Nível 2  🏆',
+              children: const [
+                Text(
+                  'Nível 3  🏆',
                   style: TextStyle(
                     fontFamily: 'Nunito',
                     fontSize: 11,
@@ -233,8 +272,8 @@ class _Header extends StatelessWidget {
                     height: 1,
                   ),
                 ),
-                const Text(
-                  'Explorador',
+                Text(
+                  'Aventureiro',
                   style: TextStyle(
                     fontFamily: 'Nunito',
                     fontSize: 17,
@@ -287,11 +326,11 @@ class _Header extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MAP TITLE
+// PARK TITLE
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _MapTitle extends StatelessWidget {
-  const _MapTitle();
+class _ParkTitle extends StatelessWidget {
+  const _ParkTitle();
 
   @override
   Widget build(BuildContext context) {
@@ -300,7 +339,7 @@ class _MapTitle extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            '🏠 BAIRRO DAS FAMÍLIAS',
+            '🌳 PARQUE DAS FAMÍLIAS',
             style: TextStyle(
               fontFamily: 'Nunito',
               fontSize: 22,
@@ -324,7 +363,7 @@ class _MapTitle extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Text(
-              '⭐  1 de 5 famílias concluída',
+              '🌿  Famílias J · L · M · N',
               style: TextStyle(
                 fontFamily: 'Nunito',
                 fontSize: 13,
@@ -340,19 +379,20 @@ class _MapTitle extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BUILDING LIST
+// FAMILY LIST
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BuildingList extends StatelessWidget {
-  const _BuildingList();
+class _FamilyList extends StatelessWidget {
+  final List<_ParkFamily> families;
+  const _FamilyList({required this.families});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      itemCount: _kBuildings.length,
+      itemCount: families.length,
       itemBuilder: (context, idx) {
-        return _BuildingCard(building: _kBuildings[idx], index: idx)
+        return _FamilyCard(family: families[idx], index: idx)
             .animate(delay: Duration(milliseconds: 80 * idx))
             .fadeIn(duration: 400.ms)
             .slideX(begin: 0.08, end: 0, duration: 400.ms, curve: Curves.easeOut);
@@ -362,30 +402,30 @@ class _BuildingList extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BUILDING CARD
+// FAMILY CARD
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BuildingCard extends StatelessWidget {
-  final _FamilyBuilding building;
+class _FamilyCard extends StatelessWidget {
+  final _ParkFamily family;
   final int index;
 
-  const _BuildingCard({required this.building, required this.index});
+  const _FamilyCard({required this.family, required this.index});
 
   void _onTap(BuildContext context) {
-    if (building.state == _BCardState.locked) return;
+    if (family.state == _PCardState.locked) return;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _BuildingSheet(building: building),
+      builder: (_) => _FamilySheet(family: family),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLocked = building.state == _BCardState.locked;
-    final isCompleted = building.state == _BCardState.completed;
-    final isActive = building.state == _BCardState.active;
+    final isLocked = family.state == _PCardState.locked;
+    final isCompleted = family.state == _PCardState.completed;
+    final isActive = family.state == _PCardState.active;
 
     return GestureDetector(
       onTap: () => _onTap(context),
@@ -397,7 +437,7 @@ class _BuildingCard extends StatelessWidget {
               ? []
               : [
                   BoxShadow(
-                    color: building.primary.withOpacity(isActive ? 0.45 : 0.25),
+                    color: family.primary.withOpacity(isActive ? 0.45 : 0.25),
                     blurRadius: isActive ? 22 : 14,
                     offset: const Offset(0, 6),
                   ),
@@ -418,47 +458,43 @@ class _BuildingCard extends StatelessWidget {
                           end: Alignment.bottomRight,
                         )
                       : LinearGradient(
-                          colors: [building.light, Colors.white],
+                          colors: [family.light, Colors.white],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                 ),
                 child: Row(
                   children: [
-                    // Progress ring + letter
-                    _BuildingRing(building: building),
+                    _FamilyRing(family: family),
                     const SizedBox(width: 14),
-                    // Content
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            building.buildingType,
+                            family.attractionName,
                             style: TextStyle(
                               fontFamily: 'Nunito',
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: isLocked
                                   ? const Color(0xFF9CA3AF)
-                                  : building.dark,
+                                  : family.dark,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          _BStateLabel(building: building),
+                          _PStateLabel(family: family),
                           if (!isLocked) ...[
                             const SizedBox(height: 8),
-                            // Syllable chips
-                            _SyllableChips(building: building),
+                            _SyllableChips(family: family),
                             const SizedBox(height: 8),
-                            _BProgressBar(building: building),
+                            _PProgressBar(family: family),
                           ],
                         ],
                       ),
                     ),
                     const SizedBox(width: 10),
-                    // Right side
-                    _BuildingRight(building: building),
+                    _FamilyRight(family: family),
                   ],
                 ),
               ),
@@ -470,7 +506,7 @@ class _BuildingCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: building.primary.withOpacity(0.70),
+                          color: family.primary.withOpacity(0.70),
                           width: 2.5,
                         ),
                       ),
@@ -488,9 +524,9 @@ class _BuildingCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          building.primary,
-                          building.light,
-                          building.primary
+                          family.primary,
+                          family.light,
+                          family.primary,
                         ],
                       ),
                     ),
@@ -515,17 +551,17 @@ class _BuildingCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BUILDING RING (progress circle with letter)
+// FAMILY RING
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BuildingRing extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _BuildingRing({required this.building});
+class _FamilyRing extends StatelessWidget {
+  final _ParkFamily family;
+  const _FamilyRing({required this.family});
 
   @override
   Widget build(BuildContext context) {
-    final isLocked = building.state == _BCardState.locked;
-    final isCompleted = building.state == _BCardState.completed;
+    final isLocked = family.state == _PCardState.locked;
+    final isCompleted = family.state == _PCardState.completed;
 
     return SizedBox(
       width: 72,
@@ -536,11 +572,11 @@ class _BuildingRing extends StatelessWidget {
           CustomPaint(
             size: const Size(72, 72),
             painter: _RingPainter(
-              progress: building.progress / building.total,
-              color: isLocked ? const Color(0xFF4B5563) : building.primary,
+              progress: family.total == 0 ? 0 : family.progress / family.total,
+              color: isLocked ? const Color(0xFF4B5563) : family.primary,
               trackColor: isLocked
                   ? const Color(0xFF374151)
-                  : building.primary.withOpacity(0.15),
+                  : family.primary.withOpacity(0.15),
               strokeWidth: 5,
             ),
           ),
@@ -552,13 +588,13 @@ class _BuildingRing extends StatelessWidget {
               color: isLocked
                   ? const Color(0xFF1F2937)
                   : isCompleted
-                      ? building.primary
+                      ? family.primary
                       : Colors.white,
               boxShadow: isLocked
                   ? []
                   : [
                       BoxShadow(
-                        color: building.primary.withOpacity(0.25),
+                        color: family.primary.withOpacity(0.25),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -572,12 +608,12 @@ class _BuildingRing extends StatelessWidget {
                       ? const Icon(Icons.check_rounded,
                           color: Colors.white, size: 28)
                       : Text(
-                          building.letter,
+                          family.letter,
                           style: TextStyle(
                             fontFamily: 'Nunito',
                             fontSize: 26,
                             fontWeight: FontWeight.w900,
-                            color: building.primary,
+                            color: family.primary,
                             height: 1,
                           ),
                         ),
@@ -637,28 +673,28 @@ class _RingPainter extends CustomPainter {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SYLLABLE CHIPS (window display)
+// SYLLABLE CHIPS
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _SyllableChips extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _SyllableChips({required this.building});
+  final _ParkFamily family;
+  const _SyllableChips({required this.family});
 
   @override
   Widget build(BuildContext context) {
     return Wrap(
       spacing: 5,
       runSpacing: 4,
-      children: building.syllables.map((syl) {
+      children: family.syllables.map((syl) {
         return GestureDetector(
           onTap: () => AudioManager().playSyllableInstant(syl.toLowerCase()),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
             decoration: BoxDecoration(
-              color: building.primary.withOpacity(0.12),
+              color: family.primary.withOpacity(0.12),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: building.primary.withOpacity(0.30),
+                color: family.primary.withOpacity(0.30),
                 width: 1,
               ),
             ),
@@ -671,12 +707,12 @@ class _SyllableChips extends StatelessWidget {
                     fontFamily: 'Nunito',
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: building.dark,
+                    color: family.dark,
                   ),
                 ),
                 const SizedBox(width: 3),
                 Icon(Icons.volume_up_rounded,
-                    size: 10, color: building.primary.withOpacity(0.60)),
+                    size: 10, color: family.primary.withOpacity(0.60)),
               ],
             ),
           ),
@@ -690,35 +726,35 @@ class _SyllableChips extends StatelessWidget {
 // STATE LABEL
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BStateLabel extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _BStateLabel({required this.building});
+class _PStateLabel extends StatelessWidget {
+  final _ParkFamily family;
+  const _PStateLabel({required this.family});
 
   @override
   Widget build(BuildContext context) {
-    switch (building.state) {
-      case _BCardState.completed:
+    switch (family.state) {
+      case _PCardState.completed:
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle_rounded, size: 15, color: building.primary),
+            Icon(Icons.check_circle_rounded, size: 15, color: family.primary),
             const SizedBox(width: 4),
             Text(
-              'Concluído!  ${building.progress}/${building.total}',
+              'Concluído!  ${family.progress}/${family.total}',
               style: TextStyle(
                 fontFamily: 'Nunito',
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: building.primary,
+                color: family.primary,
               ),
             ),
           ],
         );
-      case _BCardState.active:
+      case _PCardState.active:
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
           decoration: BoxDecoration(
-            color: building.primary,
+            color: family.primary,
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Text(
@@ -731,7 +767,7 @@ class _BStateLabel extends StatelessWidget {
             ),
           ),
         );
-      case _BCardState.locked:
+      case _PCardState.locked:
         return const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -756,13 +792,13 @@ class _BStateLabel extends StatelessWidget {
 // PROGRESS BAR
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BProgressBar extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _BProgressBar({required this.building});
+class _PProgressBar extends StatelessWidget {
+  final _ParkFamily family;
+  const _PProgressBar({required this.family});
 
   @override
   Widget build(BuildContext context) {
-    final pct = building.progress / building.total;
+    final pct = family.total == 0 ? 0.0 : family.progress / family.total;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -771,17 +807,17 @@ class _BProgressBar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: pct,
             minHeight: 7,
-            backgroundColor: building.primary.withOpacity(0.15),
-            valueColor: AlwaysStoppedAnimation<Color>(building.primary),
+            backgroundColor: family.primary.withOpacity(0.15),
+            valueColor: AlwaysStoppedAnimation<Color>(family.primary),
           ),
         ),
         const SizedBox(height: 3),
         Text(
-          '${building.progress} de ${building.total} lições',
+          '${family.progress} de ${family.total} lições',
           style: TextStyle(
             fontFamily: 'Nunito',
             fontSize: 11,
-            color: building.dark.withOpacity(0.60),
+            color: family.dark.withOpacity(0.60),
           ),
         ),
       ],
@@ -793,32 +829,32 @@ class _BProgressBar extends StatelessWidget {
 // RIGHT ICON
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BuildingRight extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _BuildingRight({required this.building});
+class _FamilyRight extends StatelessWidget {
+  final _ParkFamily family;
+  const _FamilyRight({required this.family});
 
   @override
   Widget build(BuildContext context) {
-    final isActive = building.state == _BCardState.active;
-    final isLocked = building.state == _BCardState.locked;
+    final isActive = family.state == _PCardState.active;
+    final isLocked = family.state == _PCardState.locked;
 
     if (isLocked) return const SizedBox(width: 32);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(building.buildingEmoji, style: const TextStyle(fontSize: 30)),
-        Text(building.mascot, style: const TextStyle(fontSize: 18)),
+        Text(family.attractionEmoji, style: const TextStyle(fontSize: 30)),
+        Text(family.mascot, style: const TextStyle(fontSize: 18)),
         if (isActive)
           Container(
             margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: building.primary,
+              color: family.primary,
               borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
-                  color: building.primary.withOpacity(0.40),
+                  color: family.primary.withOpacity(0.40),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -840,7 +876,7 @@ class _BuildingRight extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PLAY BUTTON (pill-shaped)
+// PLAY BUTTON
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _PlayButton extends StatelessWidget {
@@ -858,13 +894,13 @@ class _PlayButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(31),
             gradient: const LinearGradient(
-              colors: [Color(0xFFFBBF24), Color(0xFFF97316)],
+              colors: [Color(0xFF4ADE80), Color(0xFF16A34A)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             boxShadow: const [
               BoxShadow(
-                color: Color(0xFFF97316),
+                color: Color(0xFF16A34A),
                 blurRadius: 20,
                 offset: Offset(0, 8),
               ),
@@ -880,8 +916,8 @@ class _PlayButton extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.25),
                 ),
-                child:
-                    const Icon(Icons.mic_rounded, color: Colors.white, size: 22),
+                child: const Icon(Icons.mic_rounded,
+                    color: Colors.white, size: 22),
               ),
               const SizedBox(width: 12),
               const Text(
@@ -907,7 +943,11 @@ class _PlayButton extends StatelessWidget {
       ),
     )
         .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scaleXY(begin: 1.0, end: 1.025, duration: 1400.ms, curve: Curves.easeInOut);
+        .scaleXY(
+            begin: 1.0,
+            end: 1.025,
+            duration: 1400.ms,
+            curve: Curves.easeInOut);
   }
 }
 
@@ -986,17 +1026,16 @@ class _NavItem extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BUILDING BOTTOM SHEET
+// FAMILY BOTTOM SHEET
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BuildingSheet extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _BuildingSheet({required this.building});
+class _FamilySheet extends StatelessWidget {
+  final _ParkFamily family;
+  const _FamilySheet({required this.family});
 
   SyllabicFamily? _findFamily() {
     try {
-      return WordBank.families
-          .firstWhere((f) => f.key == building.familyKey);
+      return WordBank.families.firstWhere((f) => f.key == family.familyKey);
     } catch (_) {
       return null;
     }
@@ -1023,16 +1062,16 @@ class _BuildingSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          // Building circle
+          // Letter circle
           Container(
             width: 88,
             height: 88,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: building.primary,
+              color: family.primary,
               boxShadow: [
                 BoxShadow(
-                  color: building.primary.withOpacity(0.40),
+                  color: family.primary.withOpacity(0.40),
                   blurRadius: 18,
                   offset: const Offset(0, 4),
                 ),
@@ -1040,7 +1079,7 @@ class _BuildingSheet extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                building.letter,
+                family.letter,
                 style: const TextStyle(
                   fontFamily: 'Nunito',
                   fontSize: 48,
@@ -1053,12 +1092,12 @@ class _BuildingSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '${building.buildingEmoji} ${building.buildingType}',
+            '${family.attractionEmoji} ${family.attractionName}',
             style: TextStyle(
               fontFamily: 'Nunito',
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: building.primary,
+              color: family.primary,
             ),
           ),
           const SizedBox(height: 6),
@@ -1075,7 +1114,7 @@ class _BuildingSheet extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             alignment: WrapAlignment.center,
-            children: building.syllables.map((syl) {
+            children: family.syllables.map((syl) {
               return GestureDetector(
                 onTap: () =>
                     AudioManager().playSyllableInstant(syl.toLowerCase()),
@@ -1083,13 +1122,13 @@ class _BuildingSheet extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: building.light,
+                    color: family.light,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                        color: building.primary.withOpacity(0.50), width: 1.5),
+                        color: family.primary.withOpacity(0.50), width: 1.5),
                     boxShadow: [
                       BoxShadow(
-                        color: building.primary.withOpacity(0.15),
+                        color: family.primary.withOpacity(0.15),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -1099,7 +1138,7 @@ class _BuildingSheet extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.volume_up_rounded,
-                          size: 14, color: building.primary),
+                          size: 14, color: family.primary),
                       const SizedBox(width: 5),
                       Text(
                         syl,
@@ -1107,7 +1146,7 @@ class _BuildingSheet extends StatelessWidget {
                           fontFamily: 'Nunito',
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
-                          color: building.primary,
+                          color: family.primary,
                         ),
                       ),
                     ],
@@ -1131,7 +1170,7 @@ class _BuildingSheet extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             alignment: WrapAlignment.center,
-            children: building.exampleWords
+            children: family.exampleWords
                 .map(
                   (word) => GestureDetector(
                     onTap: () =>
@@ -1140,17 +1179,17 @@ class _BuildingSheet extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        color: building.light,
+                        color: family.light,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                            color: building.primary.withOpacity(0.30)),
+                            color: family.primary.withOpacity(0.30)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.volume_up_rounded,
                               size: 12,
-                              color: building.primary.withOpacity(0.70)),
+                              color: family.primary.withOpacity(0.70)),
                           const SizedBox(width: 4),
                           Text(
                             word,
@@ -1158,7 +1197,7 @@ class _BuildingSheet extends StatelessWidget {
                               fontFamily: 'Nunito',
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: building.primary,
+                              color: family.primary,
                             ),
                           ),
                         ],
@@ -1176,18 +1215,18 @@ class _BuildingSheet extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: () {
                 Navigator.of(context).pop();
-                final family = _findFamily();
-                if (family != null) {
+                final wbFamily = _findFamily();
+                if (wbFamily != null) {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) =>
-                          SyllableSelectorScreen(family: family),
+                          SyllableSelectorScreen(family: wbFamily),
                     ),
                   );
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: building.primary,
+                backgroundColor: family.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),

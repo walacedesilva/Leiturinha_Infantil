@@ -8,7 +8,7 @@ import '../../../../core/app_themes.dart';
 import '../../../../services/audio_manager.dart'; // lib/services/
 import '../../data/word_bank.dart';
 import '../../domain/game_logic.dart';
-import 'game_screen.dart';
+import 'syllable_crane_screen.dart';
 
 /// Tela de seleção de sílabas antes de entrar no jogo.
 ///
@@ -175,7 +175,7 @@ class _SyllableSelectorScreenState extends State<SyllableSelectorScreen> {
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, animation, __) => const GameScreen(),
+        pageBuilder: (_, animation, __) => const SyllableCraneScreen(),
         transitionsBuilder: (_, animation, __, child) => FadeTransition(
           opacity: animation,
           child: SlideTransition(

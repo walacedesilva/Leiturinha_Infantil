@@ -1,39 +1,39 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
+import '../../../../services/progress_service.dart';
 import '../../data/word_bank.dart';
 import 'syllable_selector_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CONSTANTS & DATA MODEL
+// DATA MODEL
 // ─────────────────────────────────────────────────────────────────────────────
 
-enum _BCardState { completed, active, locked }
+enum _WCardState { completed, active, locked }
 
-class _FamilyBuilding {
+class _WorkZone {
   final String letter;
-  final String buildingEmoji;
-  final String buildingType;
+  final String zoneEmoji;
+  final String zoneName;
   final String mascot;
   final Color primary;
   final Color light;
   final Color dark;
   final List<String> syllables;
   final List<String> exampleWords;
-  final _BCardState state;
+  final _WCardState state;
   final int progress;
   final int total;
   final String familyKey;
 
-  const _FamilyBuilding({
+  const _WorkZone({
     required this.letter,
-    required this.buildingEmoji,
-    required this.buildingType,
+    required this.zoneEmoji,
+    required this.zoneName,
     required this.mascot,
     required this.primary,
     required this.light,
@@ -47,81 +47,51 @@ class _FamilyBuilding {
   });
 }
 
-const _kBuildings = <_FamilyBuilding>[
-  _FamilyBuilding(
-    letter: 'B',
-    buildingEmoji: '🏢',
-    buildingType: 'Prédio do B',
-    mascot: '🐝',
-    primary: Color(0xFFF97316),
-    light: Color(0xFFFFEDD5),
-    dark: Color(0xFFC2410C),
-    syllables: ['BA', 'BE', 'BI', 'BO', 'BU'],
-    exampleWords: ['BALA', 'BELO', 'BICO', 'BOLO', 'BULE'],
-    state: _BCardState.completed,
-    progress: 5,
-    total: 5,
-    familyKey: 'B',
-  ),
-  _FamilyBuilding(
-    letter: 'C',
-    buildingEmoji: '🏫',
-    buildingType: 'Escola do C',
-    mascot: '🐛',
+const _kZones = <_WorkZone>[
+  _WorkZone(
+    letter: 'G',
+    zoneEmoji: '🏗️',
+    zoneName: 'Guincho do G',
+    mascot: '🦎',
     primary: Color(0xFF22C55E),
-    light: Color(0xFFDCFCE7),
-    dark: Color(0xFF166534),
-    syllables: ['CA', 'CE', 'CI', 'CO', 'CU'],
-    exampleWords: ['CAMA', 'CEDO', 'CIMA', 'COCO', 'CUBO'],
-    state: _BCardState.active,
-    progress: 2,
-    total: 5,
-    familyKey: 'C',
-  ),
-  _FamilyBuilding(
-    letter: 'D',
-    buildingEmoji: '🚒',
-    buildingType: 'Bombeiros do D',
-    mascot: '🦆',
-    primary: Color(0xFF3B82F6),
-    light: Color(0xFFDBEAFE),
-    dark: Color(0xFF1D4ED8),
-    syllables: ['DA', 'DE', 'DI', 'DO', 'DU'],
-    exampleWords: ['DADO', 'DEDO', 'DICA', 'DOCE', 'DUNA'],
-    state: _BCardState.locked,
+    light: Color(0xFFF0FDF4),
+    dark: Color(0xFF14532D),
+    syllables: ['GA', 'GE', 'GI', 'GO', 'GU'],
+    exampleWords: ['GATO', 'GELO', 'GIRA', 'GOLA', 'GURI'],
+    state: _WCardState.active,
     progress: 0,
     total: 5,
-    familyKey: 'D',
+    familyKey: 'G',
   ),
-  _FamilyBuilding(
-    letter: 'F',
-    buildingEmoji: '🍞',
-    buildingType: 'Padaria do F',
+  _WorkZone(
+    letter: 'X',
+    zoneEmoji: '🔧',
+    zoneName: 'Oficina do X',
+    mascot: '🦊',
+    primary: Color(0xFFF59E0B),
+    light: Color(0xFFFFFBEB),
+    dark: Color(0xFF78350F),
+    syllables: ['XA', 'XI', 'XO', 'XU'],
+    exampleWords: ['XALE', 'XICA', 'XIXI', 'XOTE', 'XUXU'],
+    state: _WCardState.locked,
+    progress: 0,
+    total: 5,
+    familyKey: 'X',
+  ),
+  _WorkZone(
+    letter: 'Z',
+    zoneEmoji: '⚙️',
+    zoneName: 'Fábrica do Z',
     mascot: '🦋',
-    primary: Color(0xFFA855F7),
-    light: Color(0xFFF3E8FF),
-    dark: Color(0xFF6B21A8),
-    syllables: ['FA', 'FE', 'FI', 'FO', 'FU'],
-    exampleWords: ['FADA', 'FETO', 'FITA', 'FOCA', 'FUMO'],
-    state: _BCardState.locked,
+    primary: Color(0xFF6366F1),
+    light: Color(0xFFEEF2FF),
+    dark: Color(0xFF312E81),
+    syllables: ['ZA', 'ZE', 'ZO', 'ZU'],
+    exampleWords: ['ZAGA', 'ZERO', 'ZONA', 'ZUMBI'],
+    state: _WCardState.locked,
     progress: 0,
     total: 5,
-    familyKey: 'F',
-  ),
-  _FamilyBuilding(
-    letter: 'M',
-    buildingEmoji: '📚',
-    buildingType: 'Biblioteca do M',
-    mascot: '🐛',
-    primary: Color(0xFFEF4444),
-    light: Color(0xFFFEE2E2),
-    dark: Color(0xFF991B1B),
-    syllables: ['MA', 'ME', 'MI', 'MO', 'MU'],
-    exampleWords: ['MALA', 'MEDO', 'MICO', 'MOTO', 'MULA'],
-    state: _BCardState.locked,
-    progress: 0,
-    total: 5,
-    familyKey: 'M',
+    familyKey: 'Z',
   ),
 ];
 
@@ -129,22 +99,31 @@ const _kBuildings = <_FamilyBuilding>[
 // SCREEN
 // ─────────────────────────────────────────────────────────────────────────────
 
-class BairroDasFamiliasScreen extends StatelessWidget {
-  const BairroDasFamiliasScreen({super.key});
+class DistritoConstucaoScreen extends StatelessWidget {
+  const DistritoConstucaoScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final gam = context.watch<GamificationService>();
+    final progress = context.watch<ProgressService>();
+    final zones = _buildZones(progress);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF14532D),
+      backgroundColor: const Color(0xFF0D2010),
       body: SafeArea(
         child: Column(
           children: [
             _Header(coins: gam.state.coins),
-            const _MapTitle(),
-            const Expanded(child: _BuildingList()),
+            const _SiteTitle(),
+            Expanded(child: _ZoneList(zones: zones)),
             _PlayButton(
-              onTap: () => _openBuilding(context, _kBuildings[1]),
+              onTap: () {
+                final first = zones.firstWhere(
+                  (z) => z.state != _WCardState.locked,
+                  orElse: () => zones.first,
+                );
+                _openZone(context, first);
+              },
             ),
             const _BottomNav(),
           ],
@@ -153,13 +132,54 @@ class BairroDasFamiliasScreen extends StatelessWidget {
     );
   }
 
-  static void _openBuilding(BuildContext context, _FamilyBuilding building) {
-    if (building.state == _BCardState.locked) return;
+  List<_WorkZone> _buildZones(ProgressService progress) {
+    return _kZones.map((z) {
+      final fp =
+          progress.getFamilyProgress('consonant_${z.familyKey}', z.total);
+      final done = fp.completedWords;
+      _WCardState state;
+      if (done >= z.total) {
+        state = _WCardState.completed;
+      } else if (done > 0 || z == _kZones.first) {
+        state = _WCardState.active;
+      } else {
+        final idx = _kZones.indexOf(z);
+        if (idx > 0) {
+          final prevKey = _kZones[idx - 1].familyKey;
+          final prevFp = progress.getFamilyProgress(
+              'consonant_$prevKey', _kZones[idx - 1].total);
+          state = prevFp.completedWords >= _kZones[idx - 1].total
+              ? _WCardState.active
+              : _WCardState.locked;
+        } else {
+          state = _WCardState.active;
+        }
+      }
+      return _WorkZone(
+        letter: z.letter,
+        zoneEmoji: z.zoneEmoji,
+        zoneName: z.zoneName,
+        mascot: z.mascot,
+        primary: z.primary,
+        light: z.light,
+        dark: z.dark,
+        syllables: z.syllables,
+        exampleWords: z.exampleWords,
+        state: state,
+        progress: done,
+        total: z.total,
+        familyKey: z.familyKey,
+      );
+    }).toList();
+  }
+
+  static void _openZone(BuildContext context, _WorkZone zone) {
+    if (zone.state == _WCardState.locked) return;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _BuildingSheet(building: building),
+      builder: (_) => _ZoneSheet(zone: zone),
     );
   }
 }
@@ -184,7 +204,7 @@ class _Header extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
@@ -195,6 +215,7 @@ class _Header extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
+          // Mascot avatar — bear in hard hat
           Container(
             width: 44,
             height: 44,
@@ -205,36 +226,36 @@ class _Header extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              border: Border.all(color: Colors.white, width: 2.5),
+              border: Border.all(color: const Color(0xFFF59E0B), width: 2.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.20),
-                  blurRadius: 8,
+                  color: const Color(0xFF22C55E).withOpacity(0.40),
+                  blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: const Center(
-              child: Text('🧒', style: TextStyle(fontSize: 22)),
+              child: Text('🐻', style: TextStyle(fontSize: 22)),
             ),
           ),
           const SizedBox(width: 10),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Nível 2  🏆',
+                Text(
+                  'Nível 3  🏆',
                   style: TextStyle(
                     fontFamily: 'Nunito',
                     fontSize: 11,
-                    color: Colors.white70,
+                    color: Colors.white54,
                     height: 1,
                   ),
                 ),
-                const Text(
-                  'Explorador',
+                Text(
+                  'Construtor',
                   style: TextStyle(
                     fontFamily: 'Nunito',
                     fontSize: 17,
@@ -246,6 +267,7 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
+          // Coin counter
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
@@ -287,11 +309,11 @@ class _Header extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MAP TITLE
+// SITE TITLE — crane + title block
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _MapTitle extends StatelessWidget {
-  const _MapTitle();
+class _SiteTitle extends StatelessWidget {
+  const _SiteTitle();
 
   @override
   Widget build(BuildContext context) {
@@ -299,93 +321,122 @@ class _MapTitle extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         children: [
-          Text(
-            '🏠 BAIRRO DAS FAMÍLIAS',
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: 1.0,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withOpacity(0.35),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
+          // Crane animation
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('🏗️', style: TextStyle(fontSize: 28)),
+              const SizedBox(width: 8),
+              Text(
+                'DISTRITO DA CONSTRUÇÃO',
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: 0.8,
+                  shadows: [
+                    Shadow(
+                      color: const Color(0xFF22C55E).withOpacity(0.70),
+                      blurRadius: 14,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              '⭐  1 de 5 famílias concluída',
-              style: TextStyle(
-                fontFamily: 'Nunito',
-                fontSize: 13,
-                color: Colors.white70,
-                fontWeight: FontWeight.w600,
               ),
-            ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // Syllable bricks row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: ['GA', 'XA', 'ZO'].map((syl) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFF59E0B).withOpacity(0.40),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  syl,
+                  style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF78350F),
+                    letterSpacing: 1,
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
-    ).animate().fadeIn(delay: 100.ms, duration: 400.ms).slideY(begin: -0.15, end: 0);
+    )
+        .animate()
+        .fadeIn(delay: 100.ms, duration: 400.ms)
+        .slideY(begin: -0.15, end: 0);
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BUILDING LIST
+// ZONE LIST
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BuildingList extends StatelessWidget {
-  const _BuildingList();
+class _ZoneList extends StatelessWidget {
+  final List<_WorkZone> zones;
+  const _ZoneList({required this.zones});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      itemCount: _kBuildings.length,
+      itemCount: zones.length,
       itemBuilder: (context, idx) {
-        return _BuildingCard(building: _kBuildings[idx], index: idx)
+        return _ZoneCard(zone: zones[idx], index: idx)
             .animate(delay: Duration(milliseconds: 80 * idx))
             .fadeIn(duration: 400.ms)
-            .slideX(begin: 0.08, end: 0, duration: 400.ms, curve: Curves.easeOut);
+            .slideX(
+                begin: 0.08, end: 0, duration: 400.ms, curve: Curves.easeOut);
       },
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BUILDING CARD
+// ZONE CARD
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BuildingCard extends StatelessWidget {
-  final _FamilyBuilding building;
+class _ZoneCard extends StatelessWidget {
+  final _WorkZone zone;
   final int index;
 
-  const _BuildingCard({required this.building, required this.index});
+  const _ZoneCard({required this.zone, required this.index});
 
   void _onTap(BuildContext context) {
-    if (building.state == _BCardState.locked) return;
+    if (zone.state == _WCardState.locked) return;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _BuildingSheet(building: building),
+      builder: (_) => _ZoneSheet(zone: zone),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLocked = building.state == _BCardState.locked;
-    final isCompleted = building.state == _BCardState.completed;
-    final isActive = building.state == _BCardState.active;
+    final isLocked = zone.state == _WCardState.locked;
+    final isCompleted = zone.state == _WCardState.completed;
+    final isActive = zone.state == _WCardState.active;
 
     return GestureDetector(
       onTap: () => _onTap(context),
@@ -397,8 +448,8 @@ class _BuildingCard extends StatelessWidget {
               ? []
               : [
                   BoxShadow(
-                    color: building.primary.withOpacity(isActive ? 0.45 : 0.25),
-                    blurRadius: isActive ? 22 : 14,
+                    color: zone.primary.withOpacity(isActive ? 0.50 : 0.28),
+                    blurRadius: isActive ? 24 : 14,
                     offset: const Offset(0, 6),
                   ),
                 ],
@@ -407,62 +458,57 @@ class _BuildingCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           child: Stack(
             children: [
-              // Card background
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: isLocked
                       ? const LinearGradient(
-                          colors: [Color(0xFF374151), Color(0xFF1F2937)],
+                          colors: [Color(0xFF1A3020), Color(0xFF0D2010)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         )
                       : LinearGradient(
-                          colors: [building.light, Colors.white],
+                          colors: [zone.light, Colors.white],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                 ),
                 child: Row(
                   children: [
-                    // Progress ring + letter
-                    _BuildingRing(building: building),
+                    _ZoneRing(zone: zone),
                     const SizedBox(width: 14),
-                    // Content
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            building.buildingType,
+                            zone.zoneName,
                             style: TextStyle(
                               fontFamily: 'Nunito',
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: isLocked
-                                  ? const Color(0xFF9CA3AF)
-                                  : building.dark,
+                                  ? const Color(0xFF6B7280)
+                                  : zone.dark,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          _BStateLabel(building: building),
+                          _WStateLabel(zone: zone),
                           if (!isLocked) ...[
                             const SizedBox(height: 8),
-                            // Syllable chips
-                            _SyllableChips(building: building),
+                            _SyllableChips(zone: zone),
                             const SizedBox(height: 8),
-                            _BProgressBar(building: building),
+                            _WProgressBar(zone: zone),
                           ],
                         ],
                       ),
                     ),
                     const SizedBox(width: 10),
-                    // Right side
-                    _BuildingRight(building: building),
+                    _ZoneRight(zone: zone),
                   ],
                 ),
               ),
-              // Active glow border
+              // Amber glow border for active
               if (isActive)
                 Positioned.fill(
                   child: IgnorePointer(
@@ -470,14 +516,14 @@ class _BuildingCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: building.primary.withOpacity(0.70),
+                          color: zone.primary.withOpacity(0.70),
                           width: 2.5,
                         ),
                       ),
                     ),
                   ),
                 ),
-              // Completed shimmer top bar
+              // Completed shimmer bar
               if (isCompleted)
                 Positioned(
                   top: 0,
@@ -487,11 +533,7 @@ class _BuildingCard extends StatelessWidget {
                     height: 4,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [
-                          building.primary,
-                          building.light,
-                          building.primary
-                        ],
+                        colors: [zone.primary, zone.light, zone.primary],
                       ),
                     ),
                   ),
@@ -515,17 +557,17 @@ class _BuildingCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BUILDING RING (progress circle with letter)
+// ZONE RING
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BuildingRing extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _BuildingRing({required this.building});
+class _ZoneRing extends StatelessWidget {
+  final _WorkZone zone;
+  const _ZoneRing({required this.zone});
 
   @override
   Widget build(BuildContext context) {
-    final isLocked = building.state == _BCardState.locked;
-    final isCompleted = building.state == _BCardState.completed;
+    final isLocked = zone.state == _WCardState.locked;
+    final isCompleted = zone.state == _WCardState.completed;
 
     return SizedBox(
       width: 72,
@@ -536,11 +578,11 @@ class _BuildingRing extends StatelessWidget {
           CustomPaint(
             size: const Size(72, 72),
             painter: _RingPainter(
-              progress: building.progress / building.total,
-              color: isLocked ? const Color(0xFF4B5563) : building.primary,
+              progress: zone.total == 0 ? 0 : zone.progress / zone.total,
+              color: isLocked ? const Color(0xFF374151) : zone.primary,
               trackColor: isLocked
-                  ? const Color(0xFF374151)
-                  : building.primary.withOpacity(0.15),
+                  ? const Color(0xFF1A3020)
+                  : zone.primary.withOpacity(0.15),
               strokeWidth: 5,
             ),
           ),
@@ -550,15 +592,15 @@ class _BuildingRing extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isLocked
-                  ? const Color(0xFF1F2937)
+                  ? const Color(0xFF1A3020)
                   : isCompleted
-                      ? building.primary
+                      ? zone.primary
                       : Colors.white,
               boxShadow: isLocked
                   ? []
                   : [
                       BoxShadow(
-                        color: building.primary.withOpacity(0.25),
+                        color: zone.primary.withOpacity(0.30),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -567,17 +609,17 @@ class _BuildingRing extends StatelessWidget {
             child: Center(
               child: isLocked
                   ? const Icon(Icons.lock_rounded,
-                      color: Color(0xFF9CA3AF), size: 22)
+                      color: Color(0xFF6B7280), size: 22)
                   : isCompleted
                       ? const Icon(Icons.check_rounded,
                           color: Colors.white, size: 28)
                       : Text(
-                          building.letter,
+                          zone.letter,
                           style: TextStyle(
                             fontFamily: 'Nunito',
                             fontSize: 26,
                             fontWeight: FontWeight.w900,
-                            color: building.primary,
+                            color: zone.primary,
                             height: 1,
                           ),
                         ),
@@ -607,19 +649,15 @@ class _RingPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
-    final trackPaint = Paint()
-      ..color = trackColor
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final progressPaint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawCircle(center, radius, trackPaint);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = trackColor
+        ..strokeWidth = strokeWidth
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round,
+    );
 
     if (progress > 0) {
       canvas.drawArc(
@@ -627,7 +665,11 @@ class _RingPainter extends CustomPainter {
         -math.pi / 2,
         2 * math.pi * progress,
         false,
-        progressPaint,
+        Paint()
+          ..color = color
+          ..strokeWidth = strokeWidth
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round,
       );
     }
   }
@@ -637,47 +679,33 @@ class _RingPainter extends CustomPainter {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SYLLABLE CHIPS (window display)
+// SYLLABLE CHIPS
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _SyllableChips extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _SyllableChips({required this.building});
+  final _WorkZone zone;
+  const _SyllableChips({required this.zone});
 
   @override
   Widget build(BuildContext context) {
     return Wrap(
       spacing: 5,
       runSpacing: 4,
-      children: building.syllables.map((syl) {
-        return GestureDetector(
-          onTap: () => AudioManager().playSyllableInstant(syl.toLowerCase()),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-            decoration: BoxDecoration(
-              color: building.primary.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: building.primary.withOpacity(0.30),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  syl,
-                  style: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: building.dark,
-                  ),
-                ),
-                const SizedBox(width: 3),
-                Icon(Icons.volume_up_rounded,
-                    size: 10, color: building.primary.withOpacity(0.60)),
-              ],
+      children: zone.syllables.map((syl) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: zone.primary.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: zone.primary.withOpacity(0.30), width: 1),
+          ),
+          child: Text(
+            syl,
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: zone.dark,
             ),
           ),
         );
@@ -690,35 +718,35 @@ class _SyllableChips extends StatelessWidget {
 // STATE LABEL
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BStateLabel extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _BStateLabel({required this.building});
+class _WStateLabel extends StatelessWidget {
+  final _WorkZone zone;
+  const _WStateLabel({required this.zone});
 
   @override
   Widget build(BuildContext context) {
-    switch (building.state) {
-      case _BCardState.completed:
+    switch (zone.state) {
+      case _WCardState.completed:
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle_rounded, size: 15, color: building.primary),
+            Icon(Icons.check_circle_rounded, size: 15, color: zone.primary),
             const SizedBox(width: 4),
             Text(
-              'Concluído!  ${building.progress}/${building.total}',
+              'Concluído!  ${zone.progress}/${zone.total}',
               style: TextStyle(
                 fontFamily: 'Nunito',
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: building.primary,
+                color: zone.primary,
               ),
             ),
           ],
         );
-      case _BCardState.active:
+      case _WCardState.active:
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
           decoration: BoxDecoration(
-            color: building.primary,
+            color: zone.primary,
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Text(
@@ -731,11 +759,12 @@ class _BStateLabel extends StatelessWidget {
             ),
           ),
         );
-      case _BCardState.locked:
+      case _WCardState.locked:
         return const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.lock_outline_rounded, size: 14, color: Color(0xFF6B7280)),
+            Icon(Icons.lock_outline_rounded,
+                size: 14, color: Color(0xFF6B7280)),
             SizedBox(width: 4),
             Text(
               'Bloqueado',
@@ -756,13 +785,13 @@ class _BStateLabel extends StatelessWidget {
 // PROGRESS BAR
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BProgressBar extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _BProgressBar({required this.building});
+class _WProgressBar extends StatelessWidget {
+  final _WorkZone zone;
+  const _WProgressBar({required this.zone});
 
   @override
   Widget build(BuildContext context) {
-    final pct = building.progress / building.total;
+    final pct = zone.total == 0 ? 0.0 : zone.progress / zone.total;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -771,17 +800,17 @@ class _BProgressBar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: pct,
             minHeight: 7,
-            backgroundColor: building.primary.withOpacity(0.15),
-            valueColor: AlwaysStoppedAnimation<Color>(building.primary),
+            backgroundColor: zone.primary.withOpacity(0.15),
+            valueColor: AlwaysStoppedAnimation<Color>(zone.primary),
           ),
         ),
         const SizedBox(height: 3),
         Text(
-          '${building.progress} de ${building.total} lições',
+          '${zone.progress} de ${zone.total} lições',
           style: TextStyle(
             fontFamily: 'Nunito',
             fontSize: 11,
-            color: building.dark.withOpacity(0.60),
+            color: zone.dark.withOpacity(0.60),
           ),
         ),
       ],
@@ -793,32 +822,32 @@ class _BProgressBar extends StatelessWidget {
 // RIGHT ICON
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BuildingRight extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _BuildingRight({required this.building});
+class _ZoneRight extends StatelessWidget {
+  final _WorkZone zone;
+  const _ZoneRight({required this.zone});
 
   @override
   Widget build(BuildContext context) {
-    final isActive = building.state == _BCardState.active;
-    final isLocked = building.state == _BCardState.locked;
+    final isActive = zone.state == _WCardState.active;
+    final isLocked = zone.state == _WCardState.locked;
 
     if (isLocked) return const SizedBox(width: 32);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(building.buildingEmoji, style: const TextStyle(fontSize: 30)),
-        Text(building.mascot, style: const TextStyle(fontSize: 18)),
+        Text(zone.zoneEmoji, style: const TextStyle(fontSize: 30)),
+        Text(zone.mascot, style: const TextStyle(fontSize: 18)),
         if (isActive)
           Container(
             margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: building.primary,
+              color: zone.primary,
               borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
-                  color: building.primary.withOpacity(0.40),
+                  color: zone.primary.withOpacity(0.40),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -840,7 +869,7 @@ class _BuildingRight extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PLAY BUTTON (pill-shaped)
+// PLAY BUTTON — "MONTAR PALAVRA"
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _PlayButton extends StatelessWidget {
@@ -858,15 +887,15 @@ class _PlayButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(31),
             gradient: const LinearGradient(
-              colors: [Color(0xFFFBBF24), Color(0xFFF97316)],
+              colors: [Color(0xFF4ADE80), Color(0xFF22C55E)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Color(0xFFF97316),
-                blurRadius: 20,
-                offset: Offset(0, 8),
+                color: const Color(0xFF22C55E).withOpacity(0.55),
+                blurRadius: 22,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -880,15 +909,16 @@ class _PlayButton extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.25),
                 ),
-                child:
-                    const Icon(Icons.mic_rounded, color: Colors.white, size: 22),
+                child: const Center(
+                  child: Text('🔨', style: TextStyle(fontSize: 20)),
+                ),
               ),
               const SizedBox(width: 12),
               const Text(
-                'JOGAR AGORA',
+                'MONTAR PALAVRA',
                 style: TextStyle(
                   fontFamily: 'Nunito',
-                  fontSize: 20,
+                  fontSize: 19,
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
                   letterSpacing: 1.0,
@@ -907,7 +937,11 @@ class _PlayButton extends StatelessWidget {
       ),
     )
         .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scaleXY(begin: 1.0, end: 1.025, duration: 1400.ms, curve: Curves.easeInOut);
+        .scaleXY(
+            begin: 1.0,
+            end: 1.025,
+            duration: 1400.ms,
+            curve: Curves.easeInOut);
   }
 }
 
@@ -923,9 +957,9 @@ class _BottomNav extends StatelessWidget {
     return Container(
       height: 64,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.10),
+        color: Colors.white.withOpacity(0.07),
         border: Border(
-          top: BorderSide(color: Colors.white.withOpacity(0.15), width: 1),
+          top: BorderSide(color: Colors.white.withOpacity(0.10), width: 1),
         ),
       ),
       child: const Row(
@@ -961,7 +995,7 @@ class _NavItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: active
               ? BoxDecoration(
-                  color: Colors.white.withOpacity(0.20),
+                  color: Colors.white.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(14),
                 )
               : null,
@@ -986,17 +1020,16 @@ class _NavItem extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BUILDING BOTTOM SHEET
+// ZONE BOTTOM SHEET
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BuildingSheet extends StatelessWidget {
-  final _FamilyBuilding building;
-  const _BuildingSheet({required this.building});
+class _ZoneSheet extends StatelessWidget {
+  final _WorkZone zone;
+  const _ZoneSheet({required this.zone});
 
   SyllabicFamily? _findFamily() {
     try {
-      return WordBank.families
-          .firstWhere((f) => f.key == building.familyKey);
+      return WordBank.families.firstWhere((f) => f.key == zone.familyKey);
     } catch (_) {
       return null;
     }
@@ -1013,7 +1046,6 @@ class _BuildingSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
           Container(
             width: 40,
             height: 4,
@@ -1023,16 +1055,15 @@ class _BuildingSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          // Building circle
           Container(
             width: 88,
             height: 88,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: building.primary,
+              color: zone.primary,
               boxShadow: [
                 BoxShadow(
-                  color: building.primary.withOpacity(0.40),
+                  color: zone.primary.withOpacity(0.40),
                   blurRadius: 18,
                   offset: const Offset(0, 4),
                 ),
@@ -1040,7 +1071,7 @@ class _BuildingSheet extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                building.letter,
+                zone.letter,
                 style: const TextStyle(
                   fontFamily: 'Nunito',
                   fontSize: 48,
@@ -1053,115 +1084,46 @@ class _BuildingSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '${building.buildingEmoji} ${building.buildingType}',
+            '${zone.zoneEmoji} ${zone.zoneName}',
             style: TextStyle(
               fontFamily: 'Nunito',
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: building.primary,
+              color: zone.primary,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Toque para ouvir cada sílaba:',
-            style: TextStyle(
+          Text(
+            'Sílabas: ${zone.syllables.join('  ')}',
+            style: const TextStyle(
               fontFamily: 'Nunito',
-              fontSize: 12,
-              color: Color(0xFF9CA3AF),
+              fontSize: 14,
+              color: Color(0xFF6B7280),
             ),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: building.syllables.map((syl) {
-              return GestureDetector(
-                onTap: () =>
-                    AudioManager().playSyllableInstant(syl.toLowerCase()),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: building.light,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                        color: building.primary.withOpacity(0.50), width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: building.primary.withOpacity(0.15),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.volume_up_rounded,
-                          size: 14, color: building.primary),
-                      const SizedBox(width: 5),
-                      Text(
-                        syl,
-                        style: TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: building.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
           ),
           const SizedBox(height: 14),
-          const Text(
-            'Palavras de exemplo:',
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: 12,
-              color: Color(0xFF9CA3AF),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Word chips
           Wrap(
             spacing: 8,
             runSpacing: 8,
             alignment: WrapAlignment.center,
-            children: building.exampleWords
+            children: zone.exampleWords
                 .map(
-                  (word) => GestureDetector(
-                    onTap: () =>
-                        AudioManager().playWord(word.toLowerCase()),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: building.light,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            color: building.primary.withOpacity(0.30)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.volume_up_rounded,
-                              size: 12,
-                              color: building.primary.withOpacity(0.70)),
-                          const SizedBox(width: 4),
-                          Text(
-                            word,
-                            style: TextStyle(
-                              fontFamily: 'Nunito',
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: building.primary,
-                            ),
-                          ),
-                        ],
+                  (word) => Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: zone.light,
+                      borderRadius: BorderRadius.circular(20),
+                      border:
+                          Border.all(color: zone.primary.withOpacity(0.30)),
+                    ),
+                    child: Text(
+                      word,
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: zone.primary,
                       ),
                     ),
                   ),
@@ -1169,34 +1131,33 @@ class _BuildingSheet extends StatelessWidget {
                 .toList(),
           ),
           const SizedBox(height: 24),
-          // Practice button
           SizedBox(
             width: double.infinity,
             height: 54,
             child: ElevatedButton.icon(
               onPressed: () {
                 Navigator.of(context).pop();
-                final family = _findFamily();
-                if (family != null) {
+                final wbFamily = _findFamily();
+                if (wbFamily != null) {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) =>
-                          SyllableSelectorScreen(family: family),
+                          SyllableSelectorScreen(family: wbFamily),
                     ),
                   );
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: building.primary,
+                backgroundColor: zone.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 0,
               ),
-              icon: const Icon(Icons.mic_rounded, size: 22),
+              icon: const Text('🔨', style: TextStyle(fontSize: 20)),
               label: const Text(
-                'Praticar Agora',
+                'Montar Palavra',
                 style: TextStyle(
                   fontFamily: 'Nunito',
                   fontSize: 18,

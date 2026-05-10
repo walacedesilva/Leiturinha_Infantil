@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'features/reading_game/presentation/screens/ilha_das_palavras_screen.dart';
+import 'features/reading_game/presentation/screens/praca_central_screen.dart';
 import 'services/speech_validator.dart';
 
 /// Tela de splash exibida na abertura do app (~2.8s) antes do menu principal.
@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, animation, __) => const IlhaDasPalavrasScreen(),
+        pageBuilder: (_, animation, __) => const PracaCentralScreen(),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 600),
