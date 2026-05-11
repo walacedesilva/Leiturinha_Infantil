@@ -146,7 +146,6 @@ class BairroDasFamiliasScreen extends StatelessWidget {
             _PlayButton(
               onTap: () => _openBuilding(context, _kBuildings[1]),
             ),
-            const _BottomNav(),
           ],
         ),
       ),

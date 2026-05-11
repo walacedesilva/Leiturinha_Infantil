@@ -181,7 +181,6 @@ class VilaDasVogaisScreen extends StatelessWidget {
             _PlayButton(
               onTap: () => _navigateToInterior(context, firstActive),
             ),
-            const _BottomNav(),
           ],
         ),
       ),

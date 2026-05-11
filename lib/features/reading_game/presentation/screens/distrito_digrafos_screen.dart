@@ -377,7 +377,6 @@ class _DistritoDigrafosScreenState extends State<DistritoDigrafosScreen>
                   onTap: (act) => _launchActivity(context, act),
                 ),
                 _MakePotion(onTap: () => _startPotion(context)),
-                _BottomNav(),
               ],
             ),
           ),

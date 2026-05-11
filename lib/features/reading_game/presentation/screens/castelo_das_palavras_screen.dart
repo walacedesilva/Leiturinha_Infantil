@@ -156,7 +156,6 @@ class CastelodasPalavrasScreen extends StatelessWidget {
                 _openTower(context, first);
               },
             ),
-            const _BottomNav(),
           ],
         ),
       ),

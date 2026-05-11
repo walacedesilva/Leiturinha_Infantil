@@ -143,7 +143,6 @@ class ParqueDasFamiliasScreen extends StatelessWidget {
                 _openFamily(context, first);
               },
             ),
-            const _BottomNav(),
           ],
         ),
       ),

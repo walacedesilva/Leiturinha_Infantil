@@ -9,6 +9,7 @@ import '../../../../services/gamification_service.dart';
 import '../../../../services/gamification_models.dart';
 import '../../data/avatar_data.dart';
 import 'acessorios_screen.dart';
+import '../../../../navigation/nav_shell.dart';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // PERFIL SCREEN — "Meu Avatar"  (Opção 1: Visão Principal)
@@ -349,7 +350,14 @@ class _PerfilScreenState extends State<PerfilScreen>
                 // ── Top Bar ───────────────────────────────────────────────
                 _PerfilTopBar(
                   coins: gam.state.coins,
-                  onBack: () => Navigator.of(context).pop(),
+                  onBack: () {
+                    final nav = Navigator.of(context);
+                    if (nav.canPop()) {
+                      nav.pop();
+                    } else {
+                      NavTabController.maybeOf(context)?.setTab(0);
+                    }
+                  },
                   onLoja: () => ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('🛍️ Loja — Em breve!',

@@ -125,7 +125,6 @@ class DistritoConstucaoScreen extends StatelessWidget {
                 _openZone(context, first);
               },
             ),
-            const _BottomNav(),
           ],
         ),
       ),

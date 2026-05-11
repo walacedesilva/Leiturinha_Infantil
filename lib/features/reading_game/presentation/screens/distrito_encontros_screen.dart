@@ -439,7 +439,6 @@ class _DistritoEncontrosScreenState extends State<DistritoEncontrosScreen>
                 _FabricarButton(
                   onTap: () => _launchActivity(context, _kActivities.first),
                 ),
-                _BottomNav(),
               ],
             ),
           ),

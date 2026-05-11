@@ -399,8 +399,6 @@ class _DistritoAventuraScreenState extends State<DistritoAventuraScreen>
                 _StartButton(
                   onTap: () => _startAdventure(context),
                 ),
-                // Bottom Nav
-                _BottomNav(),
               ],
             ),
           ),

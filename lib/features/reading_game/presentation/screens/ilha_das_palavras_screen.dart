@@ -113,7 +113,6 @@ class IlhaDasPalavrasScreen extends StatelessWidget {
           children: [
             _TopBar(coins: gam.state.coins, xp: gam.state.xp),
             Expanded(child: _MapArea()),
-            const _BottomNav(currentIndex: 0),
           ],
         ),
       ),

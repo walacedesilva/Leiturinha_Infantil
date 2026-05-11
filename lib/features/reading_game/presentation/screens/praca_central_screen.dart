@@ -16,7 +16,8 @@ import 'metro_transition_screen.dart';
 import 'parque_das_familias_screen.dart';
 import 'vila_das_vogais_screen.dart';
 import '../../../../services/avatar_service.dart';
-import 'perfil_screen.dart';
+import '../../../../navigation/nav_shell.dart';
+import 'torre_do_conhecimento_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA MODEL
@@ -405,7 +406,7 @@ class _PracaCentralScreenState extends State<PracaCentralScreen>
                         ),
                       ),
                       const SliverToBoxAdapter(
-                        child: SizedBox(height: 110),
+                        child: SizedBox(height: 160),
                       ),
                     ],
                   ),
@@ -415,12 +416,14 @@ class _PracaCentralScreenState extends State<PracaCentralScreen>
           ),
           // ── Layer 5: Floating JOGAR button ────────────────────────────────
           Positioned(
-            bottom: 24,
-            left: 40,
-            right: 40,
-            child: _PlayButton(
-              onTap: () =>
-                  _navigateTo(context, _firstAvailableId(progress)),
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: _PlayButton(
+                onTap: () =>
+                    _navigateTo(context, _firstAvailableId(progress)),
+              ),
             ),
           ),
         ],
@@ -615,9 +618,7 @@ class _TopBar extends StatelessWidget {
         children: [
           // Avatar (toca → Perfil)
           GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const PerfilScreen()),
-            ),
+            onTap: () => NavTabController.maybeOf(context)?.setTab(3),
             child: Consumer<AvatarService>(
               builder: (ctx, av, _) {
                 final emoji = av.activeStyle?.emoji ?? '🧒';
@@ -1074,120 +1075,136 @@ class _TorreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF4E342E), Color(0xFF6D4C41)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder: (_, anim, __) =>
+              const TorreDoConhecimentoScreen(),
+          transitionsBuilder: (_, anim, __, child) {
+            final curved =
+                CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
+            return ScaleTransition(
+              scale: Tween<double>(begin: 0.88, end: 1.0).animate(curved),
+              child: FadeTransition(opacity: curved, child: child),
+            );
+          },
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF4E342E).withOpacity(0.35),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
-          ),
-        ],
       ),
-      child: Row(
-        children: [
-          // Tower icon (pulsing)
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color(0xFFFFD54F).withOpacity(0.45),
-                width: 2,
-              ),
-            ),
-            child: const Center(
-              child: Text('🗼', style: TextStyle(fontSize: 32)),
-            ),
-          )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .scaleXY(
-                begin: 1.0,
-                end: 1.07,
-                duration: 1500.ms,
-                curve: Curves.easeInOut,
-              ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title + floors badge
-                Row(
-                  children: [
-                    const Flexible(
-                      child: Text(
-                        'Torre do Conhecimento',
-                        style: TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFFFD54F),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFD54F).withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        '10 andares',
-                        style: TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFFFD54F),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Complete os 9 distritos para desbloquear o desafio final!',
-                  style: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.72),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.lock_rounded,
-                      color: Color(0xFFFFD54F),
-                      size: 13,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Bloqueado — 0 / 9 distritos completos',
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 11,
-                        color: Colors.white.withOpacity(0.60),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFD97706), Color(0xFFFBBF24)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
           ),
-        ],
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFBBF24).withOpacity(0.40),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Tower icon (pulsing)
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.50),
+                  width: 2,
+                ),
+              ),
+              child: const Center(
+                child: Text('🗼', style: TextStyle(fontSize: 32)),
+              ),
+            )
+                .animate(onPlay: (c) => c.repeat(reverse: true))
+                .scaleXY(
+                  begin: 1.0,
+                  end: 1.07,
+                  duration: 1500.ms,
+                  curve: Curves.easeInOut,
+                ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Flexible(
+                        child: Text(
+                          'Torre do Conhecimento',
+                          style: TextStyle(
+                            fontFamily: 'Nunito',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.22),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          '10 andares',
+                          style: TextStyle(
+                            fontFamily: 'Nunito',
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Suba todos os andares e torne-se Leitor Mestre! 👑',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontSize: 12,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.arrow_forward_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Entrar na Torre',
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     )
         .animate()
@@ -1208,37 +1225,67 @@ class _PlayButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFDD835), Color(0xFFFFB300)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFFFB300).withOpacity(0.45),
-              blurRadius: 16,
-              offset: const Offset(0, 5),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Círculo laranja-dourado com microfone
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFF97316), Color(0xFFFBBF24)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFF97316).withOpacity(0.40),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: const Center(
-          child: Text(
-            '🎮   JOGAR AGORA',
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF37474F),
+            child: const Center(
+              child: Icon(Icons.mic_rounded, color: Colors.white, size: 42),
+            ),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scaleXY(
+                begin: 1.0,
+                end: 1.06,
+                duration: 1400.ms,
+                curve: Curves.easeInOut,
+              ),
+          const SizedBox(height: 8),
+          // Rótulo abaixo do círculo
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.10),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Text(
+              'JOGAR AGORA',
+              style: TextStyle(
+                fontFamily: 'Nunito',
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFFF97316),
+              ),
             ),
           ),
-        ),
+        ],
       ),
-    )
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scaleXY(begin: 1.0, end: 1.04, duration: 900.ms, curve: Curves.easeInOut);
+    );
   }
 }
