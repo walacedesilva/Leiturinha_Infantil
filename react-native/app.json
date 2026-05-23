@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Alfabetização Mágica",
+    "slug": "alfabetizacao-magica",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "alfabetizacaomagica",
+    "primaryColor": "#F5C518",
+    "splash": {
+      "image": "../assets/images/logo.png",
+      "backgroundColor": "#0E2A47",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.alfabetizacaomagica",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "O microfone é usado APENAS durante atividades de leitura em voz alta. O áudio é processado no aparelho e descartado em seguida.",
+        "NSSpeechRecognitionUsageDescription": "O reconhecimento de fala é usado para validar a leitura em voz alta da criança. Nenhum dado é enviado a servidores."
+      }
+    },
+    "android": {
+      "package": "app.alfabetizacaomagica",
+      "adaptiveIcon": {
+        "backgroundColor": "#0E2A47"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": "O microfone é usado APENAS durante atividades de leitura em voz alta."
+        }
+      ],
+      "expo-speech-recognition"
+    ]
+  }
+}

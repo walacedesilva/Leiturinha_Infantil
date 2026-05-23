@@ -1,0 +1,11 @@
+<speak version="1.0" xml:lang="pt-BR"
+       xmlns="http://www.w3.org/2001/10/synthesis"
+       xmlns:mstts="https://www.w3.org/2001/mstts">
+  <voice name="pt-BR-FranciscaNeural">
+    <mstts:express-as style="cheerful" styledegree="0.6">
+      <prosody rate="90%" pitch="+0%" volume="medium">
+        <s><emphasis level="moderate"><phoneme alphabet="ipa" ph="ˈgaɾ">GUAR</phoneme></emphasis><break time="120ms"/><phoneme alphabet="ipa" ph="dɐ">DA</phoneme></s>
+      </prosody>
+    </mstts:express-as>
+  </voice>
+</speak>
