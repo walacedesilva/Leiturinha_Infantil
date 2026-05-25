@@ -160,18 +160,8 @@ class ParqueDasFamiliasScreen extends StatelessWidget {
       } else if (done > 0 || f == _kFamilies.first) {
         state = _PCardState.active;
       } else {
-        // Unlock if previous family is completed
-        final idx = _kFamilies.indexOf(f);
-        if (idx > 0) {
-          final prevKey = _kFamilies[idx - 1].familyKey;
-          final prevFp =
-              progress.getFamilyProgress('consonant_$prevKey', _kFamilies[idx - 1].total);
-          state = prevFp.completedWords >= _kFamilies[idx - 1].total
-              ? _PCardState.active
-              : _PCardState.locked;
-        } else {
-          state = _PCardState.active;
-        }
+        // TODO: restaurar lock sequencial para produção
+        state = _PCardState.active;
       }
       return _ParkFamily(
         letter: f.letter,

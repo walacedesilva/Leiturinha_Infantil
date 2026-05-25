@@ -198,9 +198,10 @@ class SpeechValidator {
     required String targetWord,
     required List<String> syllables,
     ValidationLevel level = ValidationLevel.beginner,
-    Duration timeout = const Duration(seconds: 10),
+    Duration timeout = const Duration(seconds: 20),
   }) async {
-    debugPrint('[MIC] startListening(): targetWord="$targetWord", _listening=$_listening');
+    final actualTimeout = timeout.inSeconds < 20 ? const Duration(seconds: 20) : timeout;
+    debugPrint('[MIC] startListening(): targetWord="$targetWord", _listening=$_listening, requestedTimeout=$timeout, actualTimeout=$actualTimeout');
     if (_listening) {
       debugPrint('[MIC] startListening(): já ouvindo — ignorado');
       return;
@@ -256,7 +257,7 @@ class SpeechValidator {
     };
 
     // ── Timer de segurança ──────────────────────────────────────────────
-    Future.delayed(timeout + const Duration(seconds: 3), () {
+    Future.delayed(actualTimeout + const Duration(seconds: 3), () {
       debugPrint('[MIC] safety timer disparado: delivered=$delivered, transcript="$_lastTranscript"');
       if (!delivered) {
         debugPrint('[MIC] safety timer: deliver forçado por timeout');
@@ -275,11 +276,11 @@ class SpeechValidator {
     // não capturamos o retorno para evitar TypeError de cast null→bool.
     // Usamos _stt.isListening para verificar se realmente iniciou.
     try {
-      debugPrint('[MIC] _stt.listen(): localeId=$_localeId, timeout=$timeout');
+      debugPrint('[MIC] _stt.listen(): localeId=$_localeId, timeout=$actualTimeout');
       await _stt.listen(
         localeId: _localeId,
-        listenFor: timeout,
-        pauseFor: const Duration(seconds: 6),
+        listenFor: actualTimeout,
+        pauseFor: const Duration(seconds: 10),
         listenOptions: SpeechListenOptions(
           partialResults: true,
           cancelOnError: false,

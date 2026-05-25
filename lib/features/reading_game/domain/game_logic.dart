@@ -346,6 +346,11 @@ class GameLogic extends ChangeNotifier {
       _currentWord = '';
       // Recompensa por completar a família
       if (_dualConfig == null || !_dualConfig!.isDual) {
+        // Garante 100%: marca todas as palavras da família como concluídas
+        await _progressService.markAllWordsCompleted(
+          _family.key,
+          _family.words.map((e) => e.word).toList(),
+        );
         final famReward = await gamification.onFamilyCompleted(_family.key);
         _sessionCoins += famReward.coins;
         _sessionXp += famReward.xp;
@@ -378,6 +383,10 @@ class GameLogic extends ChangeNotifier {
   void initWithDualFamilies(DualFamilyConfig config) {
     _family = config.primary;
     _dualConfig = config;
+    sessionTracking.startSession();
+    _sessionCoins = 0;
+    _sessionXp = 0;
+    _sessionBadges = [];
 
     final allWords = WordBank.filterByDualFamilies(
       config.primary,

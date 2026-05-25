@@ -1,0 +1,3075 @@
+[
+  {
+    "id": "story_safari_v1",
+    "_notes": "História 1 — O Safari dos Sons. ASR tolerance 0.65: onomatopeias têm alta variabilidade fonética em fala infantil. Cada ato mapeia exatamente um tipo de interação. Ramificação no ato 3 altera ambientação e diálogos mas nunca bloqueia progressão.",
+    "metadata": {
+      "title": "O Safari dos Sons",
+      "subtitle": "Uma aventura cheia de barulhos incríveis!",
+      "difficulty": "beginner",
+      "ageRange": { "min": 4, "max": 6 },
+      "estimatedDuration": 420,
+      "language": "pt-BR",
+      "learningObjectives": [
+        "phonological_awareness",
+        "vocabulary",
+        "print_concepts"
+      ],
+      "tags": ["animals", "safari", "sounds", "onomatopoeia"],
+      "bnccAlignment": ["EI03EF01", "EF01LP05", "EF01LP06", "EI03EO04"],
+      "nelpAlignment": ["phonological_awareness", "oral_language"],
+      "createdAt": "2026-05-24T00:00:00Z",
+      "version": "1.0.0"
+    },
+    "characters": [
+      {
+        "id": "guide_safari",
+        "name": "Tico",
+        "voiceProfile": "child_pt_br_warm",
+        "description": "Guia do safari, criança de 6 anos, pele morena, cabelo cacheado volumoso, usa binóculos coloridos e colete verde"
+      },
+      {
+        "id": "narrator",
+        "name": "Narrador",
+        "voiceProfile": "adult_pt_br_narrator_soft",
+        "description": "Voz narrativa suave e envolvente, sem gênero definido"
+      },
+      {
+        "id": "animal_leao",
+        "name": "Léo",
+        "voiceProfile": "character_roar_friendly",
+        "description": "Leão amigável com juba arco-íris, expressão curiosa e gentil"
+      },
+      {
+        "id": "animal_sapo",
+        "name": "Sapinho",
+        "voiceProfile": "character_croak_bouncy",
+        "description": "Sapo verde saltitante com manchas coloridas e óculos redondos"
+      },
+      {
+        "id": "animal_passaro",
+        "name": "Piu",
+        "voiceProfile": "character_tweet_melodic",
+        "description": "Pássaro azul pequenino com crista alaranjada e asas estreladas"
+      }
+    ],
+    "acts": [
+      {
+        "id": "act_1",
+        "title": "Bem-vindo ao Safari!",
+        "background": {
+          "image": "assets/stories/story_safari_v1/act1_background.png",
+          "ambientAudio": "assets/stories/story_safari_v1/act1_ambient_savana.mp3"
+        },
+        "text": {
+          "narrative": "Tico chegou na savana dourada.\nOs animais fizeram barulhos incríveis!\nVocê consegue ouvir o leão?",
+          "highlightWords": ["sa-va-na", "a-ni-mais", "ba-ru-lhos", "le-ão"]
+        },
+        "dialogue": [
+          {
+            "character": "narrator",
+            "text": "Era um dia lindo na savana.\nTico ouviu um barulho enorme!",
+            "emotion": "storytelling",
+            "duration": 4
+          },
+          {
+            "character": "guide_safari",
+            "text": "Olha! É o Léo, o leão!\nEle faz RROARRR!",
+            "emotion": "excited",
+            "duration": 3
+          },
+          {
+            "character": "animal_leao",
+            "text": "RROARRR! Olá, amigo!",
+            "emotion": "friendly",
+            "duration": 2
+          },
+          {
+            "character": "guide_safari",
+            "text": "Você consegue fazer o som do leão?\nVamos tentar juntos!",
+            "emotion": "encouraging",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "voice_trigger",
+          "instruction": "Fale o som do leão: RROARRR!",
+          "targetPhrase": "RROARRR",
+          "tolerance": 0.65,
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "assets/stories/story_safari_v1/act1_success_roar.json",
+            "sfx": [
+              "assets/audio/sfx/success_bells.wav",
+              "assets/audio/sfx/applause_kids.wav"
+            ],
+            "dialogue": [
+              {
+                "character": "animal_leao",
+                "text": "Que rugido incrível! Você é um verdadeiro explorador!",
+                "emotion": "amazed",
+                "duration": 3
+              }
+            ],
+            "nextAct": "act_2"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "guide_safari",
+                    "text": "Quase lá! Tente mais forte: RROARRR!",
+                    "emotion": "encouraging",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "animal_leao",
+                    "text": "Vamos fazer junto: RROA... RRR!\nAgora você!",
+                    "emotion": "teaching",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "guide_safari",
+                    "text": "Sua tentativa foi ótima! O Léo adorou!\nVamos continuar o safari!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_2"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_2",
+        "title": "Cada Animal no Seu Lar",
+        "background": {
+          "image": "assets/stories/story_safari_v1/act2_background.png",
+          "ambientAudio": "assets/stories/story_safari_v1/act2_ambient_mixed.mp3"
+        },
+        "text": {
+          "narrative": "Os animais querem ir para casa.\nA floresta, o lago e a savana esperam!\nVocê vai ajudar cada um?",
+          "highlightWords": ["flo-res-ta", "la-go", "sa-va-na", "a-ju-dar"]
+        },
+        "dialogue": [
+          {
+            "character": "guide_safari",
+            "text": "Cada animal tem um lar especial!\nArraste cada um para o lugar certo!",
+            "emotion": "instructive",
+            "duration": 4
+          },
+          {
+            "character": "narrator",
+            "text": "O leão ama a savana quente.\nO sapo ama o lago fresco.\nO pássaro ama a floresta!",
+            "emotion": "storytelling",
+            "duration": 5
+          }
+        ],
+        "interaction": {
+          "type": "touch_drag",
+          "instruction": "Arraste cada animal para o lugar onde ele vive!",
+          "items": [
+            {
+              "id": "leao",
+              "label": "Léo",
+              "image": "assets/stories/story_safari_v1/act2_item_leao.png",
+              "correctTarget": "savana",
+              "soundOnDrag": "assets/stories/story_safari_v1/sfx_leao_purr.mp3"
+            },
+            {
+              "id": "sapo",
+              "label": "Sapinho",
+              "image": "assets/stories/story_safari_v1/act2_item_sapo.png",
+              "correctTarget": "lago",
+              "soundOnDrag": "assets/stories/story_safari_v1/sfx_sapo_coax.mp3"
+            },
+            {
+              "id": "passaro",
+              "label": "Piu",
+              "image": "assets/stories/story_safari_v1/act2_item_passaro.png",
+              "correctTarget": "floresta",
+              "soundOnDrag": "assets/stories/story_safari_v1/sfx_passaro_piu.mp3"
+            }
+          ],
+          "targets": [
+            {
+              "id": "savana",
+              "label": "sa-va-na",
+              "image": "assets/stories/story_safari_v1/act2_target_savana.png"
+            },
+            {
+              "id": "lago",
+              "label": "la-go",
+              "image": "assets/stories/story_safari_v1/act2_target_lago.png"
+            },
+            {
+              "id": "floresta",
+              "label": "flo-res-ta",
+              "image": "assets/stories/story_safari_v1/act2_target_floresta.png"
+            }
+          ],
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "assets/stories/story_safari_v1/act2_success_homes.json",
+            "sfx": ["assets/audio/sfx/success_chime.wav"],
+            "dialogue": [
+              {
+                "character": "guide_safari",
+                "text": "Todos os animais felizes em casa!\nVocê é incrível!",
+                "emotion": "proud",
+                "duration": 4
+              }
+            ],
+            "nextAct": "act_3"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "guide_safari",
+                    "text": "Hmm! Esse animal não mora aqui.\nTente outro lugar!",
+                    "emotion": "gentle",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "animal_sapo",
+                    "text": "COAX! Eu adoro água!\nOnde tem água?",
+                    "emotion": "hint",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "Com a ajuda do Tico, todos encontraram seus lares!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_3"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_3",
+        "title": "Qual Animal Vamos Seguir?",
+        "background": {
+          "image": "assets/stories/story_safari_v1/act3_background.png",
+          "ambientAudio": "assets/stories/story_safari_v1/act3_ambient_crossroads.mp3"
+        },
+        "text": {
+          "narrative": "Tico chegou numa bifurcação!\nO leão vai à savana dourada.\nO sapo vai ao lago de cristal.\nQual caminho você escolhe?",
+          "highlightWords": ["es-co-lha", "sa-va-na", "la-go", "ca-mi-nho"]
+        },
+        "dialogue": [
+          {
+            "character": "guide_safari",
+            "text": "Uau! Dois caminhos!\nCom qual animal você prefere ir?\nO leão ou o sapo?",
+            "emotion": "curious",
+            "duration": 4
+          }
+        ],
+        "interaction": {
+          "type": "branching_choice",
+          "instruction": "Toque no animal que você quer seguir!",
+          "options": [
+            {
+              "id": "follow_leao",
+              "label": "Seguir o Léo",
+              "image": "assets/stories/story_safari_v1/act3_choice_leao.png",
+              "consequence": {
+                "ambientAudio": "assets/stories/story_safari_v1/act3b_savana_golden.mp3",
+                "dialogue": [
+                  {
+                    "character": "animal_leao",
+                    "text": "Vem comigo! A savana tem flores amarelas!\nRROARRR de alegria!",
+                    "emotion": "excited",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "id": "follow_sapo",
+              "label": "Seguir o Sapinho",
+              "image": "assets/stories/story_safari_v1/act3_choice_sapo.png",
+              "consequence": {
+                "ambientAudio": "assets/stories/story_safari_v1/act3b_lago_crystal.mp3",
+                "dialogue": [
+                  {
+                    "character": "animal_sapo",
+                    "text": "COAX COAX! O lago tem rãs dançando!\nVem ver!",
+                    "emotion": "excited",
+                    "duration": 4
+                  }
+                ]
+              }
+            }
+          ],
+          "onSuccess": {
+            "animation": "assets/stories/story_safari_v1/act3_choice_sparkle.json",
+            "sfx": ["assets/audio/sfx/choice_whoosh.wav"],
+            "nextAct": "act_4"
+          }
+        }
+      },
+      {
+        "id": "act_4",
+        "title": "Seu Safari Sonoro!",
+        "background": {
+          "image": "assets/stories/story_safari_v1/act4_background.png",
+          "ambientAudio": "assets/stories/story_safari_v1/act4_ambient_celebration.mp3"
+        },
+        "text": {
+          "narrative": "Você conheceu todos os sons!\nAgora é hora de gravar\nseu próprio safari sonoro!",
+          "highlightWords": ["sa-fa-ri", "sons", "gra-var", "a-ven-tu-ra"]
+        },
+        "dialogue": [
+          {
+            "character": "guide_safari",
+            "text": "Vamos gravar o seu safari!\nFale os sons dos animais!\nRROARRR, COAX COAX, PIU PIU!",
+            "emotion": "excited",
+            "duration": 5
+          }
+        ],
+        "interaction": {
+          "type": "creative_resolution",
+          "subtype": "voice_recording",
+          "instruction": "Grave os sons do seu safari! Use: RROARRR, COAX COAX, PIU PIU!",
+          "prompt": "RROARRR... COAX COAX... PIU PIU...",
+          "maxDuration": 30,
+          "saveAs": {
+            "destination": "diario_explorador",
+            "label": "Meu Safari Sonoro",
+            "icon": "assets/stories/story_safari_v1/diary_icon.png",
+            "metadata": {
+              "storyId": "story_safari_v1",
+              "act": "act_4",
+              "type": "voice_recording"
+            }
+          },
+          "onSuccess": {
+            "animation": "assets/stories/story_safari_v1/act4_success_confetti.json",
+            "sfx": ["assets/audio/sfx/completion_fanfare.wav"],
+            "dialogue": [
+              {
+                "character": "guide_safari",
+                "text": "Seu safari ficou incrível!\nVocê conheceu os sons de verdade!",
+                "emotion": "proud",
+                "duration": 4
+              },
+              {
+                "character": "narrator",
+                "text": "Parabéns! Você completou o Safari dos Sons!\nSeu safari foi salvo no Diário do Explorador!",
+                "emotion": "celebratory",
+                "duration": 4
+              }
+            ],
+            "nextAct": null
+          },
+          "onSkip": {
+            "dialogue": [
+              {
+                "character": "guide_safari",
+                "text": "Tudo bem! Sua aventura foi salva!\nAté o próximo safari!",
+                "emotion": "warm",
+                "duration": 3
+              }
+            ],
+            "nextAct": null
+          }
+        }
+      }
+    ],
+    "rewards": {
+      "completion": {
+        "coins": 30,
+        "xp": 150,
+        "badges": ["safari_explorer", "sound_master"],
+        "unlockNextStory": "story_cozinha_v1",
+        "addToLibrary": true
+      }
+    },
+    "analytics": {
+      "trackEvents": [
+        "act_enter", "interaction_success", "interaction_fail",
+        "choice_made", "completion", "voice_attempt", "drag_attempt",
+        "creative_resolution_saved", "creative_resolution_skipped"
+      ],
+      "metrics": [
+        "completionRate", "averageTime", "attempts_per_interaction",
+        "interaction_success_rate", "average_attempts_before_success",
+        "branch_choice_distribution", "creative_resolution_type_selected",
+        "completion_time_seconds"
+      ]
+    }
+  },
+
+  {
+    "id": "story_cozinha_v1",
+    "_notes": "História 2 — A Cozinha Mágica do Chef Pipoca. Foco em junção silábica: CA+FÉ=CAFÉ, LEI+TE=LEITE, PA+NE=PANE(LA). ASR tolerance 0.75: palavras cotidianas com padrão silábico claro. Sequência de ingredientes reforça causalidade e ordem narrativa.",
+    "metadata": {
+      "title": "A Cozinha Mágica do Chef Pipoca",
+      "subtitle": "Juntando sílabas para criar pratos deliciosos!",
+      "difficulty": "beginner",
+      "ageRange": { "min": 4, "max": 7 },
+      "estimatedDuration": 480,
+      "language": "pt-BR",
+      "learningObjectives": [
+        "phonological_awareness",
+        "vocabulary",
+        "print_concepts",
+        "reading_fluency"
+      ],
+      "tags": ["cooking", "syllables", "food", "sequence"],
+      "bnccAlignment": ["EI03EF01", "EF01LP05", "EF01LP03", "EI03EO04"],
+      "nelpAlignment": ["phonological_awareness", "alphabet_knowledge", "oral_language"],
+      "createdAt": "2026-05-24T00:00:00Z",
+      "version": "1.0.0"
+    },
+    "characters": [
+      {
+        "id": "chef_pipoca",
+        "name": "Chef Pipoca",
+        "voiceProfile": "character_chef_cheerful",
+        "description": "Chef entusiasmado de 7 anos, pele clara, avental estampado de pipoca, chapéu branco com desenho de milho"
+      },
+      {
+        "id": "narrator",
+        "name": "Narrador",
+        "voiceProfile": "adult_pt_br_narrator_soft",
+        "description": "Voz narrativa suave e envolvente, sem gênero definido"
+      },
+      {
+        "id": "helper_colher",
+        "name": "Colherzinha",
+        "voiceProfile": "character_spoon_squeaky",
+        "description": "Colher de pau mágica e falante, ajudante da cozinha"
+      }
+    ],
+    "acts": [
+      {
+        "id": "act_1",
+        "title": "A Receita Mágica!",
+        "background": {
+          "image": "assets/stories/story_cozinha_v1/act1_background.png",
+          "ambientAudio": "assets/stories/story_cozinha_v1/act1_ambient_kitchen.mp3"
+        },
+        "text": {
+          "narrative": "Chef Pipoca encontrou uma receita mágica!\nPara fazer o café quentinho,\nprecisa juntar as sílabas!\nCA + FÉ = CAFÉ!",
+          "highlightWords": ["CA-FÉ", "QUE-NTI-NHO", "SÍ-LA-BAS", "re-cei-ta"]
+        },
+        "dialogue": [
+          {
+            "character": "narrator",
+            "text": "Na cozinha mágica do Chef Pipoca,\ntudo se faz com palavras!",
+            "emotion": "storytelling",
+            "duration": 4
+          },
+          {
+            "character": "chef_pipoca",
+            "text": "Olha esta receita!\nCA + FÉ = CAFÉ!\nVamos ler juntos?",
+            "emotion": "excited",
+            "duration": 4
+          },
+          {
+            "character": "helper_colher",
+            "text": "Eu adoro quando a gente\njunta sílabas!\nCome logo ler!",
+            "emotion": "eager",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "voice_trigger",
+          "instruction": "Leia a receita em voz alta: CA-FÉ QUEN-TE!",
+          "targetPhrase": "CAFÉ QUENTE",
+          "tolerance": 0.75,
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "assets/stories/story_cozinha_v1/act1_success_steam.json",
+            "sfx": [
+              "assets/audio/sfx/success_bells.wav",
+              "assets/stories/story_cozinha_v1/sfx_coffee_ready.mp3"
+            ],
+            "dialogue": [
+              {
+                "character": "chef_pipoca",
+                "text": "ISSO! Você leu a receita!\nO café apareceu como mágica!",
+                "emotion": "amazed",
+                "duration": 3
+              }
+            ],
+            "nextAct": "act_2"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "helper_colher",
+                    "text": "Quase! Tente devagar:\nCA... FÉ... QUEN... TE!",
+                    "emotion": "encouraging",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "chef_pipoca",
+                    "text": "Vamos juntos: CA-FÉ QUEN-TE!\nEu falo, você repete!",
+                    "emotion": "teaching",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "helper_colher",
+                    "text": "Sua leitura foi ótima!\nO café ficou pronto mesmo!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_2"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_2",
+        "title": "Os Ingredientes na Ordem Certa",
+        "background": {
+          "image": "assets/stories/story_cozinha_v1/act2_background.png",
+          "ambientAudio": "assets/stories/story_cozinha_v1/act2_ambient_cooking.mp3"
+        },
+        "text": {
+          "narrative": "A receita tem uma ordem certa!\nPrimeiro o leite, depois o mel,\ndepois a farinha!\nVocê lembra a ordem?",
+          "highlightWords": ["or-dem", "pri-mei-ro", "de-pois", "fa-ri-nha", "LEI-TE", "MEL"]
+        },
+        "dialogue": [
+          {
+            "character": "chef_pipoca",
+            "text": "Na receita mágica,\na ordem importa muito!\nToque nos ingredientes certos!",
+            "emotion": "instructive",
+            "duration": 4
+          },
+          {
+            "character": "helper_colher",
+            "text": "LEI + TE = LEITE!\nFa + ri + nha = FARINHA!\nMel é só MEL!",
+            "emotion": "helpful",
+            "duration": 4
+          }
+        ],
+        "interaction": {
+          "type": "touch_drag",
+          "instruction": "Selecione os ingredientes na ordem da receita: LEITE → MEL → FARINHA",
+          "items": [
+            {
+              "id": "leite",
+              "label": "LEI-TE",
+              "image": "assets/stories/story_cozinha_v1/act2_item_leite.png",
+              "correctOrder": 1,
+              "syllables": ["LEI", "TE"],
+              "soundOnDrag": "assets/stories/story_cozinha_v1/sfx_pour_milk.mp3"
+            },
+            {
+              "id": "mel",
+              "label": "MEL",
+              "image": "assets/stories/story_cozinha_v1/act2_item_mel.png",
+              "correctOrder": 2,
+              "syllables": ["MEL"],
+              "soundOnDrag": "assets/stories/story_cozinha_v1/sfx_drip_honey.mp3"
+            },
+            {
+              "id": "farinha",
+              "label": "FA-RI-NHA",
+              "image": "assets/stories/story_cozinha_v1/act2_item_farinha.png",
+              "correctOrder": 3,
+              "syllables": ["FA", "RI", "NHA"],
+              "soundOnDrag": "assets/stories/story_cozinha_v1/sfx_sprinkle_flour.mp3"
+            },
+            {
+              "id": "distractor_pimenta",
+              "label": "PI-MEN-TA",
+              "image": "assets/stories/story_cozinha_v1/act2_item_pimenta.png",
+              "correctOrder": null,
+              "syllables": ["PI", "MEN", "TA"],
+              "soundOnDrag": "assets/stories/story_cozinha_v1/sfx_sneeze.mp3"
+            }
+          ],
+          "targetSlots": 3,
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "assets/stories/story_cozinha_v1/act2_success_baking.json",
+            "sfx": ["assets/audio/sfx/success_chime.wav", "assets/stories/story_cozinha_v1/sfx_oven_ding.mp3"],
+            "dialogue": [
+              {
+                "character": "chef_pipoca",
+                "text": "Perfeito! Os ingredientes na ordem certa!\nA massa ficou deliciosa!",
+                "emotion": "proud",
+                "duration": 4
+              }
+            ],
+            "nextAct": "act_3"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "helper_colher",
+                    "text": "Ops! A receita tem uma ordem!\nOlha o livro de novo!",
+                    "emotion": "gentle",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "chef_pipoca",
+                    "text": "Dica: começa com o que a vaca dá!\nLEI + TE = ?",
+                    "emotion": "hint",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "A Colherzinha ajudou a colocar\nos ingredientes juntos!\nQue bolo lindo!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_3"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_3",
+        "title": "Doce ou Salgado?",
+        "background": {
+          "image": "assets/stories/story_cozinha_v1/act3_background.png",
+          "ambientAudio": "assets/stories/story_cozinha_v1/act3_ambient_choice.mp3"
+        },
+        "text": {
+          "narrative": "A receita pode ser doce ou salgada!\nSe escolher doce, vira bolo de morango!\nSe escolher salgado, vira pão de queijo!\nO que você prefere?",
+          "highlightWords": ["DO-CE", "SAL-GA-DO", "bo-lo", "pão de quei-jo", "mo-ran-go"]
+        },
+        "dialogue": [
+          {
+            "character": "chef_pipoca",
+            "text": "Chegou a hora da escolha!\nDoce ou salgado?\nQual receita mágica você quer?",
+            "emotion": "curious",
+            "duration": 4
+          }
+        ],
+        "interaction": {
+          "type": "branching_choice",
+          "instruction": "Toque na sua escolha: DOCE ou SALGADO!",
+          "options": [
+            {
+              "id": "choice_doce",
+              "label": "DO-CE",
+              "image": "assets/stories/story_cozinha_v1/act3_choice_bolo.png",
+              "consequence": {
+                "ambientAudio": "assets/stories/story_cozinha_v1/act3b_sweet_jingle.mp3",
+                "unlockItem": "bolo_morango",
+                "dialogue": [
+                  {
+                    "character": "helper_colher",
+                    "text": "Bolo de morango!\nMO + RAN + GO!\nQue cheiro gostoso!",
+                    "emotion": "delighted",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "id": "choice_salgado",
+              "label": "SAL-GA-DO",
+              "image": "assets/stories/story_cozinha_v1/act3_choice_pao_queijo.png",
+              "consequence": {
+                "ambientAudio": "assets/stories/story_cozinha_v1/act3b_savory_jingle.mp3",
+                "unlockItem": "pao_queijo",
+                "dialogue": [
+                  {
+                    "character": "chef_pipoca",
+                    "text": "Pão de queijo quentinho!\nQUEI + JO!\nFicou redondinho!",
+                    "emotion": "delighted",
+                    "duration": 4
+                  }
+                ]
+              }
+            }
+          ],
+          "onSuccess": {
+            "animation": "assets/stories/story_cozinha_v1/act3_choice_magic.json",
+            "sfx": ["assets/audio/sfx/choice_whoosh.wav"],
+            "nextAct": "act_4"
+          }
+        }
+      },
+      {
+        "id": "act_4",
+        "title": "Seu Prato Mágico!",
+        "background": {
+          "image": "assets/stories/story_cozinha_v1/act4_background.png",
+          "ambientAudio": "assets/stories/story_cozinha_v1/act4_ambient_celebration.mp3"
+        },
+        "text": {
+          "narrative": "Parabéns, Chef!\nAgora desenhe seu próprio\nprato mágico!\nQue palavras você vai usar?",
+          "highlightWords": ["pra-to", "má-gi-co", "de-se-nhar", "pa-la-vras"]
+        },
+        "dialogue": [
+          {
+            "character": "chef_pipoca",
+            "text": "Você é um chef incrível!\nAgora desenhe seu prato!\nEscreva o nome de um ingrediente!",
+            "emotion": "excited",
+            "duration": 5
+          }
+        ],
+        "interaction": {
+          "type": "creative_resolution",
+          "subtype": "drawing",
+          "instruction": "Desenhe seu prato mágico e escreva o nome de um ingrediente!",
+          "canvas": {
+            "backgroundColor": "#FFF9E6",
+            "brushColors": ["#FF6B6B", "#4ECDC4", "#FFE66D", "#A8E6CF", "#FF8B94"],
+            "labelPrompt": "Escreva o nome do seu prato:"
+          },
+          "saveAs": {
+            "destination": "diario_explorador",
+            "label": "Meu Prato Mágico",
+            "icon": "assets/stories/story_cozinha_v1/diary_icon.png",
+            "metadata": {
+              "storyId": "story_cozinha_v1",
+              "act": "act_4",
+              "type": "drawing"
+            }
+          },
+          "onSuccess": {
+            "animation": "assets/stories/story_cozinha_v1/act4_success_stars.json",
+            "sfx": ["assets/audio/sfx/completion_fanfare.wav"],
+            "dialogue": [
+              {
+                "character": "chef_pipoca",
+                "text": "Que prato lindo! Você é um chef de palavras!",
+                "emotion": "proud",
+                "duration": 4
+              },
+              {
+                "character": "narrator",
+                "text": "Parabéns! Você completou a Cozinha Mágica!\nSeu prato foi salvo no Diário do Explorador!",
+                "emotion": "celebratory",
+                "duration": 4
+              }
+            ],
+            "nextAct": null
+          },
+          "onSkip": {
+            "dialogue": [
+              {
+                "character": "helper_colher",
+                "text": "Tudo bem! Sua aventura na cozinha foi salva!\nAté a próxima receita!",
+                "emotion": "warm",
+                "duration": 3
+              }
+            ],
+            "nextAct": null
+          }
+        }
+      }
+    ],
+    "rewards": {
+      "completion": {
+        "coins": 35,
+        "xp": 175,
+        "badges": ["magic_chef", "syllable_builder"],
+        "unlockNextStory": "story_planetas_v1",
+        "addToLibrary": true
+      }
+    },
+    "analytics": {
+      "trackEvents": [
+        "act_enter", "interaction_success", "interaction_fail",
+        "choice_made", "completion", "voice_attempt", "drag_attempt",
+        "creative_resolution_saved", "creative_resolution_skipped"
+      ],
+      "metrics": [
+        "completionRate", "averageTime", "attempts_per_interaction",
+        "interaction_success_rate", "average_attempts_before_success",
+        "branch_choice_distribution", "creative_resolution_type_selected",
+        "completion_time_seconds"
+      ]
+    }
+  },
+
+  {
+    "id": "story_planetas_v1",
+    "_notes": "História 3 — Viagem ao Planeta das Vogais. Foco em vogais isoladas e direcionalidade E→D. ASR tolerance 0.70: vogais isoladas requerem clareza, mas entonação infantil varia. Traçado A-E-I-O-U reforça ordem alfabética e direcionalidade. Ramificação altera velocidade e pausas narrativas, não bloqueia.",
+    "metadata": {
+      "title": "Viagem ao Planeta das Vogais",
+      "subtitle": "Decole e descubra as 5 vogais do espaço!",
+      "difficulty": "beginner",
+      "ageRange": { "min": 4, "max": 6 },
+      "estimatedDuration": 450,
+      "language": "pt-BR",
+      "learningObjectives": [
+        "phonological_awareness",
+        "alphabet_knowledge",
+        "print_concepts",
+        "reading_fluency"
+      ],
+      "tags": ["space", "vowels", "alphabet", "directionality"],
+      "bnccAlignment": ["EI03EF01", "EF01LP01", "EF01LP06", "EF01LP02"],
+      "nelpAlignment": ["phonological_awareness", "alphabet_knowledge", "print_concepts"],
+      "createdAt": "2026-05-24T00:00:00Z",
+      "version": "1.0.0"
+    },
+    "characters": [
+      {
+        "id": "astronaut_nova",
+        "name": "Nova",
+        "voiceProfile": "child_pt_br_adventurous",
+        "description": "Astronauta de 6 anos, pele negra, cabelo curto sob capacete transparente com estrelinhas, roupa espacial colorida"
+      },
+      {
+        "id": "narrator",
+        "name": "Narrador",
+        "voiceProfile": "adult_pt_br_narrator_soft",
+        "description": "Voz narrativa suave e envolvente, sem gênero definido"
+      },
+      {
+        "id": "robot_vocal",
+        "name": "Vô-Cal",
+        "voiceProfile": "character_robot_friendly",
+        "description": "Robô pequenino com 5 lâmpadas coloridas — uma para cada vogal — que pisca quando cada vogal é dita"
+      }
+    ],
+    "acts": [
+      {
+        "id": "act_1",
+        "title": "Decolagem!",
+        "background": {
+          "image": "assets/stories/story_planetas_v1/act1_background.png",
+          "ambientAudio": "assets/stories/story_planetas_v1/act1_ambient_launch.mp3"
+        },
+        "text": {
+          "narrative": "Nova entrou na nave espacial!\nO robô Vô-Cal disse:\n\"Para decolar, diga a vogal A!\"\nAAAA de Astronauta!",
+          "highlightWords": ["A", "a-vô", "vo-gal", "As-tro-nau-ta", "de-co-lar"]
+        },
+        "dialogue": [
+          {
+            "character": "narrator",
+            "text": "Nova estava pronta para viajar!\nA nave precisava de um som especial\npara decolar!",
+            "emotion": "storytelling",
+            "duration": 4
+          },
+          {
+            "character": "robot_vocal",
+            "text": "BLEEP! Para decolar,\ndiga a vogal: AAAA!\nAssim como em A-ssa-da ou A-mor!",
+            "emotion": "instructive",
+            "duration": 4
+          },
+          {
+            "character": "astronaut_nova",
+            "text": "Eu sei! AAAA!\nAssim como em A-ve-la!",
+            "emotion": "confident",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "voice_trigger",
+          "instruction": "Diga a vogal A bem longa: AAAA!",
+          "targetPhrase": "AAAA",
+          "tolerance": 0.70,
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "assets/stories/story_planetas_v1/act1_success_launch.json",
+            "sfx": [
+              "assets/audio/sfx/success_bells.wav",
+              "assets/stories/story_planetas_v1/sfx_rocket_launch.mp3"
+            ],
+            "dialogue": [
+              {
+                "character": "robot_vocal",
+                "text": "BLEEP BLOOP! Lâmpada A acesa!\nDecolamos! Rumo às vogais!",
+                "emotion": "excited",
+                "duration": 3
+              }
+            ],
+            "nextAct": "act_2"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "robot_vocal",
+                    "text": "Quase! A vogal A é assim: AAAA!\nBoca bem aberta!",
+                    "emotion": "encouraging",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "astronaut_nova",
+                    "text": "Vamos juntos: AAAA!\nPensa em A de A-mor!",
+                    "emotion": "teaching",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "robot_vocal",
+                    "text": "BLEEP! Sua voz ativou o motor!\nDecolamos juntos!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_2"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_2",
+        "title": "O Mapa das Estrelas",
+        "background": {
+          "image": "assets/stories/story_planetas_v1/act2_background.png",
+          "ambientAudio": "assets/stories/story_planetas_v1/act2_ambient_space.mp3"
+        },
+        "text": {
+          "narrative": "No espaço, as vogais são estrelas!\nA → E → I → O → U\nSempre da esquerda para a direita!\nTrace o caminho das vogais!",
+          "highlightWords": ["A", "E", "I", "O", "U", "es-quer-da", "di-rei-ta", "ca-mi-nho"]
+        },
+        "dialogue": [
+          {
+            "character": "robot_vocal",
+            "text": "As vogais são estrelas no espaço!\nTrace o caminho certo:\nA, E, I, O, U!\nSempre para o lado direito!",
+            "emotion": "instructive",
+            "duration": 5
+          }
+        ],
+        "interaction": {
+          "type": "touch_drag",
+          "instruction": "Trace o caminho conectando as vogais em ordem: A → E → I → O → U",
+          "pathNodes": [
+            { "id": "vowel_A", "label": "A", "position": { "x": 0.1, "y": 0.5 }, "color": "#FF6B6B", "order": 1 },
+            { "id": "vowel_E", "label": "E", "position": { "x": 0.3, "y": 0.3 }, "color": "#FFE66D", "order": 2 },
+            { "id": "vowel_I", "label": "I", "position": { "x": 0.5, "y": 0.5 }, "color": "#4ECDC4", "order": 3 },
+            { "id": "vowel_O", "label": "O", "position": { "x": 0.7, "y": 0.3 }, "color": "#A8E6CF", "order": 4 },
+            { "id": "vowel_U", "label": "U", "position": { "x": 0.9, "y": 0.5 }, "color": "#C3A6FF", "order": 5 }
+          ],
+          "trailParticles": "stardust",
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "assets/stories/story_planetas_v1/act2_success_constellation.json",
+            "sfx": ["assets/audio/sfx/success_chime.wav", "assets/stories/story_planetas_v1/sfx_constellation_complete.mp3"],
+            "dialogue": [
+              {
+                "character": "astronaut_nova",
+                "text": "Criamos a Constelação das Vogais!\nA, E, I, O, U! Rumo ao planeta!",
+                "emotion": "triumphant",
+                "duration": 4
+              }
+            ],
+            "nextAct": "act_3"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "robot_vocal",
+                    "text": "BLEEP! Comece pela estrela A!\nÉ a primeira da esquerda!",
+                    "emotion": "gentle",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "robot_vocal",
+                    "text": "Dica: A estrela A pisca em vermelho!\nSempre vá para o lado direito!",
+                    "emotion": "hint",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "Vô-Cal traçou o caminho junto com Nova!\nA constelação ficou linda!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_3"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_3",
+        "title": "Qual Rota Vamos Escolher?",
+        "background": {
+          "image": "assets/stories/story_planetas_v1/act3_background.png",
+          "ambientAudio": "assets/stories/story_planetas_v1/act3_ambient_orbit.mp3"
+        },
+        "text": {
+          "narrative": "A nave chegou perto do Planeta das Vogais!\nTem dois jeitos de chegar!\nRota Rápida ou Rota Turística?\nEscolha sua aventura!",
+          "highlightWords": ["ro-ta", "rá-pi-da", "tu-rís-ti-ca", "pla-ne-ta"]
+        },
+        "dialogue": [
+          {
+            "character": "robot_vocal",
+            "text": "Dois caminhos até o planeta!\nRota Rápida: chegamos logo!\nRota Turística: vemos mais estrelas!",
+            "emotion": "informative",
+            "duration": 5
+          },
+          {
+            "character": "astronaut_nova",
+            "text": "Qual você escolhe?\nRápida ou com mais aventura?",
+            "emotion": "curious",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "branching_choice",
+          "instruction": "Escolha a rota da nave!",
+          "options": [
+            {
+              "id": "rota_rapida",
+              "label": "RO-TA RÁ-PI-DA",
+              "image": "assets/stories/story_planetas_v1/act3_choice_fast.png",
+              "consequence": {
+                "ambientAudio": "assets/stories/story_planetas_v1/act3b_warp_speed.mp3",
+                "narrationPace": "fast",
+                "dialogue": [
+                  {
+                    "character": "robot_vocal",
+                    "text": "WARP SPEED! BLEEP!\nVogais passando rápido:\nA-E-I-O-U! Chegamos!",
+                    "emotion": "zooming",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "id": "rota_turistica",
+              "label": "RO-TA TU-RÍS-TI-CA",
+              "image": "assets/stories/story_planetas_v1/act3_choice_scenic.png",
+              "consequence": {
+                "ambientAudio": "assets/stories/story_planetas_v1/act3b_scenic_wonders.mp3",
+                "narrationPace": "slow",
+                "dialogue": [
+                  {
+                    "character": "astronaut_nova",
+                    "text": "Olha! Essa estrela tem forma de A!\nE aquela tem E!\nQue espaço lindo!",
+                    "emotion": "wonder",
+                    "duration": 5
+                  }
+                ]
+              }
+            }
+          ],
+          "onSuccess": {
+            "animation": "assets/stories/story_planetas_v1/act3_choice_warp.json",
+            "sfx": ["assets/audio/sfx/choice_whoosh.wav"],
+            "nextAct": "act_4"
+          }
+        }
+      },
+      {
+        "id": "act_4",
+        "title": "Mensagem do Espaço Sideral!",
+        "background": {
+          "image": "assets/stories/story_planetas_v1/act4_background.png",
+          "ambientAudio": "assets/stories/story_planetas_v1/act4_ambient_planet_surface.mp3"
+        },
+        "text": {
+          "narrative": "Nova pousou no Planeta das Vogais!\nOs habitantes falam só em vogais!\nGrave sua mensagem espacial!\nUse A, E, I, O, U!",
+          "highlightWords": ["A", "E", "I", "O", "U", "men-sa-gem", "es-pa-cial", "pou-sar"]
+        },
+        "dialogue": [
+          {
+            "character": "astronaut_nova",
+            "text": "Chegamos no Planeta das Vogais!\nVou mandar uma mensagem para casa!\nA-E-I-O-U!",
+            "emotion": "triumphant",
+            "duration": 4
+          },
+          {
+            "character": "robot_vocal",
+            "text": "Grave sua mensagem!\nFale as 5 vogais do espaço:\nA, E, I, O, U!",
+            "emotion": "excited",
+            "duration": 4
+          }
+        ],
+        "interaction": {
+          "type": "creative_resolution",
+          "subtype": "voice_recording",
+          "instruction": "Grave sua mensagem espacial usando as vogais: A, E, I, O, U!",
+          "prompt": "Olá, Terra! Aqui é A-E-I-O-U!",
+          "maxDuration": 20,
+          "saveAs": {
+            "destination": "diario_explorador",
+            "label": "Minha Mensagem Espacial",
+            "icon": "assets/stories/story_planetas_v1/diary_icon.png",
+            "metadata": {
+              "storyId": "story_planetas_v1",
+              "act": "act_4",
+              "type": "voice_recording"
+            }
+          },
+          "onSuccess": {
+            "animation": "assets/stories/story_planetas_v1/act4_success_planet.json",
+            "sfx": ["assets/audio/sfx/completion_fanfare.wav"],
+            "dialogue": [
+              {
+                "character": "robot_vocal",
+                "text": "BLEEP! Mensagem enviada!\nA Terra recebeu! A-E-I-O-U!",
+                "emotion": "proud",
+                "duration": 3
+              },
+              {
+                "character": "narrator",
+                "text": "Parabéns! Você encontrou todas as 5 vogais!\nSua mensagem foi salva no Diário do Explorador!",
+                "emotion": "celebratory",
+                "duration": 4
+              }
+            ],
+            "nextAct": null
+          },
+          "onSkip": {
+            "dialogue": [
+              {
+                "character": "astronaut_nova",
+                "text": "Tudo bem! Sua viagem foi incrível!\nAté a próxima aventura espacial!",
+                "emotion": "warm",
+                "duration": 3
+              }
+            ],
+            "nextAct": null
+          }
+        }
+      }
+    ],
+    "rewards": {
+      "completion": {
+        "coins": 35,
+        "xp": 175,
+        "badges": ["space_explorer", "vowel_navigator", "constellation_maker"],
+        "unlockNextStory": "story_teatro_v1",
+        "addToLibrary": true
+      }
+    },
+    "analytics": {
+      "trackEvents": [
+        "act_enter", "interaction_success", "interaction_fail",
+        "choice_made", "completion", "voice_attempt", "drag_attempt",
+        "creative_resolution_saved", "creative_resolution_skipped"
+      ],
+      "metrics": [
+        "completionRate", "averageTime", "attempts_per_interaction",
+        "interaction_success_rate", "average_attempts_before_success",
+        "branch_choice_distribution", "creative_resolution_type_selected",
+        "completion_time_seconds"
+      ]
+    }
+  },
+
+  {
+    "id": "story_teatro_v1",
+    "_notes": "História 4 — O Teatro das Emoções. Foco em vocabulário emocional e entonação. ASR tolerance 0.80: entonação é crítica neste módulo — a criança precisa demonstrar carga emocional na fala. Ramificação dialógica vs silenciosa muda o desfecho sem penalizar escolha introvertida.",
+    "metadata": {
+      "title": "O Teatro das Emoções",
+      "subtitle": "Expressar é o maior superpoder!",
+      "difficulty": "intermediate",
+      "ageRange": { "min": 5, "max": 7 },
+      "estimatedDuration": 540,
+      "language": "pt-BR",
+      "learningObjectives": [
+        "emotional_literacy",
+        "vocabulary",
+        "phonological_awareness",
+        "reading_fluency"
+      ],
+      "tags": ["emotions", "theatre", "expression", "vocabulary", "intonation"],
+      "bnccAlignment": ["EI03EO04", "EI03EO05", "EF01LP03", "EF01LP05"],
+      "nelpAlignment": ["oral_language", "phonological_awareness"],
+      "createdAt": "2026-05-24T00:00:00Z",
+      "version": "1.0.0"
+    },
+    "characters": [
+      {
+        "id": "diretora_cena",
+        "name": "Di",
+        "voiceProfile": "child_pt_br_theatrical",
+        "description": "Diretora de teatro de 7 anos, pele oliva, cabelo ruivo com tranças, usa óculos grandes e batuta colorida"
+      },
+      {
+        "id": "narrator",
+        "name": "Narrador",
+        "voiceProfile": "adult_pt_br_narrator_soft",
+        "description": "Voz narrativa suave e envolvente, sem gênero definido"
+      },
+      {
+        "id": "mascara_feliz",
+        "name": "Felizinha",
+        "voiceProfile": "character_mask_happy",
+        "description": "Máscara teatral amarela com sorriso enorme e olhos brilhantes"
+      },
+      {
+        "id": "mascara_triste",
+        "name": "Tristinha",
+        "voiceProfile": "character_mask_sad",
+        "description": "Máscara teatral azul com canto da boca levemente curvado e lágrimas de cristal"
+      }
+    ],
+    "acts": [
+      {
+        "id": "act_1",
+        "title": "O Palco está Pronto!",
+        "background": {
+          "image": "assets/stories/story_teatro_v1/act1_background.png",
+          "ambientAudio": "assets/stories/story_teatro_v1/act1_ambient_backstage.mp3"
+        },
+        "text": {
+          "narrative": "Di abriu as cortinas do teatro!\nA primeira emoção do dia era a FELICIDADE!\nComo você fala quando está muito feliz?",
+          "highlightWords": ["fe-li-ci-da-de", "fe-liz", "a-le-gre", "tea-tro", "e-mo-ção"]
+        },
+        "dialogue": [
+          {
+            "character": "narrator",
+            "text": "As cortinas se abriram!\nEra hora de mostrar as emoções\npara todo o teatro!",
+            "emotion": "storytelling",
+            "duration": 4
+          },
+          {
+            "character": "diretora_cena",
+            "text": "Bem-vindo ao Teatro das Emoções!\nHoje você vai ser ator ou atriz!\nPrimeira cena: FELICIDADE!",
+            "emotion": "theatrical",
+            "duration": 4
+          },
+          {
+            "character": "mascara_feliz",
+            "text": "FELICIDADE soa assim:\nEstou MUITO FELIZ!\nSua vez! Fale com emoção!",
+            "emotion": "ecstatic",
+            "duration": 4
+          }
+        ],
+        "interaction": {
+          "type": "voice_trigger",
+          "instruction": "Fale com emoção: Estou MUITO FELIZ!",
+          "targetPhrase": "Estou MUITO FELIZ",
+          "tolerance": 0.80,
+          "emotionTarget": "happy",
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "assets/stories/story_teatro_v1/act1_success_applause.json",
+            "sfx": [
+              "assets/audio/sfx/applause_kids.wav",
+              "assets/stories/story_teatro_v1/sfx_curtain_rise.mp3"
+            ],
+            "dialogue": [
+              {
+                "character": "diretora_cena",
+                "text": "BRAVO! Que atuação incrível!\nO público adorou sua felicidade!",
+                "emotion": "impressed",
+                "duration": 3
+              }
+            ],
+            "nextAct": "act_2"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "mascara_feliz",
+                    "text": "Quase! Coloca mais alegria na voz!\nEstou MUI-TO FE-LIZ!",
+                    "emotion": "encouraging",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "diretora_cena",
+                    "text": "Dica de ator: pensa numa coisa\nque te deixa super feliz!\nAí fala: Estou MUITO FELIZ!",
+                    "emotion": "coaching",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "mascara_feliz",
+                    "text": "Senti sua alegria!\nVamos para a próxima cena!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_2"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_2",
+        "title": "Cada Emoção no Lugar Certo",
+        "background": {
+          "image": "assets/stories/story_teatro_v1/act2_background.png",
+          "ambientAudio": "assets/stories/story_teatro_v1/act2_ambient_stage.mp3"
+        },
+        "text": {
+          "narrative": "No teatro, cada situação\ncombina com uma emoção!\nCombine a expressão com o que aconteceu!\nO que você sentiria?",
+          "highlightWords": ["e-mo-ção", "si-tu-a-ção", "com-bi-nar", "ex-pres-são"]
+        },
+        "dialogue": [
+          {
+            "character": "diretora_cena",
+            "text": "Olha as cenas do teatro!\nQual emoção combina com cada uma?\nArraste a máscara certa!",
+            "emotion": "instructive",
+            "duration": 4
+          }
+        ],
+        "interaction": {
+          "type": "touch_drag",
+          "instruction": "Arraste a emoção certa para cada situação!",
+          "items": [
+            {
+              "id": "emocao_feliz",
+              "label": "FE-LIZ",
+              "image": "assets/stories/story_teatro_v1/act2_mask_feliz.png",
+              "correctTarget": "situacao_presente",
+              "description": "Rosto sorridente"
+            },
+            {
+              "id": "emocao_surpreso",
+              "label": "SUR-PRE-SO",
+              "image": "assets/stories/story_teatro_v1/act2_mask_surpreso.png",
+              "correctTarget": "situacao_festa",
+              "description": "Rosto de olhos arregalados"
+            },
+            {
+              "id": "emocao_calmo",
+              "label": "CAL-MO",
+              "image": "assets/stories/story_teatro_v1/act2_mask_calmo.png",
+              "correctTarget": "situacao_chuva",
+              "description": "Rosto sereno com olhos suaves"
+            }
+          ],
+          "targets": [
+            {
+              "id": "situacao_presente",
+              "label": "Ganhou um presente!",
+              "image": "assets/stories/story_teatro_v1/act2_scene_presente.png"
+            },
+            {
+              "id": "situacao_festa",
+              "label": "Aniversário surpresa!",
+              "image": "assets/stories/story_teatro_v1/act2_scene_festa.png"
+            },
+            {
+              "id": "situacao_chuva",
+              "label": "Dia de chuva em casa",
+              "image": "assets/stories/story_teatro_v1/act2_scene_chuva.png"
+            }
+          ],
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "assets/stories/story_teatro_v1/act2_success_masks.json",
+            "sfx": ["assets/audio/sfx/success_chime.wav"],
+            "dialogue": [
+              {
+                "character": "diretora_cena",
+                "text": "PERFEITO! Você entende muito de emoções!\nQue ator ou atriz incrível!",
+                "emotion": "impressed",
+                "duration": 4
+              }
+            ],
+            "nextAct": "act_3"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "mascara_feliz",
+                    "text": "Hmm! Tente pensar:\ncomo você se sentiria nessa situação?",
+                    "emotion": "gentle",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "mascara_triste",
+                    "text": "Dica: se você ganhou um presente,\nvocê fica... FELIZ!\nTente de novo!",
+                    "emotion": "hint",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "Di ajudou a montar as emoções!\nO teatro ficou lindo com tantos sentimentos!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_3"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_3",
+        "title": "Resolver com Palavras ou Silêncio?",
+        "background": {
+          "image": "assets/stories/story_teatro_v1/act3_background.png",
+          "ambientAudio": "assets/stories/story_teatro_v1/act3_ambient_conflict.mp3"
+        },
+        "text": {
+          "narrative": "Na história do teatro,\ndois personagens brigaram.\nTem dois jeitos de resolver!\nFalar ou escutar com calma?",
+          "highlightWords": ["re-sol-ver", "con-ver-sar", "es-cu-tar", "cal-ma", "di-á-lo-go"]
+        },
+        "dialogue": [
+          {
+            "character": "diretora_cena",
+            "text": "Os personagens tiveram uma briga!\nComo a história vai terminar?\nCom conversa ou com silêncio e escuta?",
+            "emotion": "curious",
+            "duration": 5
+          }
+        ],
+        "interaction": {
+          "type": "branching_choice",
+          "instruction": "Como os personagens vão se resolver?",
+          "options": [
+            {
+              "id": "resolve_dialogo",
+              "label": "Con-ver-sar",
+              "image": "assets/stories/story_teatro_v1/act3_choice_dialogue.png",
+              "consequence": {
+                "ambientAudio": "assets/stories/story_teatro_v1/act3b_dialogue_resolved.mp3",
+                "dialogue": [
+                  {
+                    "character": "mascara_feliz",
+                    "text": "Os personagens conversaram!\nUm disse: Sinto muito!\nO outro disse: Tudo bem!",
+                    "emotion": "resolved",
+                    "duration": 5
+                  }
+                ]
+              }
+            },
+            {
+              "id": "resolve_silencio",
+              "label": "Es-cu-tar",
+              "image": "assets/stories/story_teatro_v1/act3_choice_listening.png",
+              "consequence": {
+                "ambientAudio": "assets/stories/story_teatro_v1/act3b_silence_peace.mp3",
+                "dialogue": [
+                  {
+                    "character": "mascara_triste",
+                    "text": "Os personagens ficaram quietos.\nEles respiraram fundo\ne o coração ficou mais calmo.",
+                    "emotion": "peaceful",
+                    "duration": 5
+                  }
+                ]
+              }
+            }
+          ],
+          "onSuccess": {
+            "animation": "assets/stories/story_teatro_v1/act3_choice_harmony.json",
+            "sfx": ["assets/audio/sfx/choice_whoosh.wav"],
+            "nextAct": "act_4"
+          }
+        }
+      },
+      {
+        "id": "act_4",
+        "title": "Seu Monólogo Emocional!",
+        "background": {
+          "image": "assets/stories/story_teatro_v1/act4_background.png",
+          "ambientAudio": "assets/stories/story_teatro_v1/act4_ambient_spotlight.mp3"
+        },
+        "text": {
+          "narrative": "É a sua vez de estar no palco!\nGrave seu monólogo emocional\nou desenhe sua máscara teatral!\nMostre o que você sente!",
+          "highlightWords": ["mo-nó-lo-go", "pa-lco", "sen-ti-men-to", "más-ca-ra", "te-a-tro"]
+        },
+        "dialogue": [
+          {
+            "character": "diretora_cena",
+            "text": "Chegou a sua vez!\nGrave como você está se sentindo\nou desenhe sua própria máscara!",
+            "emotion": "excited",
+            "duration": 5
+          }
+        ],
+        "interaction": {
+          "type": "creative_resolution",
+          "subtype": "choice_of_two",
+          "options": [
+            {
+              "id": "monologue",
+              "label": "Gravar meu monólogo",
+              "subtype": "voice_recording",
+              "instruction": "Grave como você está se sentindo agora!",
+              "prompt": "Agora eu estou me sentindo...",
+              "maxDuration": 20
+            },
+            {
+              "id": "mask_drawing",
+              "label": "Desenhar minha máscara",
+              "subtype": "drawing",
+              "instruction": "Desenhe sua máscara teatral com a emoção que você quer mostrar!",
+              "canvas": {
+                "backgroundColor": "#FFF0F5",
+                "brushColors": ["#FF6B6B", "#FFE66D", "#4ECDC4", "#A8E6CF", "#C3A6FF", "#FF8B94"],
+                "baseTemplate": "assets/stories/story_teatro_v1/act4_mask_template.png"
+              }
+            }
+          ],
+          "saveAs": {
+            "destination": "diario_explorador",
+            "label": "Minha Performance Emocional",
+            "icon": "assets/stories/story_teatro_v1/diary_icon.png",
+            "metadata": {
+              "storyId": "story_teatro_v1",
+              "act": "act_4",
+              "type": "creative_choice"
+            }
+          },
+          "onSuccess": {
+            "animation": "assets/stories/story_teatro_v1/act4_success_curtain_call.json",
+            "sfx": ["assets/audio/sfx/applause_kids.wav", "assets/audio/sfx/completion_fanfare.wav"],
+            "dialogue": [
+              {
+                "character": "diretora_cena",
+                "text": "BRAVO! BRAVISSIMO!\nQue performance incrível!\nO teatro nunca foi tão emocionante!",
+                "emotion": "ovation",
+                "duration": 4
+              },
+              {
+                "character": "narrator",
+                "text": "Parabéns! Você completou o Teatro das Emoções!\nSua performance foi salva no Diário do Explorador!",
+                "emotion": "celebratory",
+                "duration": 4
+              }
+            ],
+            "nextAct": null
+          },
+          "onSkip": {
+            "dialogue": [
+              {
+                "character": "diretora_cena",
+                "text": "Tudo bem! Seu talento ficou guardado!\nAté o próximo espetáculo!",
+                "emotion": "warm",
+                "duration": 3
+              }
+            ],
+            "nextAct": null
+          }
+        }
+      }
+    ],
+    "rewards": {
+      "completion": {
+        "coins": 40,
+        "xp": 200,
+        "badges": ["emotion_actor", "empathy_star", "stage_performer"],
+        "unlockNextStory": "story_jardim_v1",
+        "addToLibrary": true
+      }
+    },
+    "analytics": {
+      "trackEvents": [
+        "act_enter", "interaction_success", "interaction_fail",
+        "choice_made", "completion", "voice_attempt", "drag_attempt",
+        "creative_resolution_saved", "creative_resolution_skipped",
+        "creative_subtype_selected"
+      ],
+      "metrics": [
+        "completionRate", "averageTime", "attempts_per_interaction",
+        "interaction_success_rate", "average_attempts_before_success",
+        "branch_choice_distribution", "creative_resolution_type_selected",
+        "completion_time_seconds"
+      ]
+    }
+  },
+
+  {
+    "id": "story_jardim_v1",
+    "_notes": "História 5 — O Jardim das Rimas. Foco em padrões fonológicos finais. ASR tolerance 0.75: rimas finais têm alvo fonético claro (GATO/PATO/RATO), tolerância a sotaque regional. Ramificação diurno/noturno muda vocabulário e paleta visual mas mantém estrutura rimática. 'Buquê de Rimas' salvo no Diário é o colecionável desta história.",
+    "metadata": {
+      "title": "O Jardim das Rimas",
+      "subtitle": "Plante palavras e colha rimas lindas!",
+      "difficulty": "intermediate",
+      "ageRange": { "min": 5, "max": 7 },
+      "estimatedDuration": 480,
+      "language": "pt-BR",
+      "learningObjectives": [
+        "phonological_awareness",
+        "vocabulary",
+        "reading_fluency"
+      ],
+      "tags": ["nature", "rhymes", "phonology", "garden", "patterns"],
+      "bnccAlignment": ["EI03EF01", "EF01LP05", "EF01LP15", "EF01LP06"],
+      "nelpAlignment": ["phonological_awareness", "oral_language", "alphabet_knowledge"],
+      "createdAt": "2026-05-24T00:00:00Z",
+      "version": "1.0.0"
+    },
+    "characters": [
+      {
+        "id": "jardineira_flora",
+        "name": "Flora",
+        "voiceProfile": "child_pt_br_melodic",
+        "description": "Jardineira de 6 anos, pele castanha, cabelo liso com preso no coque, chapéu de palha decorado com flores de papel"
+      },
+      {
+        "id": "narrator",
+        "name": "Narrador",
+        "voiceProfile": "adult_pt_br_narrator_soft",
+        "description": "Voz narrativa suave e envolvente, sem gênero definido"
+      },
+      {
+        "id": "semente_magica",
+        "name": "Semin",
+        "voiceProfile": "character_seed_whispery",
+        "description": "Sementinha mágica que fala em voz suave, cor de mel, sempre prestes a florescer"
+      }
+    ],
+    "acts": [
+      {
+        "id": "act_1",
+        "title": "O Jardim Acordou!",
+        "background": {
+          "image": "assets/stories/story_jardim_v1/act1_background.png",
+          "ambientAudio": "assets/stories/story_jardim_v1/act1_ambient_garden_morning.mp3"
+        },
+        "text": {
+          "narrative": "Flora chegou ao jardim e ouviu:\n\"GATO! PATO! RATO!\"\nAs palavras rimam!\nElas têm o mesmo som no final!\nATO, ATO, ATO!",
+          "highlightWords": ["GA-TO", "PA-TO", "RA-TO", "ri-ma", "fi-nal", "A-TO"]
+        },
+        "dialogue": [
+          {
+            "character": "narrator",
+            "text": "No jardim mágico de Flora,\nas flores crescem com palavras\nque rimam!",
+            "emotion": "storytelling",
+            "duration": 4
+          },
+          {
+            "character": "semente_magica",
+            "text": "Eu só floresço quando ouço rimas!\nGATO rima com PATO!\nPATO rima com RATO!\nVocê consegue completar?",
+            "emotion": "hopeful",
+            "duration": 5
+          },
+          {
+            "character": "jardineira_flora",
+            "text": "Vamos tentar!\nGATO... PA...\nQue vem depois?",
+            "emotion": "playful",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "voice_trigger",
+          "instruction": "Complete a rima: GATO... PATO... e mais uma! (RATO!)",
+          "targetPhrase": "RATO",
+          "tolerance": 0.75,
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "assets/stories/story_jardim_v1/act1_success_bloom.json",
+            "sfx": [
+              "assets/audio/sfx/success_bells.wav",
+              "assets/stories/story_jardim_v1/sfx_flower_bloom.mp3"
+            ],
+            "dialogue": [
+              {
+                "character": "semente_magica",
+                "text": "FLORESCEU! Sua rima fez a flor crescer!\nGA-TO, PA-TO, RA-TO! Lindo!",
+                "emotion": "blooming",
+                "duration": 4
+              }
+            ],
+            "nextAct": "act_2"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "semente_magica",
+                    "text": "Quase! A rima termina em ATO!\nGA-TO, PA-TO, R...",
+                    "emotion": "encouraging",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "jardineira_flora",
+                    "text": "Pensa num animal que rima com GATO!\nEle mora em buracos...\nRA... RA...",
+                    "emotion": "hint",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "semente_magica",
+                    "text": "RATO! GA-TO, PA-TO, RA-TO!\nSua rima fez a flor crescer!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_2"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_2",
+        "title": "Plantando Pares Rimados",
+        "background": {
+          "image": "assets/stories/story_jardim_v1/act2_background.png",
+          "ambientAudio": "assets/stories/story_jardim_v1/act2_ambient_garden_planting.mp3"
+        },
+        "text": {
+          "narrative": "O canteiro precisa de pares!\nPlante sementes que rimam juntas!\nFLOR e AMOR rimam!\nSOL e COL? Não rimam!\nDescubra os pares!",
+          "highlightWords": ["ca-nei-ro", "pa-res", "FLOR", "A-MOR", "SOL", "ri-mam"]
+        },
+        "dialogue": [
+          {
+            "character": "jardineira_flora",
+            "text": "Olha essas sementes!\nAlgumas rimam!\nArranjas os pares e planta no canteiro!",
+            "emotion": "instructive",
+            "duration": 4
+          },
+          {
+            "character": "semente_magica",
+            "text": "Eu só cresço se estiver\nperto de uma semente que rima!",
+            "emotion": "pleading",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "touch_drag",
+          "instruction": "Arraste as sementes para formar pares rimados no canteiro!",
+          "items": [
+            {
+              "id": "seed_flor",
+              "label": "FLOR",
+              "image": "assets/stories/story_jardim_v1/act2_seed_flor.png",
+              "rhymeGroup": "OR",
+              "correctPair": "seed_amor"
+            },
+            {
+              "id": "seed_amor",
+              "label": "A-MOR",
+              "image": "assets/stories/story_jardim_v1/act2_seed_amor.png",
+              "rhymeGroup": "OR",
+              "correctPair": "seed_flor"
+            },
+            {
+              "id": "seed_lua",
+              "label": "LU-A",
+              "image": "assets/stories/story_jardim_v1/act2_seed_lua.png",
+              "rhymeGroup": "UA",
+              "correctPair": "seed_chuva"
+            },
+            {
+              "id": "seed_chuva",
+              "label": "CHU-VA",
+              "image": "assets/stories/story_jardim_v1/act2_seed_chuva.png",
+              "rhymeGroup": "UA",
+              "correctPair": "seed_lua"
+            },
+            {
+              "id": "seed_sol",
+              "label": "SOL",
+              "image": "assets/stories/story_jardim_v1/act2_seed_sol.png",
+              "rhymeGroup": "OL",
+              "correctPair": "seed_caracol"
+            },
+            {
+              "id": "seed_caracol",
+              "label": "CA-RA-COL",
+              "image": "assets/stories/story_jardim_v1/act2_seed_caracol.png",
+              "rhymeGroup": "OL",
+              "correctPair": "seed_sol"
+            }
+          ],
+          "gardenSlots": 3,
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "assets/stories/story_jardim_v1/act2_success_garden_full.json",
+            "sfx": ["assets/audio/sfx/success_chime.wav", "assets/stories/story_jardim_v1/sfx_garden_bloom.mp3"],
+            "dialogue": [
+              {
+                "character": "jardineira_flora",
+                "text": "O jardim ficou lindo!\nFLOR-AMOR, LUA-CHUVA, SOL-CARACOL!\nQue pares rimados perfeitos!",
+                "emotion": "delighted",
+                "duration": 4
+              }
+            ],
+            "nextAct": "act_3"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "semente_magica",
+                    "text": "Ops! Essas duas não rimam!\nOuve o som do final de cada uma!",
+                    "emotion": "gentle",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "jardineira_flora",
+                    "text": "Dica: FLOR termina em OR!\nQual outra palavra termina em OR?",
+                    "emotion": "hint",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "Semin ajudou a juntar todos os pares!\nO jardim estava cheio de rimas!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_3"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_3",
+        "title": "Jardim Diurno ou Noturno?",
+        "background": {
+          "image": "assets/stories/story_jardim_v1/act3_background.png",
+          "ambientAudio": "assets/stories/story_jardim_v1/act3_ambient_twilight.mp3"
+        },
+        "text": {
+          "narrative": "O jardim tem dois momentos mágicos!\nDe dia: GIRASSOL, BORBOLETA, FLOR!\nDe noite: ESTRELA, VAGALUME, LUA!\nQual jardim você quer visitar?",
+          "highlightWords": ["di-ur-no", "no-tur-no", "GI-RAS-SOL", "BOR-BO-LE-TA", "ES-TRE-LA", "VA-GA-LU-ME"]
+        },
+        "dialogue": [
+          {
+            "character": "jardineira_flora",
+            "text": "O jardim muda com o sol!\nDe dia é cheio de girassóis!\nDe noite, de vagalumes!\nQual você prefere?",
+            "emotion": "dreamy",
+            "duration": 5
+          }
+        ],
+        "interaction": {
+          "type": "branching_choice",
+          "instruction": "Escolha o momento do jardim!",
+          "options": [
+            {
+              "id": "jardim_diurno",
+              "label": "Jardim de Dia",
+              "image": "assets/stories/story_jardim_v1/act3_choice_day.png",
+              "consequence": {
+                "ambientAudio": "assets/stories/story_jardim_v1/act3b_day_garden.mp3",
+                "colorPalette": "warm_golden",
+                "vocabularySet": ["GI-RAS-SOL", "BOR-BO-LE-TA", "CA-LOR"],
+                "dialogue": [
+                  {
+                    "character": "semente_magica",
+                    "text": "GI-RAS-SOL e CA-LOR rimam no final!\nSOL... CA-LOR! Ouça: OL!",
+                    "emotion": "sunny",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "id": "jardim_noturno",
+              "label": "Jardim de Noite",
+              "image": "assets/stories/story_jardim_v1/act3_choice_night.png",
+              "consequence": {
+                "ambientAudio": "assets/stories/story_jardim_v1/act3b_night_garden.mp3",
+                "colorPalette": "cool_indigo",
+                "vocabularySet": ["ES-TRE-LA", "VA-GA-LU-ME", "LU-A"],
+                "dialogue": [
+                  {
+                    "character": "jardineira_flora",
+                    "text": "ES-TRE-LA e VA-GA-LU-ME!\nQue noite cheia de luz!\nE LU-A ilumina tudo!",
+                    "emotion": "wonder",
+                    "duration": 4
+                  }
+                ]
+              }
+            }
+          ],
+          "onSuccess": {
+            "animation": "assets/stories/story_jardim_v1/act3_choice_garden_shift.json",
+            "sfx": ["assets/audio/sfx/choice_whoosh.wav"],
+            "nextAct": "act_4"
+          }
+        }
+      },
+      {
+        "id": "act_4",
+        "title": "Seu Buquê de Rimas!",
+        "background": {
+          "image": "assets/stories/story_jardim_v1/act4_background.png",
+          "ambientAudio": "assets/stories/story_jardim_v1/act4_ambient_celebration.mp3"
+        },
+        "text": {
+          "narrative": "Você plantou e cuidou do jardim!\nAgora é hora de colher\nseu buquê de rimas!\nEscolha a música e salve seu buquê!",
+          "highlightWords": ["bu-quê", "ri-mas", "co-lher", "mú-si-ca", "jar-dim"]
+        },
+        "dialogue": [
+          {
+            "character": "jardineira_flora",
+            "text": "Seu buquê de rimas ficou lindo!\nAgora escolha a música do jardim\ne salve seu buquê para sempre!",
+            "emotion": "proud",
+            "duration": 5
+          }
+        ],
+        "interaction": {
+          "type": "creative_resolution",
+          "subtype": "music_selection_and_collection",
+          "instruction": "Escolha a música do seu jardim e salve seu Buquê de Rimas!",
+          "musicOptions": [
+            {
+              "id": "music_nature",
+              "label": "Sons da Natureza",
+              "preview": "assets/stories/story_jardim_v1/music_preview_nature.mp3",
+              "icon": "🌿"
+            },
+            {
+              "id": "music_lullaby",
+              "label": "Cantiga Suave",
+              "preview": "assets/stories/story_jardim_v1/music_preview_lullaby.mp3",
+              "icon": "🎵"
+            },
+            {
+              "id": "music_upbeat",
+              "label": "Alegre e Animada",
+              "preview": "assets/stories/story_jardim_v1/music_preview_upbeat.mp3",
+              "icon": "🎶"
+            }
+          ],
+          "collectable": {
+            "type": "bouquet",
+            "label": "Buquê de Rimas",
+            "rhymePairs": ["GATO/PATO/RATO", "FLOR/AMOR", "LUA/CHUVA", "SOL/CARACOL"],
+            "image": "assets/stories/story_jardim_v1/act4_bouquet.png"
+          },
+          "saveAs": {
+            "destination": "diario_explorador",
+            "label": "Meu Buquê de Rimas",
+            "icon": "assets/stories/story_jardim_v1/diary_icon.png",
+            "metadata": {
+              "storyId": "story_jardim_v1",
+              "act": "act_4",
+              "type": "collection"
+            }
+          },
+          "onSuccess": {
+            "animation": "assets/stories/story_jardim_v1/act4_success_bouquet.json",
+            "sfx": ["assets/audio/sfx/completion_fanfare.wav"],
+            "dialogue": [
+              {
+                "character": "semente_magica",
+                "text": "Que buquê lindo!\nGATO, PATO, RATO, FLOR, AMOR!\nTodas as rimas num só jardim!",
+                "emotion": "blooming",
+                "duration": 4
+              },
+              {
+                "character": "narrator",
+                "text": "Parabéns! Você completou o Jardim das Rimas!\nSeu Buquê de Rimas foi salvo no Diário do Explorador!",
+                "emotion": "celebratory",
+                "duration": 4
+              }
+            ],
+            "nextAct": null
+          },
+          "onSkip": {
+            "dialogue": [
+              {
+                "character": "jardineira_flora",
+                "text": "Tudo bem! Seu jardim foi salvo!\nAté a próxima colheita de rimas!",
+                "emotion": "warm",
+                "duration": 3
+              }
+            ],
+            "nextAct": null
+          }
+        }
+      }
+    ],
+    "rewards": {
+      "completion": {
+        "coins": 40,
+        "xp": 200,
+        "badges": ["rhyme_gardener", "phonology_poet", "bouquet_collector"],
+        "unlockNextStory": null,
+        "addToLibrary": true
+      }
+    },
+    "analytics": {
+      "trackEvents": [
+        "act_enter", "interaction_success", "interaction_fail",
+        "choice_made", "completion", "voice_attempt", "drag_attempt",
+        "creative_resolution_saved", "creative_resolution_skipped",
+        "music_option_selected"
+      ],
+      "metrics": [
+        "completionRate", "averageTime", "attempts_per_interaction",
+        "interaction_success_rate", "average_attempts_before_success",
+        "branch_choice_distribution", "creative_resolution_type_selected",
+        "completion_time_seconds"
+      ]
+    }
+  },
+
+  {
+    "id": "whispering_forest_v1",
+    "_notes": "História 1 — A Floresta dos Sussurros. Foco em regulação emocional, ritmo fonológico e entonação de voz. ASR tolerance 0.70.",
+    "metadata": {
+      "title": "A Floresta dos Sussurros",
+      "subtitle": "Uma aventura calma sobre o vento e a coragem!",
+      "difficulty": "intermediate",
+      "ageRange": { "min": 5, "max": 8 },
+      "estimatedDuration": 540,
+      "language": "pt-BR",
+      "learningObjectives": [
+        "emotional_regulation",
+        "phonological_rhythm",
+        "voice_intonation",
+        "nature_vocabulary"
+      ],
+      "tags": ["fear", "courage", "wind", "forest", "rhythm", "choice"],
+      "bnccAlignment": ["EI03EO04", "EF01LP01", "EF01LP05"],
+      "createdAt": "2026-05-25T00:00:00Z",
+      "version": "2.0.0"
+    },
+    "characters": [
+      {
+        "id": "narrator",
+        "name": "Narrador",
+        "voiceProfile": "narrator_warm_pt_br",
+        "description": "Voz calma, tom de contação de histórias"
+      },
+      {
+        "id": "Heloisa",
+        "name": "Heloisa",
+        "voiceProfile": "child_girl_pt_br",
+        "description": "Menina de 6 anos, guarda-chuva colorido, voz expressiva"
+      },
+      {
+        "id": "trovao_forest",
+        "name": "Trovãozinho",
+        "voiceProfile": "deep_gentle_male_pt_br",
+        "description": "Nuvem fofa com olhos gentis, voz grave mas suave"
+      },
+      {
+        "id": "pipoca",
+        "name": "Pipoca",
+        "voiceProfile": "child_energetic_pt_br",
+        "description": "Sapo-guia saltitante, voz rápida e encorajadora"
+      }
+    ],
+    "acts": [
+      {
+        "id": "act_1",
+        "title": "O Chamado",
+        "background": {
+          "image": "assets/stories/whispering_forest/act1_background.png",
+          "ambientAudio": "assets/stories/whispering_forest/act1_ambient.mp3"
+        },
+        "text": {
+          "narrative": "Heloisa adorava seu guarda-chuva colorido. Mas quando o céu ficou cinza, os sussurros pararam.",
+          "highlightWords": ["guar-da-chu-va", "co-lo-ri-do", "ci-nza", "sus-sur-ros"]
+        },
+        "dialogue": [
+          {
+            "character": "narrator",
+            "text": "O dia estava calmo no lindo parque.",
+            "emotion": "storytelling",
+            "duration": 3
+          },
+          {
+            "character": "Heloisa",
+            "text": "O vento está forte... e o céu escureceu.",
+            "emotion": "scared",
+            "duration": 3
+          },
+          {
+            "character": "pipoca",
+            "text": "Pula-pula! Segure firme e respire comigo!",
+            "emotion": "encouraging",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "touch_hold_breath",
+          "instruction": "Segure o guarda-chuva e respire comigo!",
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "umbrella_glow_stabilize.json",
+            "sfx": ["wind_awakening.mp3"],
+            "nextAct": "act_2"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "pipoca",
+                    "text": "Tenta de novo: toca quando crescer, solta quando diminuir.",
+                    "emotion": "encouraging",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "pipoca",
+                    "text": "Respira fundo... bem devagar...",
+                    "emotion": "encouraging",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "O vento acordou com sua calma.",
+                    "emotion": "storytelling",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_2"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_2",
+        "title": "O Caminho da Proteção",
+        "background": {
+          "image": "assets/stories/whispering_forest/act2_background.png",
+          "ambientAudio": "assets/stories/whispering_forest/act2_rain.mp3"
+        },
+        "text": {
+          "narrative": "As primeiras gotas caíram: ping, ping, ping. Heloisa precisava de um lugar seguro.",
+          "highlightWords": ["go-tas", "ping", "se-gu-ro", "lu-gar"]
+        },
+        "dialogue": [
+          {
+            "character": "trovao_forest",
+            "text": "BUM... desculpe! Eu não queria assustar.",
+            "emotion": "shy",
+            "duration": 3
+          },
+          {
+            "character": "pipoca",
+            "text": "Ele é só barulhento! Vamos escolher onde esperar?",
+            "emotion": "encouraging",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "branching_choice",
+          "instruction": "Toque no abrigo que você quer escolher!",
+          "options": [
+            {
+              "id": "hollow_tree",
+              "label": "Árvore Oca",
+              "image": "assets/stories/whispering_forest/act2_choice_tree.png",
+              "consequence": {
+                "unlockItem": "leaf_cloak",
+                "dialogue": [
+                  {
+                    "character": "Heloisa",
+                    "text": "Que aconchegante! Olha essa capa de folhas verdes!",
+                    "emotion": "delighted",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "id": "stone_bridge",
+              "label": "Ponte de Pedra",
+              "image": "assets/stories/whispering_forest/act2_choice_bridge.png",
+              "consequence": {
+                "unlockItem": "echo_stone",
+                "dialogue": [
+                  {
+                    "character": "Heloisa",
+                    "text": "Escute esse som! Uma pedra do eco cintilante!",
+                    "emotion": "delighted",
+                    "duration": 4
+                  }
+                ]
+              }
+            }
+          ],
+          "onSuccess": {
+            "animation": "choice_magic.json",
+            "sfx": ["choice_whoosh.wav"],
+            "nextAct": "act_3"
+          }
+        }
+      },
+      {
+        "id": "act_3",
+        "title": "O Ritmo da Chuva",
+        "background": {
+          "image": "assets/stories/whispering_forest/act3_background.png",
+          "ambientAudio": "assets/stories/whispering_forest/act3_rain_rhythm.mp3"
+        },
+        "text": {
+          "narrative": "A chuva não era só água. Era música! Cada gota fazia um som diferente.",
+          "highlightWords": ["chu-va", "mú-si-ca", "go-ta", "som"]
+        },
+        "dialogue": [
+          {
+            "character": "narrator",
+            "text": "A floresta se encheu de notas musicais.",
+            "emotion": "storytelling",
+            "duration": 3
+          },
+          {
+            "character": "pipoca",
+            "text": "Toque nas gotas na ordem do som: PING → PONG → PLIM!",
+            "emotion": "encouraging",
+            "duration": 4
+          }
+        ],
+        "interaction": {
+          "type": "tap_rhythm_sequence",
+          "instruction": "Toque nas gotas na ordem: PING → PONG → PLIM",
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "clouds_part_gently.json",
+            "sfx": ["success_chime.wav"],
+            "nextAct": "act_4"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "pipoca",
+                    "text": "Esse som veio antes! Tenta ouvir: PING... PONG... PLIM",
+                    "emotion": "encouraging",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "pipoca",
+                    "text": "Preste atenção nas cores e nos sons! PING... PONG... PLIM!",
+                    "emotion": "encouraging",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "A música da chuva abriu o caminho!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_4"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_4",
+        "title": "O Grande Trovão",
+        "background": {
+          "image": "assets/stories/whispering_forest/act4_background.png",
+          "ambientAudio": "assets/stories/whispering_forest/act4_thunder.mp3"
+        },
+        "text": {
+          "narrative": "O céu escureceu de novo. Mas Heloisa lembrou: barulho não é perigo. É só som esperando virar palavra.",
+          "highlightWords": ["tro-vão", "ba-ru-lho", "pe-ri-go", "pa-la-vra"]
+        },
+        "dialogue": [
+          {
+            "character": "trovao_forest",
+            "text": "BUM! CRACK! Eu não sei falar baixinho!",
+            "emotion": "sad",
+            "duration": 3
+          },
+          {
+            "character": "pipoca",
+            "text": "Fale com calma. Mostre que você está segura!",
+            "emotion": "encouraging",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "voice_trigger",
+          "instruction": "Leia com voz firme e calma: Trovão, eu te escuto. Agora vira chuva miudinha.",
+          "targetPhrase": "Trovão eu te escuto agora vira chuva miudinha",
+          "tolerance": 0.7,
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "thunder_transforms_to_rainbow.json",
+            "sfx": ["success_bells.wav"],
+            "dialogue": [
+              {
+                "character": "trovao_forest",
+                "text": "Belo poema! Veja como minha chuva ficou mansinha!",
+                "emotion": "happy",
+                "duration": 4
+              }
+            ],
+            "nextAct": "act_5"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "pipoca",
+                    "text": "Respira fundo e fala devagar, como um segredo.",
+                    "emotion": "encouraging",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "Repita comigo devagar: TRO-VÃO... EU... TE... ESCU-TO.",
+                    "emotion": "teaching",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "trovao_forest",
+                    "text": "Sua coragem e sua doce voz acalmaram meu trovão!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_5"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_5",
+        "title": "Resolução Criativa",
+        "background": {
+          "image": "assets/stories/whispering_forest/act5_background.png",
+          "ambientAudio": "assets/stories/whispering_forest/act5_rainbow.mp3"
+        },
+        "text": {
+          "narrative": "A chuva virou miudinha. O medo tinha virado coragem. E o barulho, música.",
+          "highlightWords": ["chu-va", "me-do", "co-ra-gem", "mú-si-ca"]
+        },
+        "dialogue": [
+          {
+            "character": "narrator",
+            "text": "O sol brilhou e coloriu a floresta dos sussurros.",
+            "emotion": "storytelling",
+            "duration": 4
+          }
+        ],
+        "interaction": {
+          "type": "creative_resolution",
+          "subtype": "drawing",
+          "instruction": "Desenhe o lindo arco-íris da coragem!",
+          "canvas": {
+            "brushColors": ["#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF", "#4B0082", "#9400D3"]
+          },
+          "saveAs": {
+            "destination": "diario_explorador",
+            "label": "Arco-íris da Coragem",
+            "icon": "🌈",
+            "metadata": {
+              "storyId": "whispering_forest_v1",
+              "act": "act_5",
+              "type": "drawing"
+            }
+          },
+          "onSuccess": {
+            "animation": "success_celebration.json",
+            "sfx": ["completion_fanfare.wav"],
+            "dialogue": [
+              {
+                "character": "Heloisa",
+                "text": "Ficou lindo! Nós vencemos o medo juntas!",
+                "emotion": "delighted",
+                "duration": 3
+              }
+            ],
+            "nextAct": null
+          },
+          "onSkip": {
+            "dialogue": [
+              {
+                "character": "narrator",
+                "text": "Que aventura mágica! Até a próxima história interativa!",
+                "emotion": "warm",
+                "duration": 3
+              }
+            ],
+            "nextAct": null
+          }
+        }
+      }
+    ],
+    "rewards": {
+      "completion": {
+        "coins": 60,
+        "xp": 120,
+        "badges": ["coracao_corajoso", "ouvinte_do_trovao", "guardia_do_arco_iris"],
+        "unlockNextStory": "Heloisa_thunder_friend_v1",
+        "addToLibrary": true
+      }
+    },
+    "analytics": {
+      "trackEvents": ["act_enter", "interaction_success", "choice_made", "completion"]
+    }
+  },
+
+  {
+    "id": "Heloisa_thunder_friend_v1",
+    "_notes": "História 2 — A Menina e o Trovão Amigo. Versão consolidada otimizada para ASR e UX infantil. ASR tolerance 0.70.",
+    "metadata": {
+      "title": "A Menina e o Trovão Amigo",
+      "subtitle": "Aprenda a modular a voz e modular emoções com o Trovão!",
+      "difficulty": "intermediate",
+      "ageRange": { "min": 4, "max": 7 },
+      "estimatedDuration": 480,
+      "language": "pt-BR",
+      "learningObjectives": [
+        "emotional_literacy",
+        "voice_modulation",
+        "rhythmic_awareness",
+        "empathy"
+      ],
+      "tags": ["thunder", "rain", "courage", "rhythm", "emotions"],
+      "bnccAlignment": ["EI03EO04", "EF01LP05", "EF01LP08"],
+      "createdAt": "2026-05-25T00:00:00Z",
+      "version": "2.0.0"
+    },
+    "characters": [
+      {
+        "id": "narrator",
+        "name": "Narrador",
+        "voiceProfile": "narrator_warm_pt_br",
+        "description": "Voz calma, tom de contação de histórias"
+      },
+      {
+        "id": "Heloisa",
+        "name": "Heloisa",
+        "voiceProfile": "child_girl_pt_br",
+        "description": "Menina de 6 anos, guarda-chuva colorido, voz expressiva"
+      },
+      {
+        "id": "trovao_friend",
+        "name": "Trovãozinho",
+        "voiceProfile": "deep_gentle_male_pt_br",
+        "description": "Nuvem fofa com olhos gentis, voz grave mas suave"
+      },
+      {
+        "id": "pipoca",
+        "name": "Pipoca",
+        "voiceProfile": "child_energetic_pt_br",
+        "description": "Sapo-guia saltitante, voz rápida e encorajadora"
+      }
+    ],
+    "acts": [
+      {
+        "id": "act_1",
+        "title": "O Céu que Escurece",
+        "background": {
+          "image": "assets/stories/Heloisa_thunder_friend/act1_background.png",
+          "ambientAudio": "assets/stories/Heloisa_thunder_friend/act1_ambient.mp3"
+        },
+        "text": {
+          "narrative": "Heloisa olhou para cima. Uma grande nuvem cobriu o sol. Mas ela sabia respirar para ter coragem!",
+          "highlightWords": ["sol", "nu-vem", "res-pi-rar", "co-ra-gem"]
+        },
+        "dialogue": [
+          {
+            "character": "narrator",
+            "text": "A tarde estava mudando no parque da cidade.",
+            "emotion": "storytelling",
+            "duration": 3
+          },
+          {
+            "character": "Heloisa",
+            "text": "Nossa! Que nuvem cinza e enorme!",
+            "emotion": "surprised",
+            "duration": 3
+          },
+          {
+            "character": "pipoca",
+            "text": "Não se assuste! Crie seu escudo de cores respirando fundo!",
+            "emotion": "encouraging",
+            "duration": 4
+          }
+        ],
+        "interaction": {
+          "type": "touch_hold_breath",
+          "instruction": "Segure o botão para criar o escudo de cores respirando!",
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "shield_glow_stabilize.json",
+            "sfx": ["shield_activate.mp3"],
+            "nextAct": "act_2"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "pipoca",
+                    "text": "Segure quando crescer, solte quando diminuir!",
+                    "emotion": "encouraging",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "pipoca",
+                    "text": "Vamos lá, sinta o ar e segure o botão!",
+                    "emotion": "encouraging",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "Seu escudo de cores está brilhando e pronto!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_2"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_2",
+        "title": "O Caminho da Proteção",
+        "background": {
+          "image": "assets/stories/Heloisa_thunder_friend/act2_background.png",
+          "ambientAudio": "assets/stories/Heloisa_thunder_friend/act2_ambient.mp3"
+        },
+        "text": {
+          "narrative": "A chuva começou a cair forte. Dois caminhos cheios de magia apareceram!",
+          "highlightWords": ["chu-va", "ca-mi-nhos", "ma-gia", "a-pa-re-ceram"]
+        },
+        "dialogue": [
+          {
+            "character": "pipoca",
+            "text": "Para onde vamos nos abrigar do trovão?",
+            "emotion": "curious",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "branching_choice",
+          "instruction": "Escolha o abrigo de proteção!",
+          "options": [
+            {
+              "id": "tree_shelter",
+              "label": "Abrigo da Árvore",
+              "image": "assets/stories/Heloisa_thunder_friend/act2_choice_tree.png",
+              "consequence": {
+                "unlockItem": "leaf_cloak",
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "A árvore oca e silenciosa acolheu Heloisa.",
+                    "emotion": "storytelling",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "id": "echo_bridge",
+              "label": "Ponte do Eco",
+              "image": "assets/stories/Heloisa_thunder_friend/act2_choice_bridge.png",
+              "consequence": {
+                "unlockItem": "echo_stone",
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "A ponte de pedra multiplicou os sons musicais.",
+                    "emotion": "storytelling",
+                    "duration": 3
+                  }
+                ]
+              }
+            }
+          ],
+          "onSuccess": {
+            "animation": "choice_sparkle.json",
+            "sfx": ["choice_whoosh.wav"],
+            "nextAct": "act_3"
+          }
+        }
+      },
+      {
+        "id": "act_3",
+        "title": "O Ritmo da Chuva",
+        "background": {
+          "image": "assets/stories/Heloisa_thunder_friend/act3_background.png",
+          "ambientAudio": "assets/stories/Heloisa_thunder_friend/act3_ambient.mp3"
+        },
+        "text": {
+          "narrative": "As gotas de chuva faziam uma linda canção! Você consegue bater no mesmo ritmo?",
+          "highlightWords": ["can-ção", "ri-tmo", "ba-ter", "go-tas"]
+        },
+        "dialogue": [
+          {
+            "character": "pipoca",
+            "text": "Ouça o ritmo e toque nas gotas: PING → PONG → PLIM!",
+            "emotion": "encouraging",
+            "duration": 4
+          }
+        ],
+        "interaction": {
+          "type": "tap_rhythm_sequence",
+          "instruction": "Toque: PING (Azul) → PONG (Verde) → PLIM (Amarelo)",
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "clouds_part.json",
+            "sfx": ["success_chime.wav"],
+            "nextAct": "act_4"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "pipoca",
+                    "text": "Erramos o compasso! Tente de novo no ritmo: PING → PONG → PLIM!",
+                    "emotion": "encouraging",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "pipoca",
+                    "text": "Veja as cores acenderem: PING... PONG... PLIM!",
+                    "emotion": "encouraging",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "Juntos, Heloisa e Pipoca acertaram o ritmo da chuva!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_4"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_4",
+        "title": "O Grande Trovão",
+        "background": {
+          "image": "assets/stories/Heloisa_thunder_friend/act4_background.png",
+          "ambientAudio": "assets/stories/Heloisa_thunder_friend/act4_ambient.mp3"
+        },
+        "text": {
+          "narrative": "Trovãozinho apareceu muito forte. Mas Heloisa falou com todo o amor do seu coração!",
+          "highlightWords": ["tro-vão", "a-mor", "co-ra-ção", "fa-lou"]
+        },
+        "dialogue": [
+          {
+            "character": "trovao_friend",
+            "text": "BUM! Eu sou barulhento! Mas sou muito bonzinho!",
+            "emotion": "friendly",
+            "duration": 4
+          },
+          {
+            "character": "Heloisa",
+            "text": "Eu sei! Vamos acalmar a tempestade com palavras!",
+            "emotion": "excited",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "voice_trigger",
+          "instruction": "Fale com carinho: Trovão, eu te escuto. Agora vira chuva miudinha.",
+          "targetPhrase": "Trovão eu te escuto agora vira chuva miudinha",
+          "tolerance": 0.7,
+          "maxAttempts": 3,
+          "onSuccess": {
+            "animation": "thunder_rainbow.json",
+            "sfx": ["success_bells.wav"],
+            "dialogue": [
+              {
+                "character": "trovao_friend",
+                "text": "Que voz maravilhosa! Agora sou seu amigo Trovão!",
+                "emotion": "happy",
+                "duration": 4
+              }
+            ],
+            "nextAct": "act_5"
+          },
+          "onFail": [
+            {
+              "attempt": 1,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "pipoca",
+                    "text": "Fale com carinho e tranquilidade!",
+                    "emotion": "encouraging",
+                    "duration": 3
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 2,
+              "fallback": false,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "narrator",
+                    "text": "Tente dizer: Trovão, eu te escuto. Agora vira chuva miudinha.",
+                    "emotion": "teaching",
+                    "duration": 4
+                  }
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "fallback": true,
+              "feedback": {
+                "dialogue": [
+                  {
+                    "character": "trovao_friend",
+                    "text": "Sua linda voz me deu asas de arco-íris!",
+                    "emotion": "warm",
+                    "duration": 3
+                  }
+                ],
+                "nextAct": "act_5"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "act_5",
+        "title": "Resolução Criativa",
+        "background": {
+          "image": "assets/stories/Heloisa_thunder_friend/act5_background.png",
+          "ambientAudio": "assets/stories/Heloisa_thunder_friend/act5_ambient.mp3"
+        },
+        "text": {
+          "narrative": "A tempestade virou um lindo céu colorido. E Heloisa guardou a melhor lembrança!",
+          "highlightWords": ["tem-pes-ta-de", "céu", "co-lo-ri-do", "lem-bran-ça"]
+        },
+        "dialogue": [
+          {
+            "character": "Heloisa",
+            "text": "Vejam! O trovão virou nosso amigo!",
+            "emotion": "delighted",
+            "duration": 3
+          }
+        ],
+        "interaction": {
+          "type": "creative_resolution",
+          "subtype": "voice_recording",
+          "instruction": "Grave uma linda mensagem de coragem para o Trovão!",
+          "prompt": "Oi Trovão, você é meu amigo!",
+          "maxDuration": 10,
+          "saveAs": {
+            "destination": "diario_explorador",
+            "label": "Mensagem para o Trovão",
+            "icon": "🌩️",
+            "metadata": {
+              "storyId": "Heloisa_thunder_friend_v1",
+              "act": "act_5",
+              "type": "voice_recording"
+            }
+          },
+          "onSuccess": {
+            "animation": "success_clouds.json",
+            "sfx": ["completion_fanfare.wav"],
+            "dialogue": [
+              {
+                "character": "trovao_friend",
+                "text": "Vou guardar sua mensagem no meu coração de nuvem!",
+                "emotion": "happy",
+                "duration": 4
+              }
+            ],
+            "nextAct": null
+          },
+          "onSkip": {
+            "dialogue": [
+              {
+                "character": "narrator",
+                "text": "Parabéns explorador! Você completou a história!",
+                "emotion": "celebratory",
+                "duration": 3
+              }
+            ],
+            "nextAct": null
+          }
+        }
+      }
+    ],
+    "rewards": {
+      "completion": {
+        "coins": 60,
+        "xp": 120,
+        "badges": ["coracao_corajoso", "ouvinte_do_trovao", "guardia_do_arco_iris"],
+        "unlockNextStory": null,
+        "addToLibrary": true
+      }
+    },
+    "analytics": {
+      "trackEvents": ["act_enter", "interaction_success", "choice_made", "completion"]
+    }
+  }
+]

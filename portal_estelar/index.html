@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Metrics -->
+  <title>Portal Estelar - Leitura Espacial Interativa</title>
+  <meta name="description" content="Aprenda a ler conectando constelações de sílabas e letras. Explore planetas mágicos guiados por alienígenas amigáveis neste jogo educativo multimodal.">
+  <meta name="keywords" content="leitura infantil, constelacao de palavras, jogo espacial, portal estelar, gamificacao alfabetizacao">
+  <meta name="author" content="Portal Estelar Educativo">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    
+    <!-- HEADER BAR -->
+    <header class="game-header">
+      <div class="header-brand">
+        <span class="header-logo">🚀</span>
+        <div class="header-text">
+          <h1>Portal Estelar</h1>
+          <span>Alfabetização Cósmica</span>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="stat-badge" title="Órbitas Completadas / Dias Consecutivos">
+          <span>👑</span> <span id="streak-counter">3 Dias</span>
+        </div>
+        <button id="btn-back-lobby" class="btn-small">🏰 Voltar ao Reino</button>
+      </div>
+    </header>
+
+    <!-- CORE GAME GRID -->
+    <main class="game-grid">
+      
+      <!-- ESQUERDA: O SIMULADOR DE CELULAR (VIEWPORT PRINCIPAL) -->
+      <section class="device-view-card">
+        <div class="device-control-bar">
+          <h2>📱 Simulador de Leitura Ativa</h2>
+          <div class="device-toggles">
+            <button id="btn-toggle-device" class="btn-toggle active">📱 Celular</button>
+            <button id="btn-rotate-device" class="btn-toggle">🔄 Girar</button>
+          </div>
+        </div>
+
+        <!-- THE GORGEOUS PHONE CHASSIS -->
+        <div id="phone-chassis" class="phone-frame device-active device-portrait">
+          <div class="phone-notch"></div>
+          <div class="phone-lens"></div>
+          <div class="phone-vol-up"></div>
+          <div class="phone-vol-down"></div>
+          <div class="phone-power"></div>
+          <div class="phone          <!-- THE REAL IN-GAME EXPERIENCE (6-SCREEN MULTIMODAL SIMULATOR) -->
+          <div id="game-stage" class="game-stage-screen">
+            <canvas id="stars-bg-canvas" class="stars-canvas"></canvas>
+            
+            <!-- TELA 1: MAPA ESTELAR (HOME) -->
+            <div id="orbital-map-view" class="orbital-map-container">
+              
+              <!-- Dialogue bubble for Zog o Alien inicial -->
+              <div id="alien-dialogue-bubble" class="alien-bubble hidden">
+                <div class="bubble-header">
+                  <span id="alien-name">Zog o Guardião</span>
+                  <span class="alien-badge">Guia</span>
+                </div>
+                <p id="alien-speech-text">Bem-vindo à Terra, jovem astronauta! Clicando em Vênus podemos desbloquear novas missões!</p>
+              </div>
+
+              <!-- Inline SVG for path lines connecting planets -->
+              <svg class="orbit-paths-svg" width="100%" height="100%">
+                <ellipse cx="50%" cy="50%" rx="38%" ry="24%" class="path-line path-active" />
+                <ellipse cx="50%" cy="50%" rx="28%" ry="17%" class="path-line" />
+              </svg>
+
+              <!-- Stylized Glowing Planets -->
+              <div id="planet-mercury" class="planet-node mercury-pos" data-planet="mercury" title="Planeta Mercúrio">
+                <div class="planet-graphic">🪨</div>
+                <span class="planet-label">Mercúrio</span>
+                <div class="planet-glow"></div>
+              </div>
+
+              <div id="planet-venus" class="planet-node venus-pos" data-planet="venus" title="Planeta Vênus">
+                <div class="planet-graphic">🌫️</div>
+                <span class="planet-label">Vênus</span>
+                <div class="planet-glow"></div>
+              </div>
+
+              <div id="planet-earth" class="planet-node earth-pos active-planet" data-planet="earth" title="Planeta Terra">
+                <div class="planet-graphic">🌍</div>
+                <span class="planet-label">Terra</span>
+                <div class="planet-glow"></div>
+              </div>
+
+              <div id="planet-mars" class="planet-node mars-pos" data-planet="mars" title="Planeta Marte">
+                <div class="planet-graphic">🟠</div>
+                <span class="planet-label">Marte</span>
+                <div class="planet-glow"></div>
+              </div>
+
+              <div id="planet-jupiter" class="planet-node jupiter-pos" data-planet="jupiter" title="Planeta Júpiter">
+                <div class="planet-graphic">🪐</div>
+                <span class="planet-label">Júpiter</span>
+                <div class="planet-glow"></div>
+              </div>
+
+              <div id="planet-saturn" class="planet-node saturn-pos" data-planet="saturn" title="Planeta Saturno">
+                <div class="planet-graphic">💍</div>
+                <span class="planet-label">Saturno</span>
+                <div class="planet-glow"></div>
+              </div>
+
+              <div id="planet-asteroids" class="planet-node asteroids-pos" data-planet="asteroids" title="Cinturão de Asteroides">
+                <div class="planet-graphic">☄️</div>
+                <span class="planet-label">Asteroides</span>
+                <div class="planet-glow"></div>
+              </div>
+
+              <div id="planet-pluto" class="planet-node pluto-pos" data-planet="pluto" title="Planeta Plutão (Oculto)">
+                <div class="planet-graphic">🔭</div>
+                <span class="planet-label">Plutão</span>
+                <div class="planet-glow"></div>
+              </div>
+
+              <!-- Alien Guide Avatar placed on stage -->
+              <div id="alien-avatar" class="alien-guide-avatar float-animation">👽</div>
+
+              <!-- Diário de Bordo Button (Tela 1 Bottom Left) -->
+              <button id="btn-journal" class="btn-journal-float" title="Ver Diário de Bordo">
+                📓 Diário
+              </button>
+            </div>
+
+            <!-- TELA 2: SELEÇÃO DO PLANETA (VÊNUS) -->
+            <div id="planet-select-screen" class="space-overlay-panel panel-hidden">
+              <div class="venus-preview-container">
+                <div class="venus-aura">🪐</div>
+                <h2>Planeta Vênus</h2>
+                <div class="pedagogical-badge">Decodificação & Vocabulário</div>
+              </div>
+              
+              <div class="info-stats-card">
+                <p><strong>Status:</strong> 🔒 Bloqueado (Requer Mercúrio 3★)</p>
+                <p><strong>Custo de Missão:</strong> ⚡ 1 a 2 combustíveis</p>
+              </div>
+
+              <div class="luma-intro-bubble">
+                <div class="bubble-header">
+                  <span>🧚‍♀️ Luma de Vênus</span>
+                  <button id="btn-play-intro-voice" class="btn-voice-mini">🔊 Ouvir</button>
+                </div>
+                <p>"Olá, Explorador! Sou Luma. Vênus precisa de suas palavras para restabelecer o sinal."</p>
+              </div>
+
+              <div class="panel-actions">
+                <button id="btn-start-venus-mission" class="btn-primary-neon">Iniciar Missão</button>
+                <button id="btn-close-select" class="btn-secondary-neon">Voltar ao Mapa</button>
+              </div>
+            </div>
+
+            <!-- TELA 3: BRIEFING DO ALIEN (INTRO) -->
+            <div id="briefing-screen" class="space-overlay-panel panel-hidden">
+              <h2 class="briefing-title">🚀 Briefing da Missão</h2>
+              <div class="briefing-content">
+                <div class="alien-illustration">🧚‍♀️</div>
+                <div class="briefing-text">
+                  <h3>Luma o Guia Espacial</h3>
+                  <p id="briefing-speech-bubble">"Toque nas letras que faltam. Leia em voz alta para calibrar o tradutor cósmico."</p>
+                  <div class="briefing-tools">
+                    <button id="btn-repeat-briefing" class="btn-action-mini">🔊 Repetir</button>
+                    <button id="btn-phonetic-hint" class="btn-action-mini">💡 Ajuda Fonética</button>
+                  </div>
+                </div>
+              </div>
+              <button id="btn-confirm-briefing" class="btn-primary-neon">Começar Atividade</button>
+            </div>
+
+            <!-- TELA 4: ATIVIDADE PRINCIPAL (DECÓDIFICADOR CÓSMICO / SÍLABAS / LEITURA) -->
+            <div id="activity-screen" class="space-overlay-panel panel-hidden">
+              <div class="activity-header">
+                <span id="activity-timer">⏳ 60s</span>
+                <span id="activity-fuel-cost">⚡ Cost: 1</span>
+              </div>
+              
+              <!-- DYNAMIC CONTAINER FOR ACTIVE ACTIVITY TYPE -->
+              <div id="activity-playground" class="playground-area">
+                <!-- Syllabus drag, Vowel gaps, or Text Reading will render here -->
+              </div>
+
+              <div class="activity-controls">
+                <button id="btn-use-hint" class="btn-action-mini">💡 Dica (-0.5 Fuel)</button>
+                <button id="btn-skip-activity" class="btn-action-mini">⏭ Skip (1x/dia)</button>
+              </div>
+            </div>
+
+            <!-- TELA 5: OVERLAY DE FEEDBACK & CORREÇÃO -->
+            <div id="feedback-screen" class="feedback-overlay panel-hidden">
+              <div class="feedback-card">
+                <span id="feedback-alien-avatar">🧚‍♀️</span>
+                <h3 id="feedback-title">Conexão Estável!</h3>
+                <p id="feedback-message">Você decodificou a palavra com sucesso.</p>
+                <button id="btn-continue-feedback" class="btn-primary-neon">Continuar</button>
+              </div>
+            </div>
+
+            <!-- TELA 6: TELA DE RESULTADO DA MISSÃO -->
+            <div id="result-screen" class="space-overlay-panel panel-hidden">
+              <div class="result-scroll">
+                <h2>Missão Concluída!</h2>
+                <div id="result-stars" class="stars-stars-container">⭐⭐⭐</div>
+                
+                <div class="result-stats">
+                  <div class="result-stat-row">
+                    <span>Experiência ganha:</span>
+                    <span id="result-xp" class="stat-highlight">+15 XP</span>
+                  </div>
+                  <div class="result-stat-row">
+                    <span>Palavras aprendidas:</span>
+                    <span id="result-words" class="stat-highlight">CASA, GATO</span>
+                  </div>
+                </div>
+                
+                <div class="panel-actions" style="flex-direction: column; width: 100%;">
+                  <button id="btn-next-activity" class="btn-primary-neon" style="width: 100%;">Próxima Atividade</button>
+                  <button id="btn-save-journal" class="btn-secondary-neon" style="width: 100%; margin-top: 10px;">💾 Salvar no Diário</button>
+                  <button id="btn-result-close" class="btn-secondary-neon" style="width: 100%; margin-top: 10px;">🏰 Voltar ao Mapa</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- MOCK DIÁRIO DE BORDO POPUP -->
+            <div id="journal-overlay" class="space-overlay-panel panel-hidden">
+              <div class="panel-header" style="border-bottom: 1px solid var(--border-glass); padding-bottom: 8px;">
+                <h3>📓 Diário de Bordo Cósmico</h3>
+                <button id="btn-close-journal" class="btn-close">✖</button>
+              </div>
+              <div class="journal-content-scroll" style="flex:1; overflow-y:auto; padding:10px 0;">
+                <p style="font-size:0.85rem; color:var(--accent-cyan); font-weight:bold;">🚀 Suas Conquistas Recentes:</p>
+                <ul id="journal-entries-list" style="font-size:0.75rem; color:var(--text-cream); list-style:none; display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                  <li>⭐ Completou a órbita introdutória na Terra.</li>
+                  <li>⭐ Decifrou a constelação mística: "TERRA".</li>
+                </ul>
+              </div> <!-- closes journal-content-scroll -->
+            </div> <!-- closes journal-overlay -->
+            
+            <!-- HOME BAR -->
+            <div class="phone-home-indicator"></div>
+          </div> <!-- closes game-stage -->
+        </div> <!-- closes phone-chassis -->
+      </section> <!-- closes device-view-card -->
+
+      <!-- DIREITA: PAINEL DE CONTROLE DE COMBUSTÍVEL, MISSÕES E LEITURA -->
+      <aside class="control-panel">
+        
+        <!-- COMBUSTÍVEL ESTELAR PANEL -->
+        <section class="glass-card fuel-section">
+          <h3 class="panel-title">🚀 Stellar Fuel (Combustível)</h3>
+          <div class="fuel-tank-container">
+            <div class="fuel-tank-bezel">
+              <div id="fuel-bar-fill" class="fuel-bar-fill">
+                <div class="fuel-bubbles"></div>
+              </div>
+            </div>
+            <div class="fuel-indicator-val">
+              <span id="fuel-text-percentage">40%</span>
+              <span class="fuel-desc">Abasteça soletrando palavras nas órbitas!</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- MISSÕES DA JORNADA -->
+        <section class="glass-card missions-section">
+          <h3 class="panel-title">⭐ Missões Espaciais</h3>
+          <div class="missions-list">
+            <div id="mission-item-1" class="mission-row completed">
+              <span class="mission-check">✔</span>
+              <div class="mission-text">
+                <h4>Chegar à Terra</h4>
+                <p>Encontre o guia espacial Zog.</p>
+              </div>
+            </div>
+            <div id="mission-item-2" class="mission-row active">
+              <span class="mission-check">⏳</span>
+              <div class="mission-text">
+                <h4>Constelação da Terra</h4>
+                <p>Conecte as estrelas para formar "TERRA".</p>
+              </div>
+            </div>
+            <div id="mission-item-3" class="mission-row locked">
+              <span class="mission-check">🔒</span>
+              <div class="mission-text">
+                <h4>Explorar a Caverna Vermelha</h4>
+                <p>Desbloqueie Marte resolvendo 3 desafios.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CONTROLES AUDITIVOS & ACESSIBILIDADE -->
+        <section class="glass-card voice-settings-card">
+          <h3 class="panel-title">🔊 Narração & Modulação</h3>
+          <div class="settings-group">
+            <div class="slider-row">
+              <label for="narrator-speed">Velocidade da Voz</label>
+              <input type="range" id="narrator-speed" min="0.5" max="1.5" step="0.1" value="0.9" class="slider-input">
+            </div>
+            <div class="accessibility-options">
+              <button id="btn-hear-hint" class="btn-action">
+                <span>🔊</span> Ouvir Dica de Letra
+              </button>
+              <button id="btn-spatial-audio" class="btn-action">
+                <span>🎧</span> Efeito Cósmico 3D
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </aside>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="game-footer">
+      <span>© 2026 Portal Estelar. Desenvolvido com carinho para crianças corajosas.</span>
+      <span>Acessibilidade e Alfabetização Interativa ♿</span>
+    </footer>
+
+  </div>
+
+  <!-- GAME SCRIPTS -->
+  <script src="app.js"></script>
+</body>
+</html>

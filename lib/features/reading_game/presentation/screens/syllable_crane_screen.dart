@@ -10,6 +10,7 @@ import '../../../../services/speech_validator.dart';
 import '../../domain/game_logic.dart';
 import '../widgets/gamification_widgets.dart';
 import '../widgets/mic_button.dart';
+import 'praca_central_screen.dart';
 import 'session_summary_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1211,8 +1212,13 @@ class _FamilyDoneViewState extends State<_FamilyDoneView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final session = widget.gl.lastSession;
-      if (session == null) return;
+      if (session == null) {
+        // Sessão não iniciada (ex: todas as palavras já concluídas) — volta à tela anterior
+        Navigator.of(context).pop();
+        return;
+      }
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => SessionSummaryScreen(
@@ -1221,9 +1227,10 @@ class _FamilyDoneViewState extends State<_FamilyDoneView> {
             xpEarned: widget.gl.sessionXp,
             newBadgeIds: widget.gl.sessionBadges,
             nextChallenge: 'Continue construindo palavras! 🏗️',
-            onContinue: () => Navigator.of(context)
-              ..pop()
-              ..pop(),
+            onContinue: () => Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const PracaCentralScreen()),
+              (route) => false,
+            ),
           ),
         ),
       );

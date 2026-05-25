@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:intl/date_symbol_data_local.dart';
+
 import 'core/theme_provider.dart';
 import 'splash_screen.dart';
 import 'features/reading_game/domain/game_logic.dart';
@@ -14,6 +16,12 @@ import 'services/avatar_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializar localizações de data em pt_BR
+  await initializeDateFormatting('pt_BR', null);
+
+  // Inicializar AudioManager e TTS em background
+  AudioManager().preloadSyllables([]);
 
   // Travar em Portrait (padrão infantil)
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);

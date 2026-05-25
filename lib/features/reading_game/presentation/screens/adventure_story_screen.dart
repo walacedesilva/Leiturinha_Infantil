@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
 import '../../../../services/progress_service.dart';
 import '../../data/adventure_content.dart';
@@ -53,9 +54,7 @@ class _AdventureStoryScreenState extends State<AdventureStoryScreen>
     );
 
     _tts = FlutterTts();
-    _tts.setLanguage('pt-BR');
-    _tts.setSpeechRate(0.5);
-    _tts.setPitch(1.1);
+    AudioManager.applyChildVoice(_tts); // voz infantil centralizada (pitch 1.30, pt-BR otimizado)
     _tts.setCompletionHandler(() {
       if (mounted) setState(() => _isSpeaking = false);
     });

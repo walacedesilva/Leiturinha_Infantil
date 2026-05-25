@@ -55,11 +55,11 @@ class AvatarService extends ChangeNotifier {
       return true;
     }
     // Item gratuito por badge
-    if (item.cost == 0 && item.badgeId != null) {
-      return earnedBadgeIds.contains(item.badgeId);
+    if (item.cost == 0 && item.badge != null) {
+      return earnedBadgeIds.contains(item.badge!.name);
     }
     // Item gratuito sem condição
-    if (item.cost == 0 && item.badgeId == null) return true;
+    if (item.cost == 0 && item.badge == null) return true;
     // Item pago: verifica se comprou
     return _purchased.contains(item.id);
   }
@@ -68,7 +68,7 @@ class AvatarService extends ChangeNotifier {
   bool isPurchasable(AvatarItem item, Set<String> earnedBadgeIds) {
     if (item.cost == 0) return false;
     if (_purchased.contains(item.id)) return false;
-    if (item.badgeId != null && !earnedBadgeIds.contains(item.badgeId)) return false;
+    if (item.badge != null && !earnedBadgeIds.contains(item.badge!.name)) return false;
     return true;
   }
 

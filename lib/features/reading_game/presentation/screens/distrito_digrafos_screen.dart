@@ -9,6 +9,7 @@ import '../../../../services/progress_service.dart';
 import 'adventure_potion_screen.dart';
 import 'portal_transition_screen.dart';
 import 'word_garden_screen.dart';
+import 'missao_decodificacao_galactica_screen.dart';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // DISTRITO DOS DÍGRAFOS — Mapa Principal (3D Cartoon Isométrico)
@@ -179,7 +180,7 @@ class _DistritoDigrafosScreenState extends State<DistritoDigrafosScreen>
     if (activity.isPortal) {
       AudioManager().playSFX(SFXType.correct);
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const PortalTransitionScreen()),
+        MaterialPageRoute(builder: (_) => const MissaoDecodificacaoGalacticaScreen()),
       );
       return;
     }

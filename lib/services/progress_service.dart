@@ -74,6 +74,22 @@ class ProgressService extends ChangeNotifier {
     }
   }
 
+  /// Marca todas as palavras de uma família como concluídas (garante 100%).
+  Future<void> markAllWordsCompleted(String familyKey, List<String> allWords) async {
+    final completed = getCompletedWords(familyKey);
+    bool changed = false;
+    for (final word in allWords) {
+      if (!completed.contains(word)) {
+        completed.add(word);
+        changed = true;
+      }
+    }
+    if (changed) {
+      await _save(familyKey, completed);
+      notifyListeners();
+    }
+  }
+
   /// Reseta o progresso de uma família específica.
   Future<void> resetFamily(String familyKey) async {
     await _prefs.remove('$_progressPrefix$familyKey');

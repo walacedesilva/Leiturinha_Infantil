@@ -1,0 +1,109 @@
+[
+  {
+    "story_id": "reino_floresta_encantada_01",
+    "title": "A Chave da Floresta Encantada",
+    "target_age": "6-10 anos",
+    "voice_settings": {
+      "narrator_role": "contador_caloroso_misterioso",
+      "base_stability": 0.5,
+      "base_clarity": 0.7,
+      "default_speed": 1.0
+    },
+    "scenes": [
+      {
+        "scene_id": "intro_forest",
+        "title": "A Chegada",
+        "visual_type": "forest",
+        "drag_elements": [
+          {"id": "backpack_item", "type": "mochila", "label": "🎒 Mochila Mágica", "description": "Guarda seus pertences e poções."}
+        ],
+        "narration": {
+          "text": "[suave] Era uma manhã de neblina... [pausa 1.5s] Quando você chegou à borda da Floresta Encantada. [sussurrando] Dizem que apenas os corajosos... conseguem entrar...",
+          "emotion": "mysterious_warm",
+          "background_music": "forest_ambient_soft",
+          "trigger_on_load": true
+        },
+        "interactive_prompt": {
+          "instruction": "Arraste sua Mochila Mágica para o Inventário para se preparar!",
+          "voice_hint": "[animado] Antes de entrar... que tal organizar sua mochila no inventário?",
+          "drop_zone": "backpack_ui",
+          "success_narration": "[alegre] Perfeito! Você está pronto para explorar!",
+          "fail_narration": "[suave] Hmm, tente colocar a mochila na área do Inventário brilhante."
+        },
+        "next_scene": "crystal_riddle"
+      },
+      {
+        "scene_id": "crystal_riddle",
+        "title": "O Enigma dos Cristais",
+        "visual_type": "cave",
+        "drag_elements": [
+          {"id": "crystal_red", "type": "cristal", "color": "red", "label": "🔴 Cristal de Fogo", "description": "Brilha com um calor interno."},
+          {"id": "crystal_blue", "type": "cristal", "color": "blue", "label": "🔵 Cristal de Gelo", "description": "Frio como o topo da montanha."},
+          {"id": "crystal_green", "type": "cristal", "color": "green", "label": "🟢 Cristal da Natureza", "description": "Vibra com a energia da floresta."}
+        ],
+        "narration": {
+          "text": "[misterioso] Diante de você... três pedestais antigos... [pausa 1s] e três cristais brilhantes: [ênfase] Vermelho... Azul... e Verde... [sussurrando] Apenas a ordem correta... abrirá o portão do tesouro...",
+          "emotion": "mysterious_warm",
+          "background_music": "mystery_puzzle_ambient",
+          "trigger_on_load": true
+        },
+        "interactive_prompt": {
+          "instruction": "Coloque cada cristal no seu respectivo pedestal de cor!",
+          "voice_hint": "[animado] Combine as cores dos cristais com os símbolos dos pedestais!",
+          "is_ordered_puzzle": true,
+          "placements": {
+            "crystal_red": "pedestal_1",
+            "crystal_blue": "pedestal_2",
+            "crystal_green": "pedestal_3"
+          },
+          "drop_zones": [
+            {"id": "pedestal_1", "color": "red", "label": "Pedestal Vermelho"},
+            {"id": "pedestal_2", "color": "blue", "label": "Pedestal Azul"},
+            {"id": "pedestal_3", "color": "green", "label": "Pedestal Verde"}
+          ],
+          "success_narration": "[épico] CRAC! [efeito:pedra] Os pedestais afundam... uma luz dourada inunda a sala... [pausa 2s] [maravilhado] O portão... está se abrindo!",
+          "fail_narration": "[suave] Hmm... talvez não seja essa a ordem..."
+        },
+        "next_scene": "wise_king_hall"
+      },
+      {
+        "scene_id": "wise_king_hall",
+        "title": "O Salão do Rei Sábio",
+        "visual_type": "castle",
+        "drag_elements": [
+          {"id": "golden_crown", "type": "coroa", "label": "👑 Coroa Perdida", "description": "A insígnia da realeza sagrada."}
+        ],
+        "narration": {
+          "text": "[calmo] Você entra no salão majestoso. Lá está o Rei Sábio, com seu olhar bondoso. Ele fala com você: [rei_sabio] 'Bem-vindo, jovem aventureiro. Estou sem minha coroa sagrada — pausa — você a encontrou?'",
+          "emotion": "calm_authority",
+          "background_music": "castle_ambient",
+          "trigger_on_load": true
+        },
+        "interactive_prompt": {
+          "instruction": "Devolva a Coroa Perdida para o Rei Sábio!",
+          "voice_hint": "[rei_sabio] Coloque minha coroa de volta, por favor.",
+          "drop_zone": "wise_king",
+          "success_narration": "[rei_sabio] [alegre] Magnífico! Você restaurou a honra de todo o Reino das Histórias! Muito obrigado!",
+          "fail_narration": "[rei_sabio] [suave] A coroa deve ser colocada na minha cabeça."
+        },
+        "next_scene": "victory_scene"
+      },
+      {
+        "scene_id": "victory_scene",
+        "title": "A Grande Celebração",
+        "visual_type": "victory",
+        "drag_elements": [],
+        "narration": {
+          "text": "[animado] E assim... com inteligência e coragem, sua jornada chega ao fim! [fada_travessa] Yupi! Que aventura fantástica! [dragao_anciao] Você se provou um verdadeiro herói... muito bem! [suave] Todos celebram sua grande conquista!",
+          "emotion": "joyful",
+          "background_music": "victory_fanfare",
+          "trigger_on_load": true
+        },
+        "interactive_prompt": {
+          "instruction": "Parabéns! Você completou a jornada!",
+          "is_victory": true
+        }
+      }
+    ]
+  }
+]

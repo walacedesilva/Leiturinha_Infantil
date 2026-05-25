@@ -88,7 +88,7 @@ const _kBuildings = <_FamilyBuilding>[
     dark: Color(0xFF1D4ED8),
     syllables: ['DA', 'DE', 'DI', 'DO', 'DU'],
     exampleWords: ['DADO', 'DEDO', 'DICA', 'DOCE', 'DUNA'],
-    state: _BCardState.locked,
+    state: _BCardState.active, // TODO: locked em produção
     progress: 0,
     total: 5,
     familyKey: 'D',
@@ -103,7 +103,7 @@ const _kBuildings = <_FamilyBuilding>[
     dark: Color(0xFF6B21A8),
     syllables: ['FA', 'FE', 'FI', 'FO', 'FU'],
     exampleWords: ['FADA', 'FETO', 'FITA', 'FOCA', 'FUMO'],
-    state: _BCardState.locked,
+    state: _BCardState.active, // TODO: locked em produção
     progress: 0,
     total: 5,
     familyKey: 'F',
@@ -118,7 +118,7 @@ const _kBuildings = <_FamilyBuilding>[
     dark: Color(0xFF991B1B),
     syllables: ['MA', 'ME', 'MI', 'MO', 'MU'],
     exampleWords: ['MALA', 'MEDO', 'MICO', 'MOTO', 'MULA'],
-    state: _BCardState.locked,
+    state: _BCardState.active, // TODO: locked em produção
     progress: 0,
     total: 5,
     familyKey: 'M',

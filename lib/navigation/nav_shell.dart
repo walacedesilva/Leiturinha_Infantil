@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../features/reading_game/presentation/screens/ilha_das_palavras_screen.dart';
 import '../features/reading_game/presentation/screens/praca_central_screen.dart';
 import '../features/reading_game/presentation/screens/desafios_screen.dart';
 import '../features/reading_game/presentation/screens/conquistas_screen.dart';
 import '../features/reading_game/presentation/screens/perfil_screen.dart';
+import '../features/reading_game/presentation/screens/avatar_personalizacao_screen.dart';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // NAV TAB CONTROLLER
@@ -154,7 +156,7 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
             children: [
               _TabNavigator(
                 navigatorKey: _navKeys[0],
-                child: const PracaCentralScreen(),
+                child: const IlhaDasPalavrasScreen(),
               ),
               _TabNavigator(
                 navigatorKey: _navKeys[1],
@@ -166,7 +168,7 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
               ),
               _TabNavigator(
                 navigatorKey: _navKeys[3],
-                child: const PerfilScreen(),
+                child: const AvatarPersonalizacaoScreen(),
               ),
             ],
           ),
@@ -349,12 +351,12 @@ class _BottomTabBar extends StatelessWidget {
     required this.onTap,
   });
 
-  // Definições das abas: emoji, rótulo, cor ativa
+  // Definições das abas: ícone moderno, rótulo, cor ativa neon cyan
   static const _tabs = [
-    _TabDef(emoji: '🏠', label: 'Início',     activeColor: Color(0xFF8B5CF6)),
-    _TabDef(emoji: '🎮', label: 'Desafios',   activeColor: Color(0xFFF97316)),
-    _TabDef(emoji: '🏆', label: 'Conquistas', activeColor: Color(0xFFD97706)),
-    _TabDef(emoji: '👤', label: 'Perfil',     activeColor: Color(0xFF3B82F6)),
+    _TabDef(icon: Icons.home_rounded, label: 'Início', activeColor: Color(0xFF00F2FE)),
+    _TabDef(icon: Icons.sports_esports_rounded, label: 'Desafios', activeColor: Color(0xFF00F2FE)),
+    _TabDef(icon: Icons.star_rounded, label: 'Conquistas', activeColor: Color(0xFF00F2FE)),
+    _TabDef(icon: Icons.person_rounded, label: 'Perfil', activeColor: Color(0xFF00F2FE)),
   ];
 
   @override
@@ -366,12 +368,18 @@ class _BottomTabBar extends StatelessWidget {
       height: 74 + bottomPad,
       padding: EdgeInsets.only(bottom: bottomPad),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.97),
-        boxShadow: [
+        color: const Color(0xFF0F172A).withOpacity(0.9), // Glass dark nav background
+        border: Border(
+          top: BorderSide(
+            color: Colors.white.withOpacity(0.08),
+            width: 1.5,
+          ),
+        ),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.10),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+            color: Colors.black45,
+            blurRadius: 18,
+            offset: Offset(0, -4),
           ),
         ],
       ),
@@ -392,16 +400,16 @@ class _BottomTabBar extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TAB ITEM
+// TAB ITEM DEFINITION
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _TabDef {
-  final String emoji;
+  final IconData icon;
   final String label;
   final Color activeColor;
 
   const _TabDef({
-    required this.emoji,
+    required this.icon,
     required this.label,
     required this.activeColor,
   });
@@ -430,11 +438,15 @@ class _TabItem extends StatelessWidget {
         child: AnimatedBuilder(
           animation: controller,
           builder: (_, __) {
-            final t = controller.value; // 0.0 = inativo, 1.0 = ativo
+            final t = controller.value; // 0.0 = inactive, 1.0 = active
+            final activeColor = tab.activeColor;
+            const inactiveColor = Color(0xFF94A3B8); // Slate gray from design
+            final currentColor = Color.lerp(inactiveColor, activeColor, t)!;
+
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ── Indicador superior ──────────────────────────────────
+                // ── Indicador superior neon cyan ──────────────────────────────────
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeOutCubic,
@@ -442,11 +454,19 @@ class _TabItem extends StatelessWidget {
                   width: isActive ? 28 : 0,
                   margin: const EdgeInsets.only(bottom: 5),
                   decoration: BoxDecoration(
-                    color: tab.activeColor,
+                    color: activeColor,
                     borderRadius: BorderRadius.circular(2),
+                    boxShadow: [
+                      if (isActive)
+                        BoxShadow(
+                          color: activeColor.withOpacity(0.4),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                    ],
                   ),
                 ),
-                // ── Emoji do ícone com pill de destaque ─────────────────
+                // ── Destaque do ícone / scale no toque ─────────────────
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeOutCubic,
@@ -457,16 +477,17 @@ class _TabItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Color.lerp(
                       Colors.transparent,
-                      tab.activeColor.withOpacity(0.12),
+                      activeColor.withOpacity(0.08),
                       t,
                     ),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Transform.scale(
-                    scale: 1.0 + t * 0.18,
-                    child: Text(
-                      tab.emoji,
-                      style: const TextStyle(fontSize: 22),
+                    scale: 1.0 + t * 0.14,
+                    child: Icon(
+                      tab.icon,
+                      size: 26,
+                      color: currentColor,
                     ),
                   ),
                 ),
@@ -478,10 +499,8 @@ class _TabItem extends StatelessWidget {
                     fontFamily: 'Nunito',
                     fontSize: 10,
                     fontWeight:
-                        isActive ? FontWeight.w800 : FontWeight.w600,
-                    color: isActive
-                        ? tab.activeColor
-                        : const Color(0xFF9CA3AF),
+                        isActive ? FontWeight.w900 : FontWeight.w600,
+                    color: currentColor,
                   ),
                   child: Text(tab.label),
                 ),
@@ -493,3 +512,4 @@ class _TabItem extends StatelessWidget {
     );
   }
 }
+

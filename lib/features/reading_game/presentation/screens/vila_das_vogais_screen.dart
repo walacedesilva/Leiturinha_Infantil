@@ -127,19 +127,16 @@ const _kLevels = <_VowelLevel>[
 /// Computes real card state and progress for each vowel from ProgressService.
 List<_VowelLevel> _computeLevels(ProgressService progress) {
   final computed = <_VowelLevel>[];
-  bool previousCompleted = true; // First vowel (A) is always unlocked
   for (final base in _kLevels) {
     final key = 'vogal_${base.vowel}';
     final fp = progress.getFamilyProgress(key, base.total);
     final _CardState state;
-    if (!previousCompleted) {
-      state = _CardState.locked;
-    } else if (fp.isCompleted) {
+    // TODO: restaurar lock sequencial para produção
+    if (fp.isCompleted) {
       state = _CardState.completed;
     } else {
       state = _CardState.active;
     }
-    previousCompleted = fp.isCompleted;
     computed.add(_VowelLevel(
       vowel: base.vowel,
       emoji: base.emoji,

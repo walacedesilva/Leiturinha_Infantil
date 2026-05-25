@@ -18,6 +18,7 @@ import 'vila_das_vogais_screen.dart';
 import '../../../../services/avatar_service.dart';
 import '../../../../navigation/nav_shell.dart';
 import 'torre_do_conhecimento_screen.dart';
+import 'missao_decodificacao_galactica_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA MODEL
@@ -125,6 +126,15 @@ const _kDistricts = <_DistrictDef>[
     emoji: '🏭',
     primary: Color(0xFFF97316),
     light: Color(0xFFFFF7ED),
+    comingSoon: false,
+  ),
+  _DistrictDef(
+    id: 'portal_estelar',
+    name: 'Portal Estelar',
+    subtitle: 'Decodificação Galáctica 🚀',
+    emoji: '🔮',
+    primary: Color(0xFFFFF176),
+    light: Color(0xFFFFFDE7),
     comingSoon: false,
   ),
 ];
@@ -256,6 +266,8 @@ class _PracaCentralScreenState extends State<PracaCentralScreen>
           districtName: 'Encontros Consonantais',
           destination: DistritoEncontrosScreen(),
         );
+      case 'portal_estelar':
+        screen = const MissaoDecodificacaoGalacticaScreen();
     }
     if (screen == null) {
       ScaffoldMessenger.of(context).showSnackBar(

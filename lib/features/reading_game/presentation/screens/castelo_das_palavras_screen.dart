@@ -173,17 +173,8 @@ class CastelodasPalavrasScreen extends StatelessWidget {
       } else if (done > 0 || t == _kTowers.first) {
         state = _CCardState.active;
       } else {
-        final idx = _kTowers.indexOf(t);
-        if (idx > 0) {
-          final prevKey = _kTowers[idx - 1].familyKey;
-          final prevFp = progress.getFamilyProgress(
-              'consonant_$prevKey', _kTowers[idx - 1].total);
-          state = prevFp.completedWords >= _kTowers[idx - 1].total
-              ? _CCardState.active
-              : _CCardState.locked;
-        } else {
-          state = _CCardState.active;
-        }
+        // TODO: restaurar lock sequencial para produção
+        state = _CCardState.active;
       }
       return _CastleTower(
         letter: t.letter,

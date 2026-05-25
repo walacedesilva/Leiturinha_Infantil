@@ -23,13 +23,70 @@ class AudioManager {
   DateTime? _lastSyllablePlay;
   String? _lastSyllablePlayed;
 
+  /// Aplica as configurações de voz infantil a qualquer instância [FlutterTts].
+  /// Pitch 1.30 simula a Frequência Fundamental de criança de 4-7 anos (~280-320Hz).
+  /// Seleciona preferencialmente as vozes pt-br-x-ptd ou pt-br-x-pte (suaves, femininas).
+  /// Deve ser chamado uma vez após criar a instância TTS.
+  static Future<void> applyChildVoice(FlutterTts tts) async {
+    try {
+      await tts.setLanguage('pt-BR');
+
+      final dynamic voices = await tts.getVoices;
+      Map<String, String>? targetVoice;
+
+      if (voices != null) {
+        // Prefere vozes ptd/pte por serem suaves e de alta qualidade
+        for (var v in voices) {
+          if (v is Map) {
+            final name = v['name']?.toString() ?? '';
+            final locale = v['locale']?.toString() ?? '';
+            if (locale.toLowerCase().contains('pt-br')) {
+              if (name.contains('pt-br-x-ptd') || name.contains('pt-br-x-pte')) {
+                targetVoice = {'name': name, 'locale': locale};
+                break;
+              }
+            }
+          }
+        }
+        // Fallback: qualquer voz pt-BR disponível
+        if (targetVoice == null) {
+          for (var v in voices) {
+            if (v is Map) {
+              final name = v['name']?.toString() ?? '';
+              final locale = v['locale']?.toString() ?? '';
+              if (locale.toLowerCase().contains('pt-br')) {
+                targetVoice = {'name': name, 'locale': locale};
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (targetVoice != null) {
+        debugPrint('[TTS] Voz infantil: ${targetVoice['name']}');
+        await tts.setVoice(targetVoice);
+      }
+    } catch (e) {
+      debugPrint('[TTS] Erro ao configurar voz infantil: $e');
+    }
+
+    await tts.setSpeechRate(0.45);
+    // Pitch 1.30 eleva o tom sobre a voz feminina base para simular voz infantil
+    await tts.setPitch(1.30);
+    await tts.setVolume(1.0);
+  }
+
   Future<void> _ensureTTS() async {
     if (_ttsReady) return;
-    await _tts.setLanguage('pt-BR');
-    await _tts.setSpeechRate(0.45);
-    await _tts.setPitch(1.1);
-    await _tts.setVolume(1.0);
+    await AudioManager.applyChildVoice(_tts);
     _ttsReady = true;
+  }
+
+  Future<void> _ensureChildVoice() async {
+    await _ensureTTS();
+    await _tts.setPitch(1.30);
+    await _tts.setSpeechRate(0.45);
   }
 
   /// Pre-carrega TTS para as silabas da sessao atual.
@@ -53,7 +110,7 @@ class AudioManager {
     _lastSyllablePlayed = syllable;
 
     try {
-      await _ensureTTS();
+      await _ensureChildVoice();
       await _tts.speak(syllable.toUpperCase());
     } catch (e) {
       debugPrint('TTS silaba: $syllable - $e');
@@ -68,7 +125,7 @@ class AudioManager {
   /// Fala a palavra completa.
   Future<void> playWord(String word) async {
     try {
-      await _ensureTTS();
+      await _ensureChildVoice();
       await _tts.stop();
       await _tts.speak(word.toUpperCase());
     } catch (e) {
@@ -82,6 +139,7 @@ class AudioManager {
     try {
       await _ensureTTS();
       await _tts.stop();
+      await _tts.setPitch(1.30);
       await _tts.setSpeechRate(0.25);
       await _tts.speak(word.toUpperCase());
       // Restaura velocidade normal após conclusão
@@ -93,6 +151,25 @@ class AudioManager {
       _fallbackFeedback();
       // Garante restauração da velocidade em caso de erro
       try { await _tts.setSpeechRate(0.45); } catch (_) {}
+    }
+  }
+
+  /// Fala uma frase completa (diálogo) com pitch ajustado ao perfil do personagem.
+  Future<void> speakSentence(String sentence, {required bool isChild}) async {
+    try {
+      await _ensureTTS();
+      await _tts.stop();
+      if (isChild) {
+        await _tts.setPitch(1.30);
+        await _tts.setSpeechRate(0.45);
+      } else {
+        await _tts.setPitch(1.0);
+        await _tts.setSpeechRate(0.50);
+      }
+      await _tts.speak(sentence);
+    } catch (e) {
+      debugPrint('TTS speakSentence: $sentence - $e');
+      _fallbackFeedback();
     }
   }
 

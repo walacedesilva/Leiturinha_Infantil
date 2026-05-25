@@ -142,17 +142,8 @@ class DistritoConstucaoScreen extends StatelessWidget {
       } else if (done > 0 || z == _kZones.first) {
         state = _WCardState.active;
       } else {
-        final idx = _kZones.indexOf(z);
-        if (idx > 0) {
-          final prevKey = _kZones[idx - 1].familyKey;
-          final prevFp = progress.getFamilyProgress(
-              'consonant_$prevKey', _kZones[idx - 1].total);
-          state = prevFp.completedWords >= _kZones[idx - 1].total
-              ? _WCardState.active
-              : _WCardState.locked;
-        } else {
-          state = _WCardState.active;
-        }
+        // TODO: restaurar lock sequencial para produção
+        state = _WCardState.active;
       }
       return _WorkZone(
         letter: z.letter,

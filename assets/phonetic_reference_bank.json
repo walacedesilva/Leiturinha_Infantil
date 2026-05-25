@@ -1,0 +1,134 @@
+{
+  "version": "1.0.0",
+  "language": "pt-BR",
+  "description": "Banco de Referência Fonética para Consciência Fonológica e Ajuste Fino de TTS",
+  "syllables": {
+    "BA": {
+      "ipa": "ba",
+      "sampa": "ba",
+      "features": {
+        "onset": "bilabial stop voiced /b/",
+        "nucleus": "low central unrounded vowel /a/",
+        "coarticulation": "continuous formant transition without glottal stop"
+      },
+      "ssml": "<phoneme alphabet=\"ipa\" ph=\"ba\">BA</phoneme>"
+    },
+    "BE": {
+      "ipa": "be",
+      "sampa": "be",
+      "features": {
+        "onset": "bilabial stop voiced /b/",
+        "nucleus": "mid-high front unrounded vowel /e/",
+        "coarticulation": "vowel transition with no epenthetic schwa"
+      },
+      "ssml": "<phoneme alphabet=\"ipa\" ph=\"be\">BE</phoneme>"
+    },
+    "BI": {
+      "ipa": "bi",
+      "sampa": "bi",
+      "features": {
+        "onset": "bilabial stop voiced /b/",
+        "nucleus": "high front unrounded vowel /i/",
+        "coarticulation": "direct transition"
+      },
+      "ssml": "<phoneme alphabet=\"ipa\" ph=\"bi\">BI</phoneme>"
+    },
+    "BO": {
+      "ipa": "bo",
+      "sampa": "bo",
+      "features": {
+        "onset": "bilabial stop voiced /b/",
+        "nucleus": "mid-high back rounded vowel /o/",
+        "coarticulation": "continuous"
+      },
+      "ssml": "<phoneme alphabet=\"ipa\" ph=\"bo\">BO</phoneme>"
+    },
+    "BU": {
+      "ipa": "bu",
+      "sampa": "bu",
+      "features": {
+        "onset": "bilabial stop voiced /b/",
+        "nucleus": "high back rounded vowel /u/",
+        "coarticulation": "continuous"
+      },
+      "ssml": "<phoneme alphabet=\"ipa\" ph=\"bu\">BU</phoneme>"
+    },
+    "BRA": {
+      "ipa": "bɾa",
+      "sampa": "b4a",
+      "features": {
+        "onset_complex": "bilabial stop voiced + alveolar tap /bɾ/",
+        "nucleus": "low central unrounded vowel /a/",
+        "coarticulation": "continuous onset-cluster integration"
+      },
+      "ssml": "<phoneme alphabet=\"ipa\" ph=\"bɾa\">BRA</phoneme>"
+    },
+    "CLA": {
+      "ipa": "kla",
+      "sampa": "kla",
+      "features": {
+        "onset_complex": "velar stop voiceless + alveolar lateral /kl/",
+        "nucleus": "low central unrounded vowel /a/",
+        "coarticulation": "continuous cluster transition"
+      },
+      "ssml": "<phoneme alphabet=\"ipa\" ph=\"kla\">CLA</phoneme>"
+    },
+    "TRA": {
+      "ipa": "tɾa",
+      "sampa": "t4a",
+      "features": {
+        "onset_complex": "alveolar stop voiceless + alveolar tap /tɾ/",
+        "nucleus": "low central unrounded vowel /a/",
+        "coarticulation": "vowel transition without intrusive vowel"
+      },
+      "ssml": "<phoneme alphabet=\"ipa\" ph=\"tɾa\">TRA</phoneme>"
+    }
+  },
+  "words": {
+    "CHÁ": {
+      "syllables": ["CHÁ"],
+      "phonology": {
+        "ipa": "ˈʃa",
+        "sampa": "\"Sa",
+        "digraphs": ["CH=/ʃ/"]
+      },
+      "ssml": "<s><phoneme alphabet=\"ipa\" ph=\"ˈʃa\">CHÁ</phoneme></s>"
+    },
+    "FOLHA": {
+      "syllables": ["FO", "LHA"],
+      "phonology": {
+        "ipa": "ˈfo.ʎɐ",
+        "sampa": "\"fo.L7",
+        "digraphs": ["LH=/ʎ/"]
+      },
+      "ssml": "<s><phoneme alphabet=\"ipa\" ph=\"ˈfo\">FO</phoneme><break time=\"150ms\"/><phoneme alphabet=\"ipa\" ph=\"ʎɐ\">LHA</phoneme></s>"
+    },
+    "NINHO": {
+      "syllables": ["NI", "NHO"],
+      "phonology": {
+        "ipa": "ˈni.ɲu",
+        "sampa": "\"ni.J7",
+        "digraphs": ["NH=/ɲ/"]
+      },
+      "ssml": "<s><phoneme alphabet=\"ipa\" ph=\"ˈni\">NI</phoneme><break time=\"150ms\"/><phoneme alphabet=\"ipa\" ph=\"ɲu\">NHO</phoneme></s>"
+    },
+    "CABELO": {
+      "syllables": ["CA", "BE", "LO"],
+      "phonology": {
+        "ipa": "ka.ˈbe.lu",
+        "sampa": "ka.\"be.lu",
+        "stress": "penultimate"
+      },
+      "ssml": "<s><phoneme alphabet=\"ipa\" ph=\"ka\">CA</phoneme><break time=\"150ms\"/><phoneme alphabet=\"ipa\" ph=\"ˈbe\">BE</phoneme><break time=\"150ms\"/><phoneme alphabet=\"ipa\" ph=\"lu\">LO</phoneme></s>"
+    },
+    "BORBOLETA": {
+      "syllables": ["BOR", "BO", "LE", "TA"],
+      "phonology": {
+        "ipa": "boɾ.bo.ˈle.tɐ",
+        "sampa": "bo4.bo.\"le.t7",
+        "stress": "penultimate"
+      },
+      "ssml": "<s><phoneme alphabet=\"ipa\" ph=\"boɾ\">BOR</phoneme><break time=\"150ms\"/><phoneme alphabet=\"ipa\" ph=\"bo\">BO</phoneme><break time=\"150ms\"/><phoneme alphabet=\"ipa\" ph=\"ˈle\">LE</phoneme><break time=\"150ms\"/><phoneme alphabet=\"ipa\" ph=\"tɐ\">TA</phoneme></s>"
+    }
+  }
+}

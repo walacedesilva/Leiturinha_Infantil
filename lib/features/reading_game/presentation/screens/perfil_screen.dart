@@ -9,6 +9,7 @@ import '../../../../services/gamification_service.dart';
 import '../../../../services/gamification_models.dart';
 import '../../data/avatar_data.dart';
 import 'acessorios_screen.dart';
+import 'settings_screen.dart';
 import '../../../../navigation/nav_shell.dart';
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -554,6 +555,33 @@ class _PerfilTopBar extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Botão Configurações
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SettingsScreen(),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: _kBlue.withOpacity(0.2), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Text('⚙️', style: TextStyle(fontSize: 16)),
             ),
           ),
         ],
