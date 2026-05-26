@@ -3,6 +3,27 @@
  * Desenvolvido com HTML5 Canvas, Web Audio API e Speech Synthesis API.
  */
 
+// Intercept console logging and direct to Flutter WebConsole channel if present
+(function() {
+  if (window.WebConsole) {
+    const log = console.log;
+    console.log = function(...args) {
+      log.apply(console, args);
+      window.WebConsole.postMessage(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+    };
+    const error = console.error;
+    console.error = function(...args) {
+      error.apply(console, args);
+      window.WebConsole.postMessage('❌ ERROR: ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+    };
+    const warn = console.warn;
+    console.warn = function(...args) {
+      warn.apply(console, args);
+      window.WebConsole.postMessage('⚠️ WARN: ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+    };
+  }
+})();
+
 // ==========================================================================
 // ESTADO GLOBAL DA APLICAÇÃO
 // ==========================================================================

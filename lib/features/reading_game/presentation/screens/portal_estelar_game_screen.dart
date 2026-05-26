@@ -25,6 +25,12 @@ class _PortalEstelarGameScreenState extends State<PortalEstelarGameScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0xFF0A0520))
+      ..addJavaScriptChannel(
+        'WebConsole',
+        onMessageReceived: (JavaScriptMessage message) {
+          debugPrint('🌐 JS Console: ${message.message}');
+        },
+      )
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageFinished: (String url) {
