@@ -1,0 +1,11 @@
+<speak version="1.0" xml:lang="pt-BR"
+       xmlns="http://www.w3.org/2001/10/synthesis"
+       xmlns:mstts="https://www.w3.org/2001/mstts">
+  <voice name="pt-BR-FranciscaNeural">
+    <mstts:express-as style="cheerful" styledegree="0.6">
+      <prosody rate="85%" pitch="+0%" volume="medium">
+        <phoneme alphabet="ipa" ph="e">E</phoneme>
+      </prosody>
+    </mstts:express-as>
+  </voice>
+</speak>
