@@ -487,47 +487,51 @@ function openPlanetSelectScreen(planetId) {
   const pData = planetActivities[planetId];
   if (!pData) return;
   
-  els.alienDialogueBubble.classList.add('hidden');
-  
-  const aura = els.planetSelectScreen.querySelector('.venus-aura');
-  if (aura) {
-    const planetGraphics = {
-      mercury: "🪨",
-      venus: "🌫️",
-      earth: "🌍",
-      mars: "🟠",
-      jupiter: "🪐",
-      saturn: "💍",
-      asteroids: "☄️",
-      pluto: "🔭"
-    };
-    aura.textContent = planetGraphics[planetId] || "🪐";
+  if (els.alienDialogueBubble) {
+    els.alienDialogueBubble.classList.add('hidden');
   }
   
-  const title = els.planetSelectScreen.querySelector('h2');
-  if (title) title.textContent = `Planeta ${pData.name}`;
-  
-  const badge = els.planetSelectScreen.querySelector('.pedagogical-badge');
-  if (badge) badge.textContent = pData.focus;
-  
-  const stats = els.planetSelectScreen.querySelector('.info-stats-card');
-  if (stats) {
-    stats.innerHTML = `
-      <p><strong>Status:</strong> Livre para Exploração ✅</p>
-      <p><strong>Custo de Missão:</strong> ⚡ ${pData.activities[0].scoring.fuel_cost} combustíveis</p>
-    `;
-  }
-  
-  const bubble = els.planetSelectScreen.querySelector('.luma-intro-bubble');
-  if (bubble) {
-    const guideSpan = bubble.querySelector('.bubble-header span');
-    if (guideSpan) guideSpan.textContent = pData.alien_guide;
+  if (els.planetSelectScreen) {
+    const aura = els.planetSelectScreen.querySelector('.venus-aura');
+    if (aura) {
+      const planetGraphics = {
+        mercury: "🪨",
+        venus: "🌫️",
+        earth: "🌍",
+        mars: "🟠",
+        jupiter: "🪐",
+        saturn: "💍",
+        asteroids: "☄️",
+        pluto: "🔭"
+      };
+      aura.textContent = planetGraphics[planetId] || "🪐";
+    }
     
-    const textP = bubble.querySelector('p');
-    if (textP) textP.textContent = `"${pData.speech_intro}"`;
+    const title = els.planetSelectScreen.querySelector('h2');
+    if (title) title.textContent = `Planeta ${pData.name}`;
+    
+    const badge = els.planetSelectScreen.querySelector('.pedagogical-badge');
+    if (badge) badge.textContent = pData.focus;
+    
+    const stats = els.planetSelectScreen.querySelector('.info-stats-card');
+    if (stats) {
+      stats.innerHTML = `
+        <p><strong>Status:</strong> Livre para Exploração ✅</p>
+        <p><strong>Custo de Missão:</strong> ⚡ ${pData.activities[0].scoring.fuel_cost} combustíveis</p>
+      `;
+    }
+    
+    const bubble = els.planetSelectScreen.querySelector('.luma-intro-bubble');
+    if (bubble) {
+      const guideSpan = bubble.querySelector('.bubble-header span');
+      if (guideSpan) guideSpan.textContent = pData.alien_guide;
+      
+      const textP = bubble.querySelector('p');
+      if (textP) textP.textContent = `"${pData.speech_intro}"`;
+    }
+    
+    els.planetSelectScreen.classList.remove('panel-hidden');
   }
-  
-  els.planetSelectScreen.classList.remove('panel-hidden');
   speakLuma(pData.speech_intro);
 }
 
@@ -535,15 +539,29 @@ function triggerAlienDialogue(planetId) {
   const data = state.aliens[planetId];
   if (!data) return;
   
-  els.alienDialogueBubble.classList.remove('hidden');
-  els.alienName.textContent = data.name;
-  els.alienSpeechText.textContent = data.text;
-  els.alienAvatar.textContent = data.guide;
+  if (els.alienDialogueBubble) {
+    els.alienDialogueBubble.classList.remove('hidden');
+  }
+  if (els.alienName) {
+    els.alienName.textContent = data.name;
+  }
+  if (els.alienSpeechText) {
+    els.alienSpeechText.textContent = data.text;
+  }
+  if (els.alienAvatar) {
+    els.alienAvatar.textContent = data.guide;
+  }
   
   // Ajusta a missão 2 para descrever a tarefa do planeta ativo
-  els.mission2.querySelector('h4').textContent = `Constelação de ${data.name.split(' ')[0]}`;
-  els.mission2.querySelector('p').textContent = `Conecte as estrelas para formar "${data.word}".`;
-  els.mission2.className = "mission-row active";
+  if (els.mission2) {
+    const h4 = els.mission2.querySelector('h4');
+    if (h4) h4.textContent = `Constelação de ${data.name.split(' ')[0]}`;
+    
+    const p = els.mission2.querySelector('p');
+    if (p) p.textContent = `Conecte as estrelas para formar "${data.word}".`;
+    
+    els.mission2.className = "mission-row active";
+  }
   
   // Fala a instrução usando TTS nativo
   speakAlienInstruction(data.text);
