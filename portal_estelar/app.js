@@ -1627,7 +1627,7 @@ function renderVenusActivityItem() {
   const playground = els.activityPlayground;
   playground.innerHTML = "";
 
-  if (act.id === "ven_syllable_sort") {
+  if (act.type === "arrastar_silabas") {
     const word = act.content.target_words[state.venus.activeWordIndex];
     if (!word) {
       finishVenusActivity();
@@ -1711,7 +1711,7 @@ function renderVenusActivityItem() {
     playground.appendChild(chipsContainer);
     playProceduralSound('sfx_chime_soft');
 
-  } else if (act.id === "ven_word_decoder") {
+  } else if (act.type === "lacunas_vogais") {
     const blankWord = act.content.words_with_blanks[state.venus.activeWordIndex];
     if (!blankWord) {
       finishVenusActivity();
@@ -1778,7 +1778,7 @@ function renderVenusActivityItem() {
     playground.appendChild(optionsGrid);
     playProceduralSound('sfx_chime_soft');
 
-  } else if (act.id === "ven_mini_text") {
+  } else if (act.type === "leitura_orbital") {
     if (state.venus.readingWordIndex === -1) {
       state.venus.readingWordIndex = 0;
       
@@ -2057,22 +2057,33 @@ function finishVenusActivity() {
   if (state.venus.timerInterval) clearInterval(state.venus.timerInterval);
   playProceduralSound('sfx_orbit_resolve');
 
-  els.activityScreen.classList.add('panel-hidden');
-  els.feedbackScreen.classList.remove('panel-hidden');
+  if (els.activityScreen) {
+    els.activityScreen.classList.add('panel-hidden');
+  }
+  if (els.feedbackScreen) {
+    els.feedbackScreen.classList.remove('panel-hidden');
+  }
 
   const accuracy = state.venus.totalActions > 0 ? (state.venus.scoreCorrect / state.venus.totalActions) : 0;
+  const guideEmoji = state.aliens[state.activePlanet]?.guide || "👽";
   
   if (accuracy >= 0.75) {
-    els.feedbackAlienAvatar.textContent = "🧚‍♀️";
-    els.feedbackTitle.textContent = "Conexão Estável!";
-    els.feedbackMessage.textContent = "Você decodificou a palavra com sucesso e estabilizou a órbita!";
-    els.feedbackScreen.querySelector('.feedback-card').classList.remove('error-style');
+    if (els.feedbackAlienAvatar) els.feedbackAlienAvatar.textContent = guideEmoji;
+    if (els.feedbackTitle) els.feedbackTitle.textContent = "Conexão Estável!";
+    if (els.feedbackMessage) els.feedbackMessage.textContent = "Você decodificou a palavra com sucesso e estabilizou a órbita!";
+    if (els.feedbackScreen) {
+      const card = els.feedbackScreen.querySelector('.feedback-card');
+      if (card) card.classList.remove('error-style');
+    }
     speakLuma("Sinal estável! Você decodificou as palavras de forma maravilhosa!");
   } else {
-    els.feedbackAlienAvatar.textContent = "🧚‍♀️";
-    els.feedbackTitle.textContent = "Interferência Detectada";
-    els.feedbackMessage.textContent = "O transmissor cósmico precisa de calibragem rápida. Vamos revisar!";
-    els.feedbackScreen.querySelector('.feedback-card').classList.add('error-style');
+    if (els.feedbackAlienAvatar) els.feedbackAlienAvatar.textContent = guideEmoji;
+    if (els.feedbackTitle) els.feedbackTitle.textContent = "Interferência Detectada";
+    if (els.feedbackMessage) els.feedbackMessage.textContent = "O transmissor cósmico precisa de calibragem rápida. Vamos revisar!";
+    if (els.feedbackScreen) {
+      const card = els.feedbackScreen.querySelector('.feedback-card');
+      if (card) card.classList.add('error-style');
+    }
     speakLuma("Interferência detectada. Observe as sílabas e tente novamente.");
   }
 }
@@ -2179,10 +2190,10 @@ function triggerVenusActivityHint() {
 
   const act = state.venus.activities[state.venus.currentActivityIndex];
   let hint = "Tente observar a primeira letra.";
-  if (act.id === "ven_syllable_sort") {
+  if (act.type === "arrastar_silabas") {
     const word = act.content.target_words[state.venus.activeWordIndex];
     hint = `Dica cósmica: O som da palavra '${word}' inicia-se com a sílaba '${getWordSyllables(word)[0]}'.`;
-  } else if (act.id === "ven_word_decoder") {
+  } else if (act.type === "lacunas_vogais") {
     const blankWord = act.content.words_with_blanks[state.venus.activeWordIndex];
     const wordMap = {
       "c_sa": "casa",
@@ -2191,8 +2202,8 @@ function triggerVenusActivityHint() {
       "l_na": "luna"
     };
     hint = `Dica cósmica: A palavra falada correta é '${wordMap[blankWord]}'.`;
-  } else if (act.id === "ven_mini_text") {
-    hint = "Dica cósmica: Luma avistou um lindo brilho que cantava sílabas.";
+  } else if (act.type === "leitura_orbital") {
+    hint = "Dica cósmica: Acompanhe a leitura brilhante com muita atenção para responder às perguntas!";
   }
 
   speakLuma(hint);
