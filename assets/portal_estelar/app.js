@@ -592,13 +592,17 @@ function triggerAlienDialogue(planetId) {
 // MOTOR DE VOZ IA (TTS) INTEGRADO COM VELOCIDADE E PITCH
 // ==========================================================================
 function speakAlienInstruction(text) {
+  let cleanText = text.replace(/\[[a-zA-Z0-9_:\s]+\]/g, '').trim();
+
+  if (window.TTSChannel) {
+    window.TTSChannel.postMessage(cleanText);
+    return;
+  }
+
   if (!window.speechSynthesis) return;
   
   // Cancela falas anteriores
   window.speechSynthesis.cancel();
-  
-  // Limpa as tags de oratória do texto para leitura corrida suave
-  let cleanText = text.replace(/\[[a-zA-Z0-9_:\s]+\]/g, '').trim();
   
   const u = new SpeechSynthesisUtterance(cleanText);
   state.speechUtterance = u;
@@ -621,6 +625,16 @@ function speakAlienInstruction(text) {
 
 // Speech engine optimized for Luma (Alien girl of Venus)
 function speakLuma(text, callback) {
+  let cleanText = text.replace(/\[[a-zA-Z0-9_:\s]+\]/g, '').trim();
+
+  if (window.TTSChannel) {
+    window.TTSChannel.postMessage(cleanText);
+    if (callback) {
+      setTimeout(callback, 3000); // Call completed callback after typical speaking delay
+    }
+    return;
+  }
+
   if (!window.speechSynthesis) {
     if (callback) callback();
     return;
@@ -628,9 +642,6 @@ function speakLuma(text, callback) {
 
   window.speechSynthesis.cancel();
   state.isSpeechPlaying = true;
-
-  // Filter emotion or bracketed speech markers
-  let cleanText = text.replace(/\[[a-zA-Z0-9_:\s]+\]/g, '').trim();
 
   const u = new SpeechSynthesisUtterance(cleanText);
   state.speechUtterance = u;

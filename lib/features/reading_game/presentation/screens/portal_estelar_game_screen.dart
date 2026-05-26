@@ -31,6 +31,14 @@ class _PortalEstelarGameScreenState extends State<PortalEstelarGameScreen> {
           debugPrint('🌐 JS Console: ${message.message}');
         },
       )
+      ..addJavaScriptChannel(
+        'TTSChannel',
+        onMessageReceived: (JavaScriptMessage message) {
+          final text = message.message;
+          debugPrint('🌐 JS TTS Request: $text');
+          AudioManager().playWord(text);
+        },
+      )
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageFinished: (String url) {
