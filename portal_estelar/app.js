@@ -1412,15 +1412,19 @@ function setupVenusFlow() {
 
   if (els.btnStartVenusMission) {
     els.btnStartVenusMission.addEventListener('click', () => {
-      const pData = planetActivities[state.activePlanet];
-      const fuelCost = pData ? pData.activities[0].scoring.fuel_cost : 1;
-      
-      if (state.fuelPercentage < fuelCost * 10) {
-        speakLuma("Tanque muito baixo! Carregue combustível soletrando palavras nas órbitas.");
-        return;
+      // Sempre garante que o combustível seja recarregado para garantir que a criança possa jogar sem restrições de bloqueio
+      state.fuelPercentage = 100;
+      if (els.fuelBarFill) {
+        els.fuelBarFill.style.width = '100%';
       }
+      if (els.fuelTextPercentage) {
+        els.fuelTextPercentage.textContent = '100%';
+      }
+      
       playProceduralSound('sfx_orbit_resolve');
-      els.planetSelectScreen.classList.add('panel-hidden');
+      if (els.planetSelectScreen) {
+        els.planetSelectScreen.classList.add('panel-hidden');
+      }
       
       // Abre a primeira atividade
       state.venus.currentActivityIndex = 0;
