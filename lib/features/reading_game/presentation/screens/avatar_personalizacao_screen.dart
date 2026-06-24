@@ -298,7 +298,7 @@ class _AvatarPersonalizacaoScreenState
     final int coins = context.watch<GamificationService>().state.coins;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.primary50, // lilas do prototipo (Meu Avatar)
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
