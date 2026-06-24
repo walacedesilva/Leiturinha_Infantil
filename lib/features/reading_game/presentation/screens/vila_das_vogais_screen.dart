@@ -60,7 +60,7 @@ const _kLevels = <_VowelLevel>[
     state: _CardState.completed,
     progress: 3,
     total: 3,
-    soundPhrase: 'Aaaa de ABACAXI, A de AVIÃO!',
+    soundPhrase: 'A de ABACAXI, A de AVIÃO!',
     objectEmojis: ['🍎', '✈️', '🎨'],
   ),
   _VowelLevel(
@@ -74,7 +74,7 @@ const _kLevels = <_VowelLevel>[
     state: _CardState.active,
     progress: 1,
     total: 3,
-    soundPhrase: 'Eeee de ESTRELA, E de ELEFANTE!',
+    soundPhrase: 'E de ESTRELA, E de ELEFANTE!',
     objectEmojis: ['⭐', '🐘', '🏫'],
   ),
   _VowelLevel(
@@ -88,7 +88,7 @@ const _kLevels = <_VowelLevel>[
     state: _CardState.locked,
     progress: 0,
     total: 3,
-    soundPhrase: 'Iiii de ILHA, I de ÍMÃ!',
+    soundPhrase: 'I de ILHA, I de ÍMÃ!',
     objectEmojis: ['🏝️', '🧲', '⛪'],
   ),
   _VowelLevel(
@@ -102,7 +102,7 @@ const _kLevels = <_VowelLevel>[
     state: _CardState.locked,
     progress: 0,
     total: 3,
-    soundPhrase: 'Oooo de OLHO, O de ÔNIBUS!',
+    soundPhrase: 'O de OLHO, O de ÔNIBUS!',
     objectEmojis: ['👁️', '🚌', '🥚'],
   ),
   _VowelLevel(
@@ -116,7 +116,7 @@ const _kLevels = <_VowelLevel>[
     state: _CardState.locked,
     progress: 0,
     total: 3,
-    soundPhrase: 'Uuuu de UVA, U de URSO!',
+    soundPhrase: 'U de UVA, U de URSO!',
     objectEmojis: ['🍇', '🐻', '👶'],
   ),
 ];
