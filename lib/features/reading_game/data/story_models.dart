@@ -220,12 +220,14 @@ class StoryDialogue {
   final String text;
   final String emotion;
   final int duration;
+  final String? spoken;
 
   const StoryDialogue({
     required this.character,
     required this.text,
     required this.emotion,
     required this.duration,
+    this.spoken,
   });
 
   factory StoryDialogue.fromJson(Map<String, dynamic> json) {
@@ -234,7 +236,23 @@ class StoryDialogue {
       text: json['text'] as String? ?? '',
       emotion: json['emotion'] as String? ?? 'neutral',
       duration: (json['duration'] as num?)?.toInt() ?? 3,
+      spoken: json['spoken'] as String?,
     );
+  }
+
+  /// Som de animal derivado do id do personagem (ex.: 'animal_leao' -> 'leao').
+  String? get animalSound =>
+      character.startsWith('animal_') ? character.substring(7) : null;
+
+  /// Texto a ser FALADO pelo TTS. Em falas de animal, remove a onomatopeia
+  /// em CAIXA ALTA do inicio (ela vira o clipe de som). 'spoken' tem prioridade.
+  String get spokenText {
+    if (spoken != null) return spoken!;
+    if (animalSound == null) return text;
+    final cleaned = text
+        .replaceFirst(RegExp(r'^(?:[A-ZAEIOUAEOAOC]{2,}[\s!?.,-]*)+'), '')
+        .trim();
+    return cleaned;
   }
 }
 

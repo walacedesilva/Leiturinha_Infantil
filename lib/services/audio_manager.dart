@@ -265,6 +265,25 @@ class AudioManager {
     }
   }
 
+  /// Toca um clipe nomeado de assets/audio/sfx/<name>.mp3 (ex.: rugido "leao").
+  /// Fica em silencio se o arquivo ainda nao existir (fallback seguro).
+  Future<void> playClip(String name) async {
+    final n = name.trim().toLowerCase();
+    if (n.isEmpty) return;
+    try {
+      final player = AudioPlayer();
+      _activePlayers.add(player);
+      await player.setVolume(_sfxVolume * _masterVolume);
+      await player.play(AssetSource('audio/sfx/$n.mp3'));
+      player.onPlayerComplete.first.then((_) {
+        player.dispose();
+        _activePlayers.remove(player);
+      });
+    } catch (e) {
+      debugPrint('[AudioManager] clip $n: $e');
+    }
+  }
+
   void _fallbackFeedback() => HapticFeedback.mediumImpact();
 
   void dispose() {

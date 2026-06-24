@@ -117,7 +117,9 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
 
     if (d != null) {
       final isNarrator = d.character.toLowerCase().contains('narrator');
-      AudioManager().speakSentence(d.text, isChild: !isNarrator);
+      final clip = d.animalSound;
+      if (clip != null) AudioManager().playClip(clip);
+      AudioManager().speakSentence(d.spokenText, isChild: !isNarrator);
     }
   }
 
