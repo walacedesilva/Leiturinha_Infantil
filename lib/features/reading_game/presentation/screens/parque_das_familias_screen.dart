@@ -1230,4 +1230,15 @@ class _FamilySheet extends StatelessWidget {
               label: const Text(
                 'Praticar Agora',
                 style: TextStyle(
-  
+                  fontFamily: 'Nunito',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

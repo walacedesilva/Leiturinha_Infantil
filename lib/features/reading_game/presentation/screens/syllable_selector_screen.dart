@@ -740,4 +740,6 @@ class _SyllableChipState extends State<_SyllableChip>
           end: const Offset(1, 1),
           duration: 300.ms,
           curve: Curves.easeOutBack,
-      
+        );
+  }
+}

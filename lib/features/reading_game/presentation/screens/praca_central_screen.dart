@@ -1289,4 +1289,27 @@ class _PlayButton extends StatelessWidget {
                 const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white,
-              b
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.10),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Text(
+              'JOGAR AGORA',
+              style: TextStyle(
+                fontFamily: 'Nunito',
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFFF97316),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

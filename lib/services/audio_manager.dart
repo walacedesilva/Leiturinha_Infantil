@@ -257,4 +257,9 @@ class AudioManager {
 
   void dispose() {
     _tts.stop();
-    for (final p
+    for (final p in _activePlayers) {
+      p.dispose();
+    }
+    _activePlayers.clear();
+  }
+}

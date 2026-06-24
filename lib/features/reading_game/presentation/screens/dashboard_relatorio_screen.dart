@@ -1463,4 +1463,13 @@ class _ActionBtn extends StatelessWidget {
               style: const TextStyle(
                 fontFamily: 'Nunito',
                 fontWeight: FontWeight.bold,
-    
+                fontSize: 11,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1153,4 +1153,15 @@ class _ZoneSheet extends StatelessWidget {
               label: const Text(
                 'Montar Palavra',
                 style: TextStyle(
-       
+                  fontFamily: 'Nunito',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

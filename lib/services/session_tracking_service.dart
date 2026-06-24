@@ -200,4 +200,11 @@ class SessionTrackingService extends ChangeNotifier {
     final combined = <String, int>{};
     for (final s in _sessions) {
       s.errorsPerSyllable.forEach((syl, count) {
-        combined[syl] = (combined[syl] ??
+        combined[syl] = (combined[syl] ?? 0) + count;
+      });
+    }
+    final sorted = combined.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return sorted.take(limit).toList();
+  }
+}

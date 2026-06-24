@@ -1526,3 +1526,17 @@ class _NavItem extends StatelessWidget {
             color: active ? Colors.white : Colors.white38,
             size: 24,
           ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Nunito',
+            fontSize: 10,
+            fontWeight: active ? FontWeight.bold : FontWeight.normal,
+            color: active ? Colors.white : Colors.white38,
+          ),
+        ),
+      ],
+    );
+  }
+}

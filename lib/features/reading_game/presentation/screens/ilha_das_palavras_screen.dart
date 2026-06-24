@@ -1,66 +1,39 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../services/gamification_service.dart';
 import '../../../../services/progress_service.dart';
+import '../../../../services/avatar_service.dart';
 import '../../../../services/audio_manager.dart';
-import 'corrida_silabas_screen.dart';
-import 'dashboard_relatorio_screen.dart';
-import 'bairro_das_familias_screen.dart';
 import 'vila_das_vogais_screen.dart';
+import 'bairro_das_familias_screen.dart';
 import 'praca_central_screen.dart';
 import 'reino_historias_screen.dart';
-import 'torre_do_conhecimento_screen.dart';
 import 'missao_decodificacao_galactica_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MAPA DE APRENDIZADO — ILHA DAS PALAVRAS PREMIUM
-// Interface 2.5D Viva:
-// - Cada ilha/etapa possui seu próprio ecossistema visual e de partículas.
-// - Trilha estelar conectada com fluxo de pulso laser dinâmico.
-// - Micro-interações táteis elásticas e transições 60fps.
+// MUNDO DA LEITURINHA · OVERWORLD
+// Redesign do mapa-aventura ilustrado (handoff Claude Design).
+// Mapa fixo 1000×580 com rolagem horizontal; HUD fixo sobre o viewport.
+// Os nós abrem as telas reais respeitando a política de bloqueio existente.
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ─── Data State ──────────────────────────────────────────────────────────────
-enum _IslandState { completed, current, locked }
+// Dimensões do "World Frame" do design.
+const double _kWorldW = 1000;
+const double _kWorldH = 580;
 
-class _IslandData {
+enum _NodeState { done, current, locked }
+
+class _NodeDef {
   final String id;
-  final String name;
-  final String emoji;
-  final Color primaryColor;
-  final Color lightColor;
-  final _IslandState state;
-  final int completed;
-  final int total;
-  final bool isSoon;
-  final double fx;
-  final double fy;
-
-  const _IslandData({
-    required this.id,
-    required this.name,
-    required this.emoji,
-    required this.primaryColor,
-    required this.lightColor,
-    required this.state,
-    required this.completed,
-    required this.total,
-    this.isSoon = false,
-    required this.fx,
-    required this.fy,
-  });
+  final String label;
+  final Offset center; // em coordenadas 1000×580
+  final _NodeState state;
+  const _NodeDef(this.id, this.label, this.center, this.state);
 }
-
-// Map Layout parameters
-const double _kIconCenterOffsetY = 36.0;
-const double _kIslandHalfW = 65.0;
-
-// ═══════════════════════════════════════════════════════════════════════════
-// MAIN MAP SCREEN
-// ═══════════════════════════════════════════════════════════════════════════
 
 class IlhaDasPalavrasScreen extends StatefulWidget {
   const IlhaDasPalavrasScreen({super.key});
@@ -71,296 +44,101 @@ class IlhaDasPalavrasScreen extends StatefulWidget {
 
 class _IlhaDasPalavrasScreenState extends State<IlhaDasPalavrasScreen>
     with TickerProviderStateMixin {
-  late final AnimationController _diagonalSkyCtrl;
-  late final AnimationController _roadFlowCtrl;
-  late final AnimationController _avatarSpinCtrl;
+  late final AnimationController _ambient; // glow/sparkle/path pulse
+  late final AnimationController _bob; // bob do personagem
 
   @override
   void initState() {
     super.initState();
-    _diagonalSkyCtrl = AnimationController(
+    _ambient = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(milliseconds: 2600),
     )..repeat(reverse: true);
-
-    _roadFlowCtrl = AnimationController(
+    _bob = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat();
-
-    _avatarSpinCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 5),
-    )..repeat();
+      duration: const Duration(milliseconds: 3000),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _diagonalSkyCtrl.dispose();
-    _roadFlowCtrl.dispose();
-    _avatarSpinCtrl.dispose();
+    _ambient.dispose();
+    _bob.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final gam = context.watch<GamificationService>();
-    final progress = context.watch<ProgressService>();
+  // ── Estado / progresso ──────────────────────────────────────────────────────
 
-    // 1. Calculate Vila das Vogais progress
-    int vogaisCompletedFamilies = 0;
+  List<_NodeDef> _buildNodes(ProgressService progress) {
+    // Vila das Vogais — concluída quando as 5 famílias de vogais terminam.
+    int vogaisDone = 0;
     for (final v in ['A', 'E', 'I', 'O', 'U']) {
-      if (progress.getFamilyProgress('vogal_$v', 3).isCompleted) {
-        vogaisCompletedFamilies++;
-      }
+      if (progress.getFamilyProgress('vogal_$v', 3).isCompleted) vogaisDone++;
     }
-    bool vogaisComplete = vogaisCompletedFamilies >= 5;
+    final vogaisComplete = vogaisDone >= 5;
 
-    // 2. Calculate Bairro das Famílias progress
+    // Bairro das Famílias.
     int bairroDone = 0;
     for (final f in ['B', 'C', 'D', 'F', 'M']) {
-      if (progress.getFamilyProgress(f, 5).isCompleted) {
-        bairroDone++;
+      if (progress.getFamilyProgress(f, 5).isCompleted) bairroDone++;
+    }
+    final bairroPassed = bairroDone >= 1;
+
+    _NodeState vogaisState =
+        vogaisComplete ? _NodeState.done : _NodeState.current;
+    _NodeState bairroState = !vogaisComplete
+        ? _NodeState.locked
+        : (bairroDone >= 5 ? _NodeState.done : _NodeState.current);
+    _NodeState silabasState =
+        !bairroPassed ? _NodeState.locked : _NodeState.current;
+    _NodeState historiasState =
+        !bairroPassed ? _NodeState.locked : _NodeState.current;
+
+    return [
+      _NodeDef('vogais', 'Vila das Vogais', const Offset(470, 356), vogaisState),
+      _NodeDef('familias', 'Bairro das Famílias', const Offset(285, 380),
+          bairroState),
+      _NodeDef('silabas', 'Cidade das Sílabas', const Offset(745, 318),
+          silabasState),
+      _NodeDef('historias', 'Reino das Histórias', const Offset(610, 440),
+          historiasState),
+    ];
+  }
+
+  ({String id, String label, int done, int total}) _currentMission(
+      List<_NodeDef> nodes, ProgressService progress) {
+    int bairroDone = 0;
+    for (final f in ['B', 'C', 'D', 'F', 'M']) {
+      if (progress.getFamilyProgress(f, 5).isCompleted) bairroDone++;
+    }
+    int vogaisDone = 0;
+    for (final v in ['A', 'E', 'I', 'O', 'U']) {
+      if (progress.getFamilyProgress('vogal_$v', 3).isCompleted) vogaisDone++;
+    }
+    // Primeiro nó "current" (jogável e não concluído) é a missão atual.
+    for (final n in nodes) {
+      if (n.state == _NodeState.current) {
+        if (n.id == 'vogais') {
+          return (id: n.id, label: n.label, done: vogaisDone, total: 5);
+        }
+        if (n.id == 'familias') {
+          return (id: n.id, label: n.label, done: bairroDone, total: 5);
+        }
+        return (id: n.id, label: n.label, done: 0, total: 5);
       }
     }
-    bool bairroPassed = bairroDone >= 1;
-
-    // 3. Assemble dynamic 5-island serpentine learning pathway
-    final islands = <_IslandData>[
-      _IslandData(
-        id: 'vogais',
-        name: 'Vila das\nVogais',
-        emoji: '🌱',
-        primaryColor: const Color(0xFF4ADE80),
-        lightColor: const Color(0xFFECFDF5),
-        state: vogaisComplete ? _IslandState.completed : _IslandState.current,
-        completed: vogaisCompletedFamilies,
-        total: 5,
-        fx: 0.20,
-        fy: 0.14,
-      ),
-      _IslandData(
-        id: 'familias',
-        name: 'Bairro das\nFamílias',
-        emoji: '🏠',
-        primaryColor: const Color(0xFFF97316),
-        lightColor: const Color(0xFFFFF7ED),
-        state: !vogaisComplete
-            ? _IslandState.locked
-            : (bairroDone >= 5 ? _IslandState.completed : _IslandState.current),
-        completed: bairroDone,
-        total: 5,
-        fx: 0.65,
-        fy: 0.28,
-      ),
-      _IslandData(
-        id: 'silabas',
-        name: 'Cidade das\nSílabas',
-        emoji: '🏙️',
-        primaryColor: const Color(0xFF06B6D4),
-        lightColor: const Color(0xFFECFEFF),
-        state: !bairroPassed ? _IslandState.locked : _IslandState.current,
-        completed: 1,
-        total: 5,
-        fx: 0.28,
-        fy: 0.48,
-      ),
-      _IslandData(
-        id: 'historias',
-        name: 'Reino das\nHistórias',
-        emoji: '🌟',
-        primaryColor: const Color(0xFFFBBF24),
-        lightColor: const Color(0xFFFFFDF5),
-        state: !bairroPassed ? _IslandState.locked : _IslandState.current,
-        completed: 0,
-        total: 5,
-        fx: 0.72,
-        fy: 0.65,
-      ),
-      _IslandData(
-        id: 'portal',
-        name: 'Portal Estelar\nDecodificação Galáctica',
-        emoji: '🔮',
-        primaryColor: const Color(0xFF8B5CF6),
-        lightColor: const Color(0xFFF5F3FF),
-        state: _IslandState.current, // keep always active for premium space hub access
-        completed: 3,
-        total: 10,
-        fx: 0.36,
-        fy: 0.81,
-      ),
-    ];
-
-    return Scaffold(
-      body: AnimatedBuilder(
-        animation: _diagonalSkyCtrl,
-        builder: (context, child) {
-          // Living diagonal sky background gradient
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color.lerp(const Color(0xFF5BC8F5), const Color(0xFF1E3A8A), _diagonalSkyCtrl.value)!,
-                  Color.lerp(const Color(0xFFB3E5FC), const Color(0xFF4A148C), _diagonalSkyCtrl.value)!,
-                  Color.lerp(const Color(0xFFE0F7FA), const Color(0xFF311B92), _diagonalSkyCtrl.value)!,
-                ],
-                stops: const [0.0, 0.55, 1.0],
-              ),
-            ),
-            child: child,
-          );
-        },
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Top HUD with rotating neon avatar
-              _TopBar(
-                coins: gam.state.coins,
-                xp: gam.state.xp,
-                avatarSpinCtrl: _avatarSpinCtrl,
-              ),
-
-              // Interactive map viewport
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final w = constraints.maxWidth;
-                    final totalH = constraints.maxHeight;
-                    const btnAreaH = 144.0;
-                    final mapH = totalH - btnAreaH;
-
-                    final centers = islands
-                        .map((i) => Offset(i.fx * w, i.fy * mapH))
-                        .toList(growable: false);
-
-                    return Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        // Parallax floating decorative clouds
-                        _buildParallaxCloud(50, 85, 0.45, 20000),
-                        _buildParallaxCloud(120, 60, 0.35, 28000),
-                        _buildParallaxCloud(280, 70, 0.30, 16000),
-
-                        // Spline gold laser connections with flowing wave pulse
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          width: w,
-                          height: mapH,
-                          child: AnimatedBuilder(
-                            animation: _roadFlowCtrl,
-                            builder: (context, _) {
-                              return CustomPaint(
-                                painter: _SplinePathPainter(
-                                  centers: centers,
-                                  progress: _roadFlowCtrl.value,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-
-                        // Serpentine Island Platform list
-                        ...islands.asMap().entries.map((entry) {
-                          final idx = entry.key;
-                          final island = entry.value;
-                          final c = centers[idx];
-                          return Positioned(
-                            left: c.dx - _kIslandHalfW - 10,
-                            top: c.dy - _kIconCenterOffsetY - 10,
-                            child: _IslandWidget(
-                              island: island,
-                              index: idx,
-                              animDelay: Duration(milliseconds: 140 * idx),
-                              onTap: island.state == _IslandState.locked
-                                  ? () => _showLockedFeedback(context)
-                                  : () => _handleIslandNavigation(context, island.id),
-                            ),
-                          );
-                        }),
-
-                        // Animated Main CTA Play button at the bottom center
-                        Positioned(
-                          bottom: 12,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: const _PlayButton()
-                                .animate(onPlay: (c) => c.repeat(reverse: true))
-                                .scaleXY(begin: 1.0, end: 1.04, duration: 1500.ms, curve: Curves.easeInOut)
-                                .shimmer(duration: 2500.ms, color: Colors.white.withOpacity(0.5)),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return (id: 'vogais', label: 'Vila das Vogais', done: vogaisDone, total: 5);
   }
 
-  Widget _buildParallaxCloud(double top, double size, double opacity, int durationMs) {
-    return Positioned(
-      top: top,
-      left: 0,
-      right: 0,
-      height: size,
-      child: IgnorePointer(
-        child: Container()
-            .animate(onPlay: (c) => c.repeat())
-            .custom(
-              duration: Duration(milliseconds: durationMs),
-              builder: (context, value, child) {
-                final w = MediaQuery.sizeOf(context).width;
-                final double x = -size + (value * (w + size * 2));
-                return Stack(
-                  children: [
-                    Positioned(
-                      left: x,
-                      child: Opacity(
-                        opacity: opacity,
-                        child: Text('☁️', style: TextStyle(fontSize: size * 0.7)),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-      ),
-    );
-  }
+  // ── Navegação ───────────────────────────────────────────────────────────────
 
-  void _showLockedFeedback(BuildContext context) {
-    AudioManager().playSFX(SFXType.error);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.lock_rounded, color: Colors.white, size: 18),
-            SizedBox(width: 8),
-            Text(
-              'Estude os distritos anteriores para liberar este reino!',
-              style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFFD946EF),
-        duration: const Duration(seconds: 2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-    );
-  }
-
-  void _handleIslandNavigation(BuildContext context, String id) {
+  void _onNodeTap(_NodeDef node) {
+    if (node.state == _NodeState.locked) {
+      _showLocked();
+      return;
+    }
     AudioManager().playSFX(SFXType.pop);
-    final Widget screen = switch (id) {
+    final Widget screen = switch (node.id) {
       'vogais' => const VilaDasVogaisScreen(),
       'familias' => const BairroDasFamiliasScreen(),
       'silabas' => const PracaCentralScreen(),
@@ -381,499 +159,839 @@ class _IlhaDasPalavrasScreenState extends State<IlhaDasPalavrasScreen>
       ),
     );
   }
-}
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SPLINE ROAD PATH PAINTER WITH ACTIVE FLUID WAVE
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _SplinePathPainter extends CustomPainter {
-  final List<Offset> centers;
-  final double progress;
-
-  const _SplinePathPainter({required this.centers, required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (centers.length < 2) return;
-
-    final shadowPaint = Paint()
-      ..color = const Color(0xFFD97706).withOpacity(0.24)
-      ..strokeWidth = 22
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-
-    final pathPaint = Paint()
-      ..color = const Color(0xFFFBBF24)
-      ..strokeWidth = 14
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final innerTrail = Paint()
-      ..color = const Color(0xFFFFF9C4).withOpacity(0.6)
-      ..strokeWidth = 4
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    for (int i = 0; i < centers.length - 1; i++) {
-      final p1 = centers[i];
-      final p2 = centers[i + 1];
-
-      final midX = (p1.dx + p2.dx) / 2;
-      final midY = (p1.dy + p2.dy) / 2;
-      final dx = p2.dx - p1.dx;
-      final dy = p2.dy - p1.dy;
-
-      final sign = (i % 2 == 0) ? 1.2 : -1.2;
-      final ctrl = Offset(
-        midX + sign * (-dy) * 0.2,
-        midY + sign * dx * 0.2,
-      );
-
-      final path = Path()
-        ..moveTo(p1.dx, p1.dy)
-        ..quadraticBezierTo(ctrl.dx, ctrl.dy, p2.dx, p2.dy);
-
-      // Draw primary golden paths
-      canvas.drawPath(path, shadowPaint);
-      canvas.drawPath(path, pathPaint);
-      canvas.drawPath(path, innerTrail);
-
-      // Render traveling neon laser pulse along the spline
-      for (final metric in path.computeMetrics()) {
-        final double totalLen = metric.length;
-        for (int k = 0; k < 2; k++) {
-          final double offset = (totalLen * (progress + k / 2.0)) % totalLen;
-          final tangent = metric.getTangentForOffset(offset);
-          if (tangent != null) {
-            final pulsePaint = Paint()
-              ..color = Colors.white
-              ..style = PaintingStyle.fill;
-            final pulseGlow = Paint()
-              ..color = const Color(0xFF00F2FE)
-              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
-
-            canvas.drawCircle(tangent.position, 6, pulseGlow);
-            canvas.drawCircle(tangent.position, 2.5, pulsePaint);
-          }
-        }
-      }
-    }
+  void _showLocked() {
+    AudioManager().playSFX(SFXType.error);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.lock_rounded, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Conclua os reinos anteriores para liberar este!',
+                style: TextStyle(
+                    fontFamily: 'Nunito', fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFFD946EF),
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+    );
   }
 
-  @override
-  bool shouldRepaint(_SplinePathPainter old) =>
-      old.centers != centers || old.progress != progress;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// DYNAMIC THEMED PARTICLE EMITTER
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _IslandParticles extends StatefulWidget {
-  final String id;
-  final Widget child;
-
-  const _IslandParticles({required this.id, required this.child});
-
-  @override
-  State<_IslandParticles> createState() => _IslandParticlesState();
-}
-
-class _IslandParticlesState extends State<_IslandParticles>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
+  // ── Build ───────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Positioned.fill(
-          child: AnimatedBuilder(
-            animation: _ctrl,
-            builder: (context, _) {
-              return CustomPaint(
-                painter: _IslandParticlePainter(
-                  islandId: widget.id,
-                  progress: _ctrl.value,
+    final gam = context.watch<GamificationService>();
+    final progress = context.watch<ProgressService>();
+    final nodes = _buildNodes(progress);
+    final mission = _currentMission(nodes, progress);
+
+    final xp = gam.state.xp;
+    final level = (xp ~/ 100) + 1;
+    final levelFrac = (xp % 100) / 100.0;
+
+    void explore() {
+      final target = nodes.firstWhere(
+        (n) => n.id == mission.id,
+        orElse: () => nodes.first,
+      );
+      _onNodeTap(target);
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF1C2A24),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Cabeçalho (título do mundo) ───────────────────────────────────
+            const Padding(
+              padding: EdgeInsets.fromLTRB(18, 8, 18, 6),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: _WorldHeader(),
+              ),
+            ),
+
+            // Mapa inteiro encaixado na tela (ideal em paisagem) ────────────
+            Expanded(
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: SizedBox(
+                    width: _kWorldW,
+                    height: _kWorldH,
+                    child: _WorldFrame(
+                      nodes: nodes,
+                      ambient: _ambient,
+                      bob: _bob,
+                      onNodeTap: _onNodeTap,
+                      coins: gam.state.coins,
+                      lives: 5,
+                      level: level,
+                      frac: levelFrac,
+                      mission: mission,
+                      onExplore: explore,
+                    ),
+                  ),
                 ),
-              );
-            },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CABEÇALHO
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _WorldHeader extends StatelessWidget {
+  const _WorldHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: const [
+        Text(
+          'Mundo da Leiturinha · Overworld',
+          style: TextStyle(
+            fontFamily: 'Baloo 2',
+            fontSize: 19,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFFFDE9C8),
           ),
         ),
-        widget.child,
+        SizedBox(height: 2),
+        Text(
+          'Mapa-aventura ilustrado · 4 reinos de alfabetização',
+          style: TextStyle(
+            fontFamily: 'Nunito',
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF9FB8A8),
+          ),
+        ),
       ],
     );
   }
 }
 
-class _IslandParticlePainter extends CustomPainter {
-  final String islandId;
-  final double progress;
-  final List<_ParticleSpecs> specs;
+// ═══════════════════════════════════════════════════════════════════════════
+// WORLD FRAME — 1000×580
+// ═══════════════════════════════════════════════════════════════════════════
 
-  _IslandParticlePainter({required this.islandId, required this.progress})
-      : specs = _generateSpecs(islandId);
+class _WorldFrame extends StatelessWidget {
+  final List<_NodeDef> nodes;
+  final AnimationController ambient;
+  final AnimationController bob;
+  final void Function(_NodeDef) onNodeTap;
+  final int coins;
+  final int lives;
+  final int level;
+  final double frac;
+  final ({String id, String label, int done, int total}) mission;
+  final VoidCallback onExplore;
 
-  static final Map<String, List<_ParticleSpecs>> _cachedSpecs = {};
+  const _WorldFrame({
+    required this.nodes,
+    required this.ambient,
+    required this.bob,
+    required this.onNodeTap,
+    required this.coins,
+    required this.lives,
+    required this.level,
+    required this.frac,
+    required this.mission,
+    required this.onExplore,
+  });
 
-  static List<_ParticleSpecs> _generateSpecs(String id) {
-    if (_cachedSpecs.containsKey(id)) return _cachedSpecs[id]!;
-    final random = math.Random(id.hashCode);
-    final list = <_ParticleSpecs>[];
-    for (int i = 0; i < 8; i++) {
-      list.add(_ParticleSpecs(
-        xPct: random.nextDouble() * 0.8 + 0.1,
-        yPct: random.nextDouble(),
-        speed: 0.1 + random.nextDouble() * 0.15,
-        size: 2.0 + random.nextDouble() * 4.0,
-        opacity: 0.15 + random.nextDouble() * 0.45,
-      ));
-    }
-    _cachedSpecs[id] = list;
-    return list;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: _kWorldW,
+      height: _kWorldH,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFCDEFF2),
+            Color(0xFFA6E2E6),
+            Color(0xFF6FCBD2),
+            Color(0xFF46AEC4),
+            Color(0xFF2E8FB8),
+          ],
+          stops: [0.0, 0.14, 0.28, 0.44, 1.0],
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x99000000),
+            blurRadius: 90,
+            offset: Offset(0, 40),
+          ),
+        ],
+      ),
+      child: AnimatedBuilder(
+        animation: ambient,
+        builder: (context, _) {
+          final pulse = 0.55 + 0.45 * ambient.value; // 0.55..1.0
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // 1) Céu + terreno (CustomPaint com paths do SVG) ──────────────
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _TerrainPainter(pulse: pulse),
+                ),
+              ),
+
+              // 2) Nuvens ────────────────────────────────────────────────────
+              ..._clouds(),
+
+              // 3) Faróis / ilhota ───────────────────────────────────────────
+              const Positioned(top: 96, left: 291, child: _Lighthouse()),
+
+              // 4) Árvores ───────────────────────────────────────────────────
+              ..._trees(),
+
+              // 5) Castelo (Vila das Vogais) ─────────────────────────────────
+              Positioned(top: 212, left: 480, child: _Castle(glow: pulse)),
+
+              // 6) Casas da vila ─────────────────────────────────────────────
+              const Positioned(top: 330, left: 250, child: _House(roof: Color(0xFFEF4444), body: Color(0xFFFBE3B8), w: 30)),
+              const Positioned(top: 344, left: 296, child: _House(roof: Color(0xFF3B82F6), body: Color(0xFFDBEAFE), w: 28)),
+              const Positioned(top: 360, left: 226, child: _House(roof: Color(0xFFF59E0B), body: Color(0xFFFEF3C7), w: 26)),
+
+              // 7) Tendas do mercado ─────────────────────────────────────────
+              const Positioned(top: 316, left: 424, child: _MarketTents()),
+
+              // 8) Vulcão ─────────────────────────────────────────────────────
+              Positioned(top: 208, left: 730, child: _Volcano(glow: pulse)),
+
+              // 9) Cristais roxos ────────────────────────────────────────────
+              Positioned(top: 452, left: 232, child: _Crystals(sparkle: pulse)),
+
+              // 10) Ilhota do tesouro + árvore dourada ───────────────────────
+              const Positioned(top: 400, left: 548, child: _TreasureIslet()),
+              Positioned(top: 352, left: 580, child: _GoldenTree(glow: pulse)),
+
+              // 11) Moldura de folhas ────────────────────────────────────────
+              const Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(painter: _LeafFramePainter()),
+                ),
+              ),
+
+              // 12) Nós de nível ─────────────────────────────────────────────
+              ...nodes.map((n) => _NodeWidget(
+                    node: n,
+                    bob: bob,
+                    pulse: pulse,
+                    onTap: () => onNodeTap(n),
+                  )),
+
+              // 13) HUD (dentro do frame, topo da pilha) ──────────────────────
+              Positioned(
+                top: 22,
+                left: 96,
+                child: _PlayerCard(level: level, frac: frac),
+              ),
+              Positioned(
+                top: 24,
+                right: 96,
+                child: _CoinsLives(coins: coins, lives: lives),
+              ),
+              Positioned(
+                bottom: 26,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: _MissionBanner(
+                    label: mission.label,
+                    done: mission.done,
+                    total: mission.total,
+                    onExplore: onExplore,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
+
+  List<Widget> _clouds() {
+    const defs = <(double top, double left, double w, double h, double op, bool round)>[
+      (30, 180, 120, 34, 0.92, false),
+      (22, 230, 70, 42, 0.92, true),
+      (54, 700, 140, 38, 0.90, false),
+      (42, 710, 80, 48, 0.90, true),
+      (100, 60, 90, 26, 0.70, false),
+    ];
+    return defs
+        .map((c) => Positioned(
+              top: c.$1,
+              left: c.$2,
+              child: Container(
+                width: c.$3,
+                height: c.$4,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(c.$5),
+                  borderRadius:
+                      BorderRadius.circular(c.$6 ? c.$4 : 30),
+                ),
+              ),
+            ))
+        .toList();
+  }
+
+  List<Widget> _trees() {
+    const defs = <(double top, double left, double size, Color c, Color s)>[
+      (248, 392, 30, Color(0xFF5E9648), Color(0xFF3F7A3A)),
+      (300, 610, 36, Color(0xFF6AA547), Color(0xFF4C7E3A)),
+      (266, 560, 24, Color(0xFF7CC36B), Color(0xFF58974A)),
+      (430, 600, 28, Color(0xFF5E9648), Color(0xFF3F7A3A)),
+      (332, 330, 26, Color(0xFF6AA547), Color(0xFF4C7E3A)),
+      (455, 560, 22, Color(0xFF7CC36B), Color(0xFF58974A)),
+    ];
+    return defs
+        .map((t) => Positioned(
+              top: t.$1,
+              left: t.$2,
+              child: Container(
+                width: t.$3,
+                height: t.$3,
+                decoration: BoxDecoration(
+                  color: t.$4,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: t.$5,
+                      offset: const Offset(0, 7),
+                      spreadRadius: -2,
+                    ),
+                  ],
+                ),
+              ),
+            ))
+        .toList();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TERRENO — CustomPainter portando os paths do SVG do design
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _TerrainPainter extends CustomPainter {
+  final double pulse;
+  const _TerrainPainter({required this.pulse});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Color color;
-    switch (islandId) {
-      case 'vogais':
-        color = const Color(0xFF4ADE80); // Lime green leaf dust
-      case 'familias':
-        color = const Color(0xFFF97316); // Heart coral dust
-      case 'silabas':
-        color = const Color(0xFF00F2FE); // Blue cyber letters
-      case 'historias':
-        color = const Color(0xFFFFF176); // Gold sparkle dust
-      case 'portal':
-        color = const Color(0xFFC084FC); // Purple cosmos space
-      default:
-        color = Colors.white;
+    // O design é desenhado em 1000×580; escala caso o frame mude de tamanho.
+    canvas.save();
+    canvas.scale(size.width / _kWorldW, size.height / _kWorldH);
+
+    // — Rainbow —
+    void arc(String d, Color c) {
+      canvas.drawPath(
+        _svgPath(d),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 7
+          ..color = c.withOpacity(0.5)
+          ..strokeCap = StrokeCap.round,
+      );
     }
 
-    final paint = Paint()..style = PaintingStyle.fill;
+    arc('M70 200 A 180 180 0 0 1 420 180', const Color(0xFFF87171));
+    arc('M78 206 A 175 175 0 0 1 416 188', const Color(0xFFFBBF24));
+    arc('M86 212 A 170 170 0 0 1 412 196', const Color(0xFFA3E635));
+    arc('M94 218 A 165 165 0 0 1 408 204', const Color(0xFF60A5FA));
 
-    for (final s in specs) {
-      double y = size.height - ((s.yPct * size.height + progress * s.speed * size.height) % size.height);
-      double x = s.xPct * size.width;
+    const islandPath =
+        'M150 300 C 130 230, 250 195, 360 205 C 470 175, 640 175, 720 205 C 840 195, 905 250, 890 340 C 905 430, 820 510, 680 520 C 560 545, 420 540, 320 510 C 200 495, 150 420, 150 300 Z';
+    const grassPath =
+        'M172 300 C 158 240, 260 215, 365 224 C 470 198, 635 198, 712 224 C 822 216, 880 262, 868 340 C 880 420, 805 488, 678 498 C 560 520, 425 516, 332 488 C 222 474, 175 412, 172 300 Z';
 
-      final double pulse = 0.3 + 0.7 * math.sin(progress * 2 * math.pi + s.xPct * 10);
-      paint.color = color.withOpacity(s.opacity * pulse);
+    // sombra da ilha na água
+    canvas.save();
+    canvas.translate(8, 16);
+    canvas.drawPath(
+      _svgPath(islandPath),
+      Paint()..color = const Color(0xFF1F6E8C).withOpacity(0.5),
+    );
+    canvas.restore();
 
-      canvas.drawCircle(Offset(x, y), s.size * 0.5, paint);
+    // base de areia
+    final sand = _svgPath(islandPath);
+    canvas.drawPath(sand, _vGrad(sand, const Color(0xFFF4E2B0), const Color(0xFFE6CE8A)));
+    canvas.drawPath(
+        sand,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3
+          ..color = const Color(0xFFD8BE82));
+
+    // grama
+    final grass = _svgPath(grassPath);
+    canvas.drawPath(grass, _vGrad(grass, const Color(0xFF86CC68), const Color(0xFF5EA847)));
+    canvas.drawPath(
+        grass,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = const Color(0xFF4C8A3C));
+
+    // rios
+    const riverPath =
+        'M470 175 C 455 240, 420 250, 430 320 C 438 380, 400 420, 430 500';
+    canvas.drawPath(
+        _svgPath(riverPath),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 22
+          ..strokeCap = StrokeCap.round
+          ..color = const Color(0xFF6FD3E6).withOpacity(0.92));
+    canvas.drawPath(
+        _svgPath(riverPath),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 8
+          ..strokeCap = StrokeCap.round
+          ..color = const Color(0xFFA8EAF2).withOpacity(0.8));
+
+    // patches
+    final meadow = _svgPath(
+        'M455 240 C 540 224, 640 238, 670 300 C 690 350, 650 396, 560 404 C 480 412, 442 372, 442 312 C 442 280, 445 250, 455 240 Z');
+    canvas.drawPath(meadow, _vGrad(meadow, const Color(0xFFA6DD7E), const Color(0xFF7FC15C)));
+
+    canvas.drawPath(
+        _svgPath(
+            'M205 320 C 240 285, 320 290, 360 320 C 392 350, 380 408, 320 430 C 260 448, 205 420, 198 372 C 195 350, 195 335, 205 320 Z'),
+        Paint()..color = const Color(0xFF7BBE9C));
+
+    final cave = _svgPath(
+        'M205 430 C 250 420, 310 430, 330 470 C 345 504, 312 520, 262 518 C 212 516, 188 486, 192 458 C 194 444, 196 434, 205 430 Z');
+    canvas.drawPath(cave, _rGrad(cave, const Color(0xFFB07AD6), const Color(0xFF6D3F9E)));
+
+    final rock = _svgPath(
+        'M690 220 C 760 205, 840 225, 858 290 C 872 345, 832 372, 768 366 C 706 360, 676 318, 678 270 C 679 244, 680 228, 690 220 Z');
+    canvas.drawPath(rock, _vGrad(rock, const Color(0xFF8A93A8), const Color(0xFF5C6478)));
+
+    final canyon = _svgPath(
+        'M700 372 C 760 362, 830 378, 838 426 C 845 466, 806 492, 752 486 C 700 480, 678 446, 684 410 C 687 392, 690 378, 700 372 Z');
+    canvas.drawPath(canyon, _vGrad(canyon, const Color(0xFFEBA85A), const Color(0xFFCE7E36)));
+
+    // hortas
+    final plotStroke = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = const Color(0xFF4C8A3C);
+    void plot(double x, double y, Color c) {
+      final r = RRect.fromRectAndRadius(
+          Rect.fromLTWH(x, y, 46, 34), const Radius.circular(4));
+      canvas.drawRRect(r, Paint()..color = c);
+      canvas.drawRRect(r, plotStroke);
     }
+
+    plot(470, 408, const Color(0xFF9ED06A));
+    plot(520, 408, const Color(0xFF86C254));
+    plot(470, 446, const Color(0xFF86C254));
+    plot(520, 446, const Color(0xFF9ED06A));
+
+    // caminho brilhante
+    final glow = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10
+      ..strokeCap = StrokeCap.round
+      ..color = const Color(0xFFFDE68A).withOpacity(pulse);
+    canvas.drawPath(
+        _svgPath(
+            'M285 380 C 360 372, 410 366, 470 360 C 560 352, 640 330, 745 318'),
+        glow);
+    canvas.drawPath(
+        _svgPath('M500 360 C 556 378, 598 386, 608 390'), glow);
+
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant _IslandParticlePainter oldDelegate) => true;
-}
-
-class _ParticleSpecs {
-  final double xPct;
-  final double yPct;
-  final double speed;
-  final double size;
-  final double opacity;
-
-  _ParticleSpecs({
-    required this.xPct,
-    required this.yPct,
-    required this.speed,
-    required this.size,
-    required this.opacity,
-  });
+  bool shouldRepaint(_TerrainPainter old) => old.pulse != pulse;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// INDIVIDUAL ISLAND WIDGET (ELASTIC TACTILE INPUT)
+// MOLDURA DE FOLHAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-class _IslandWidget extends StatefulWidget {
-  final _IslandData island;
-  final int index;
-  final Duration animDelay;
+class _LeafFramePainter extends CustomPainter {
+  const _LeafFramePainter();
+
+  // (symbol2?, x, y, w, h, angle, pivotX, pivotY)
+  static const _leaves = <(bool, double, double, double, double, double, double, double)>[
+    // TOPO
+    (true, -30, -44, 150, 117, 18, 45, 14),
+    (false, 70, -52, 160, 125, 0, 0, 0),
+    (true, 200, -46, 140, 109, -12, 270, 7),
+    (false, 320, -56, 150, 117, 8, 395, 2),
+    (true, 450, -50, 140, 109, 0, 0, 0),
+    (false, 560, -54, 150, 117, -10, 635, 4),
+    (true, 680, -48, 145, 113, 12, 752, 8),
+    (false, 800, -54, 160, 125, 0, 0, 0),
+    (true, 920, -44, 150, 117, -16, 995, 14),
+    // BASE
+    (false, -30, 510, 155, 121, -18, 47, 570),
+    (true, 90, 520, 150, 117, 0, 0, 0),
+    (false, 220, 516, 145, 113, 14, 292, 572),
+    (true, 350, 522, 150, 117, 0, 0, 0),
+    (false, 480, 514, 150, 117, -10, 555, 572),
+    (true, 600, 520, 150, 117, 10, 675, 578),
+    (false, 730, 516, 150, 117, 0, 0, 0),
+    (true, 860, 520, 160, 125, -14, 940, 578),
+    // ESQUERDA
+    (true, -50, 90, 150, 117, -70, 25, 148),
+    (false, -56, 210, 160, 125, -88, 24, 272),
+    (true, -50, 330, 150, 117, -100, 25, 388),
+    (false, -54, 420, 150, 117, -112, 21, 478),
+    // DIREITA
+    (true, 900, 90, 150, 117, 70, 975, 148),
+    (false, 900, 210, 160, 125, 88, 980, 272),
+    (true, 906, 330, 150, 117, 100, 981, 388),
+    (false, 904, 420, 150, 117, 112, 979, 478),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.scale(size.width / _kWorldW, size.height / _kWorldH);
+
+    final body =
+        _svgPath('M50 3 C 92 14, 96 54, 50 75 C 4 54, 8 14, 50 3 Z');
+    final vein = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..color = const Color(0xFF33662E).withOpacity(0.8);
+    final outline = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..color = const Color(0xFF2F5E2A);
+
+    for (final l in _leaves) {
+      final isLf2 = l.$1;
+      final x = l.$2, y = l.$3, w = l.$4, h = l.$5;
+      final angle = l.$6, px = l.$7, py = l.$8;
+      canvas.save();
+      if (angle != 0) {
+        canvas.translate(px, py);
+        canvas.rotate(angle * math.pi / 180);
+        canvas.translate(-px, -py);
+      }
+      canvas.translate(x, y);
+      canvas.scale(w / 100, h / 78);
+      final fill = Paint()
+        ..shader = ui.Gradient.radial(
+          const Offset(35, 23),
+          80,
+          isLf2
+              ? const [Color(0xFF6AA84E), Color(0xFF2F6A2E)]
+              : const [Color(0xFF7FB85E), Color(0xFF3F7A3A)],
+        );
+      canvas.drawPath(body, fill);
+      canvas.drawPath(body, outline);
+      canvas.drawLine(const Offset(50, 10), const Offset(50, 68), vein);
+      canvas.restore();
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_LeafFramePainter old) => false;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NÓ DE NÍVEL
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _NodeWidget extends StatelessWidget {
+  final _NodeDef node;
+  final AnimationController bob;
+  final double pulse;
   final VoidCallback onTap;
 
-  const _IslandWidget({
-    required this.island,
-    required this.index,
-    required this.animDelay,
+  const _NodeWidget({
+    required this.node,
+    required this.bob,
+    required this.pulse,
     required this.onTap,
   });
 
   @override
-  State<_IslandWidget> createState() => _IslandWidgetState();
-}
-
-class _IslandWidgetState extends State<_IslandWidget>
-    with SingleTickerProviderStateMixin {
-  double _scale = 1.0;
-
-  @override
   Widget build(BuildContext context) {
-    final isLocked = widget.island.state == _IslandState.locked;
+    final isCurrent = node.state == _NodeState.current;
+    final marker = _marker();
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        marker,
+        const SizedBox(height: 4),
+        _chip(),
+      ],
+    );
 
-    return GestureDetector(
-      onTapDown: (_) {
-        if (!isLocked) {
-          setState(() {
-            _scale = 0.92;
-          });
-        }
-      },
-      onTapCancel: () {
-        if (!isLocked) {
-          setState(() {
-            _scale = 1.0;
-          });
-        }
-      },
-      onTapUp: (_) {
-        if (!isLocked) {
-          setState(() {
-            _scale = 1.0;
-          });
-        }
-        widget.onTap();
-      },
-      child: AnimatedScale(
-        scale: _scale,
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutBack,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Emitter context stack for floating particles
-            _IslandParticles(
-              id: widget.island.id,
-              child: SizedBox(
-                width: 140,
-                height: 100,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.center,
-                  children: [
-                    // Floating Platform base
-                    Positioned(
-                      top: 40,
-                      child: _CustomIslandPlatform(
-                        island: widget.island,
-                        isLocked: isLocked,
-                      ),
-                    ),
-                    // Floating active / locked icon circle
-                    Positioned(
-                      top: 6,
-                      child: _CustomIconCircle(
-                        island: widget.island,
-                        isLocked: isLocked,
-                      ),
-                    ),
-                    // Spring bounce state badge
-                    Positioned(
-                      right: 14,
-                      top: 2,
-                      child: _CustomStateBadge(state: widget.island.state)
-                          .animate()
-                          .scale(begin: const Offset(0.5, 0.5), end: const Offset(1.0, 1.0), duration: 500.ms, curve: Curves.bounceOut),
-                    ),
-                  ],
-                ),
-              ),
-            )
-                .animate(onPlay: (c) => c.repeat(reverse: true))
-                .moveY(begin: 0, end: -6, duration: 3000.ms, curve: Curves.easeInOut), // Float animation
-            const SizedBox(height: 4),
+    // Bob apenas no nó atual.
+    Widget positionedChild = GestureDetector(onTap: onTap, child: content);
+    if (isCurrent) {
+      positionedChild = AnimatedBuilder(
+        animation: bob,
+        builder: (_, child) => Transform.translate(
+          offset: Offset(0, -7 * math.sin(bob.value * math.pi)),
+          child: child,
+        ),
+        child: positionedChild,
+      );
+    }
 
-            if (widget.island.id == 'portal')
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1E0F45), Color(0xFF2D1664), Color(0xFF130730)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFFBBF24), width: 1.8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF8B5CF6).withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    )
-                  ],
-                ),
-                child: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Portal Estelar -',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Missão Galáctica',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              // Sleek glassmorphic text pill label
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.35),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.08), width: 0.8),
-                ),
-                child: Text(
-                  widget.island.name.replaceAll('\n', ' '),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: isLocked ? Colors.white.withOpacity(0.4) : Colors.white,
-                  ),
-                ),
-              ),
-            const SizedBox(height: 5),
+    // Centraliza no ponto do design; largura folgada evita overflow da legenda.
+    const double boxW = 160;
+    return Positioned(
+      left: node.center.dx - boxW / 2,
+      top: node.center.dy - 34,
+      width: boxW,
+      child: Center(child: positionedChild),
+    );
+  }
 
-            // Responsive chapter indicator
-            _ProgressLabel(
-              completed: widget.island.completed,
-              total: widget.island.total,
-              state: widget.island.state,
-              isSoon: widget.island.isSoon,
-            ),
-          ],
+  Widget _marker() {
+    switch (node.state) {
+      case _NodeState.done:
+        return Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: const Color(0xFF2DD4BF),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: const [
+              BoxShadow(color: Color(0x4D000000), blurRadius: 10, offset: Offset(0, 4)),
+            ],
+          ),
+          child: const Icon(Icons.check_rounded, color: Colors.white, size: 20),
+        );
+      case _NodeState.current:
+        return Container(
+          width: 58,
+          height: 58,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.96),
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFFFF6B4A), width: 3),
+            boxShadow: [
+              BoxShadow(
+                  color: const Color(0xFFFDE68A).withOpacity(0.55),
+                  blurRadius: 0,
+                  spreadRadius: 7),
+              const BoxShadow(
+                  color: Color(0x59000000), blurRadius: 16, offset: Offset(0, 8)),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: const _KidFace(size: 40),
+        );
+      case _NodeState.locked:
+        return Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: const [
+              BoxShadow(color: Color(0x4D000000), blurRadius: 10, offset: Offset(0, 4)),
+            ],
+          ),
+          child: const Icon(Icons.lock_rounded, color: Color(0xFF7A6E5E), size: 18),
+        );
+    }
+  }
+
+  Widget _chip() {
+    late Color bg;
+    late Color fg;
+    switch (node.state) {
+      case _NodeState.done:
+        bg = Colors.white.withOpacity(0.92);
+        fg = const Color(0xFF0E7C70);
+      case _NodeState.current:
+        bg = const Color(0xFFFF6B4A);
+        fg = Colors.white;
+      case _NodeState.locked:
+        bg = Colors.white.withOpacity(0.85);
+        fg = const Color(0xFF7A6E5E);
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(11),
+        boxShadow: node.state == _NodeState.current
+            ? [BoxShadow(color: const Color(0xFFFF6B4A).withOpacity(0.5), blurRadius: 8, offset: const Offset(0, 3))]
+            : const [BoxShadow(color: Color(0x33000000), blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Text(
+        node.label,
+        style: TextStyle(
+          fontFamily: 'Nunito',
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: fg,
         ),
       ),
-    )
-        .animate(delay: widget.animDelay)
-        .fadeIn(duration: 400.ms)
-        .scale(begin: const Offset(0.75, 0.75), end: const Offset(1.0, 1.0), duration: 450.ms, curve: Curves.easeOutBack);
+    );
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CUSTOM ISLAND 2.5D PLATFORMS
+// ROSTO DO PERSONAGEM (kid) — aproximação do desenho CSS do design
 // ═══════════════════════════════════════════════════════════════════════════
 
-class _CustomIslandPlatform extends StatelessWidget {
-  final _IslandData island;
-  final bool isLocked;
-
-  const _CustomIslandPlatform({required this.island, required this.isLocked});
+class _KidFace extends StatelessWidget {
+  final double size;
+  const _KidFace({required this.size});
 
   @override
   Widget build(BuildContext context) {
-    final Gradient baseGrad;
-    final Gradient depthGrad;
-    Color borderGlow;
+    final s = size;
+    return SizedBox(
+      width: s,
+      height: s,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // pele
+          Positioned(
+            top: s * 0.20,
+            left: s * 0.16,
+            child: Container(
+              width: s * 0.70,
+              height: s * 0.70,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF4C49A),
+                borderRadius: BorderRadius.circular(s * 0.34),
+              ),
+            ),
+          ),
+          // cabelo
+          Positioned(
+            top: s * 0.04,
+            left: s * 0.14,
+            child: Container(
+              width: s * 0.72,
+              height: s * 0.40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF6B4A),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(s)),
+              ),
+            ),
+          ),
+          // franja
+          Positioned(
+            top: s * 0.32,
+            left: s * 0.06,
+            child: Container(
+              width: s * 0.5,
+              height: s * 0.12,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE5522F),
+                borderRadius: BorderRadius.circular(s * 0.06),
+              ),
+            ),
+          ),
+          // olhos
+          Positioned(top: s * 0.46, left: s * 0.34, child: _dot(s * 0.09, const Color(0xFF3A2A1E))),
+          Positioned(top: s * 0.46, right: s * 0.34, child: _dot(s * 0.09, const Color(0xFF3A2A1E))),
+          // bochechas
+          Positioned(top: s * 0.58, left: s * 0.24, child: _dot(s * 0.10, const Color(0xFFF6A6A0))),
+          Positioned(top: s * 0.58, right: s * 0.24, child: _dot(s * 0.10, const Color(0xFFF6A6A0))),
+          // sorriso
+          Positioned(
+            top: s * 0.62,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                width: s * 0.24,
+                height: s * 0.13,
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFF3A2A1E), width: 2),
+                  borderRadius:
+                      BorderRadius.vertical(bottom: Radius.circular(s * 0.13)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    if (isLocked) {
-      baseGrad = const LinearGradient(
-        colors: [Color(0xFF6B7280), Color(0xFF4B5563)],
+  Widget _dot(double d, Color c) => Container(
+        width: d,
+        height: d,
+        decoration: BoxDecoration(color: c, shape: BoxShape.circle),
       );
-      depthGrad = const LinearGradient(
-        colors: [Color(0xFF374151), Color(0xFF1F2937)],
-      );
-      borderGlow = Colors.transparent;
-    } else {
-      borderGlow = island.primaryColor;
-      switch (island.id) {
-        case 'vogais':
-          baseGrad = const LinearGradient(colors: [Color(0xFF86EFAC), Color(0xFF22C55E)]);
-          depthGrad = const LinearGradient(colors: [Color(0xFF16A34A), Color(0xFF14532D)]);
-        case 'familias':
-          baseGrad = const LinearGradient(colors: [Color(0xFFFDBA74), Color(0xFFF97316)]);
-          depthGrad = const LinearGradient(colors: [Color(0xFFEA580C), Color(0xFF7C2D12)]);
-        case 'silabas':
-          baseGrad = const LinearGradient(colors: [Color(0xFF67E8F9), Color(0xFF06B6D4)]);
-          depthGrad = const LinearGradient(colors: [Color(0xFF0891B2), Color(0xFF164E63)]);
-        case 'historias':
-          baseGrad = const LinearGradient(colors: [Color(0xFFFDE68A), Color(0xFFF59E0B)]);
-          depthGrad = const LinearGradient(colors: [Color(0xFFD97706), Color(0xFF78350F)]);
-        case 'portal':
-          baseGrad = const LinearGradient(colors: [Color(0xFFC084FC), Color(0xFF8B5CF6)]);
-          depthGrad = const LinearGradient(colors: [Color(0xFF7C3AED), Color(0xFF3B0764)]);
-        default:
-          baseGrad = const LinearGradient(colors: [Colors.grey, Colors.black]);
-          depthGrad = const LinearGradient(colors: [Colors.black, Colors.black]);
-      }
-    }
+}
 
+// ═══════════════════════════════════════════════════════════════════════════
+// PROPS
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _Lighthouse extends StatelessWidget {
+  const _Lighthouse();
+  @override
+  Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Platform top lid
         Container(
-          width: 98,
-          height: 28,
-          decoration: BoxDecoration(
-            gradient: baseGrad,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(20),
-              bottom: Radius.circular(6),
+          width: 18,
+          height: 46,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.white, Colors.white,
+                Color(0xFFEF4444), Color(0xFFEF4444),
+                Colors.white, Colors.white,
+                Color(0xFFEF4444), Color(0xFFEF4444),
+              ],
+              stops: [0, .28, .28, .5, .5, .72, .72, 1],
             ),
-            border: Border.all(
-              color: isLocked ? Colors.transparent : borderGlow.withOpacity(0.5),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: isLocked ? Colors.black26 : borderGlow.withOpacity(0.24),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            borderRadius: BorderRadius.vertical(top: Radius.circular(5)),
           ),
         ),
-        // Extrusion wall thickness
         Container(
-          width: 78,
-          height: 18,
+          width: 54,
+          height: 16,
           decoration: BoxDecoration(
-            gradient: depthGrad,
-            borderRadius: const BorderRadius.vertical(
-              bottom: Radius.circular(12),
-            ),
+            color: const Color(0xFF7CC36B),
+            borderRadius: BorderRadius.circular(50),
+            boxShadow: const [BoxShadow(color: Color(0xFF58974A), offset: Offset(0, 4), spreadRadius: -1)],
           ),
         ),
       ],
@@ -881,551 +999,639 @@ class _CustomIslandPlatform extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// CUSTOM HIGHLIGHT ICON SPHERES
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _CustomIconCircle extends StatelessWidget {
-  final _IslandData island;
-  final bool isLocked;
-
-  const _CustomIconCircle({required this.island, required this.isLocked});
-
+class _House extends StatelessWidget {
+  final Color roof;
+  final Color body;
+  final double w;
+  const _House({required this.roof, required this.body, required this.w});
   @override
   Widget build(BuildContext context) {
-    final bg = isLocked ? const Color(0xFF4B5563) : island.primaryColor;
-    final isDone = island.state == _IslandState.completed;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        CustomPaint(size: Size(w, w * 0.45), painter: _TriPainter(roof)),
+        Container(
+          width: w * 0.7,
+          height: w * 0.55,
+          decoration: BoxDecoration(
+            color: body,
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(3)),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
-    if (island.id == 'portal' && !isLocked) {
-      // Spectacular premium swirling portal vortex matching the image!
-      return SizedBox(
-        width: 90,
-        height: 90,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // 1. Golden Swirling Vortex Outer (Spinning)
-            Container(
+class _MarketTents extends StatelessWidget {
+  const _MarketTents();
+  @override
+  Widget build(BuildContext context) {
+    BoxDecoration striped(Color c) => BoxDecoration(
+          gradient: LinearGradient(
+            tileMode: TileMode.repeated,
+            begin: Alignment.topLeft,
+            end: const Alignment(-0.6, -1.0),
+            colors: [c, c, Colors.white, Colors.white],
+            stops: const [0, .5, .5, 1],
+          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
+        );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 26, height: 20, decoration: striped(const Color(0xFFEF4444))),
+        const SizedBox(width: 5),
+        Container(width: 26, height: 20, decoration: striped(const Color(0xFF2DD4BF))),
+      ],
+    );
+  }
+}
+
+class _Castle extends StatelessWidget {
+  final double glow;
+  const _Castle({required this.glow});
+  @override
+  Widget build(BuildContext context) {
+    Widget tower(double w, double h, Color c, Color shade) => Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            color: c,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+            boxShadow: [BoxShadow(color: shade, offset: const Offset(-3, 0), spreadRadius: -1)],
+          ),
+        );
+    return SizedBox(
+      width: 90,
+      height: 90,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        clipBehavior: Clip.none,
+        children: [
+          // aura
+          Positioned(
+            bottom: 6,
+            child: Container(
+              width: 90,
+              height: 110,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(colors: [
+                  const Color(0xFF86EF79).withOpacity(0.55 * glow),
+                  Colors.transparent,
+                ], stops: const [0, 0.7]),
+              ),
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              tower(16, 40, const Color(0xFFF2E6C2), const Color(0xFFDCC79A)),
+              const SizedBox(width: 3),
+              Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.topCenter,
+                children: [
+                  tower(26, 56, const Color(0xFFFBEFCB), const Color(0xFFE6D2A0)),
+                  Positioned(
+                    top: -34,
+                    child: Container(width: 14, height: 9, color: const Color(0xFFEF4444)),
+                  ),
+                  Positioned(
+                    top: -22,
+                    child: Container(
+                      width: 14,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8C24C),
+                        borderRadius: BorderRadius.circular(7),
+                        boxShadow: [BoxShadow(color: const Color(0xFFFBBF24).withOpacity(0.6 * glow), blurRadius: 10)],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 3),
+              tower(16, 40, const Color(0xFFF2E6C2), const Color(0xFFDCC79A)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Volcano extends StatelessWidget {
+  final double glow;
+  const _Volcano({required this.glow});
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 68,
+      height: 60,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          CustomPaint(size: const Size(68, 54), painter: _TriPainter(const Color(0xFFB5483A))),
+          Positioned(
+            bottom: 44,
+            child: Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const RadialGradient(colors: [Color(0xFFFCA5A5), Color(0xFFEF4444)]),
+                boxShadow: [BoxShadow(color: const Color(0xFFEF4444).withOpacity(0.8 * glow), blurRadius: 20)],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Crystals extends StatelessWidget {
+  final double sparkle;
+  const _Crystals({required this.sparkle});
+  @override
+  Widget build(BuildContext context) {
+    Widget crystal(double w, double h, Color c) => CustomPaint(
+          size: Size(w, h),
+          painter: _TriPainter(c, glow: true),
+        );
+    return SizedBox(
+      width: 50,
+      height: 40,
+      child: Stack(
+        alignment: Alignment.bottomLeft,
+        children: [
+          Positioned(left: 0, bottom: 0, child: crystal(14, 24, const Color(0xFFC084FC))),
+          Positioned(left: 14, bottom: 0, child: crystal(18, 34, const Color(0xFFA855F7))),
+          Positioned(left: 32, bottom: 0, child: crystal(12, 20, const Color(0xFFE879F9))),
+          Positioned(
+            left: 8,
+            bottom: 30,
+            child: Opacity(
+              opacity: 0.4 + 0.6 * sparkle,
+              child: Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFFF0ABFC), shape: BoxShape.circle)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TreasureIslet extends StatelessWidget {
+  const _TreasureIslet();
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 124,
+      height: 62,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFE6CE8A),
+                borderRadius: BorderRadius.circular(62),
+                boxShadow: const [BoxShadow(color: Color(0x731F6E8C), offset: Offset(0, 7), spreadRadius: -2)],
+              ),
+            ),
+          ),
+          Positioned(
+            top: 6, left: 9, right: 9, bottom: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(50),
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF86CC68), Color(0xFF5EA847)],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GoldenTree extends StatelessWidget {
+  final double glow;
+  const _GoldenTree({required this.glow});
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 60,
+      height: 70,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            bottom: 8,
+            child: Container(
               width: 90,
               height: 90,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: SweepGradient(
-                  colors: [
-                    const Color(0xFFFFF9C4).withOpacity(0.0),
-                    const Color(0xFFFBBF24).withOpacity(0.85),
-                    const Color(0xFFF59E0B).withOpacity(0.95),
-                    const Color(0xFFD97706).withOpacity(0.7),
-                    const Color(0xFFFFF9C4).withOpacity(0.0),
-                  ],
-                ),
+                gradient: RadialGradient(colors: [
+                  const Color(0xFFFBBF24).withOpacity(0.7 * glow),
+                  Colors.transparent,
+                ], stops: const [0, 0.7]),
               ),
-            )
-              .animate(onPlay: (c) => c.repeat())
-              .rotate(duration: 3500.ms),
-              
-            // 2. Counter-rotating gold inner swirl
-            Container(
-              width: 78,
-              height: 78,
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Transform.rotate(angle: -12 * math.pi / 180, child: _trunk(10, 40, const Color(0xFFC99B5E))),
+              const SizedBox(width: 3),
+              _trunk(12, 48, const Color(0xFFB5854A)),
+              const SizedBox(width: 3),
+              Transform.rotate(angle: 12 * math.pi / 180, child: _trunk(10, 40, const Color(0xFFC99B5E))),
+            ],
+          ),
+          Positioned(
+            top: -2,
+            child: Container(
+              width: 50,
+              height: 18,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: SweepGradient(
-                  colors: [
-                    const Color(0xFFF59E0B).withOpacity(0.0),
-                    const Color(0xFFFFF176).withOpacity(0.75),
-                    const Color(0xFFFFD700).withOpacity(0.85),
-                    const Color(0xFFFBBF24).withOpacity(0.0),
-                  ],
-                ),
+                color: const Color(0xFFFDE047),
+                borderRadius: BorderRadius.circular(50),
+                boxShadow: [BoxShadow(color: const Color(0xFFFDE047).withOpacity(glow), blurRadius: 16)],
               ),
-            )
-              .animate(onPlay: (c) => c.repeat())
-              .rotate(duration: 2200.ms, begin: 1.0, end: 0.0),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-            // 3. Central Dark Core Sphere
-            Container(
-              width: 58,
-              height: 58,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF150A36),
-                border: Border.all(
-                  color: const Color(0xFFFBBF24),
-                  width: 2.0,
+  Widget _trunk(double w, double h, Color c) => Container(
+        width: w,
+        height: h,
+        decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(5)),
+      );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HUD
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _PlayerCard extends StatelessWidget {
+  final int level;
+  final double frac;
+  const _PlayerCard({required this.level, required this.frac});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C2A24).withOpacity(0.6),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.18), width: 1.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFE3D6),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2.5),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Consumer<AvatarService>(
+              builder: (_, av, __) {
+                final emoji = av.activeStyle?.emoji;
+                if (emoji != null) {
+                  return Center(child: Text(emoji, style: const TextStyle(fontSize: 24)));
+                }
+                return const _KidFace(size: 34);
+              },
+            ),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Téo',
+                style: TextStyle(
+                  fontFamily: 'Baloo 2',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  height: 1,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFBBF24).withOpacity(0.55),
-                    blurRadius: 10,
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text(
+                    'Nv $level',
+                    style: const TextStyle(
+                      fontFamily: 'Nunito',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFFDE68A),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    width: 90,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.25),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: frac.clamp(0.04, 1.0).toDouble(),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(colors: [Color(0xFFFBBF24), Color(0xFFFDE047)]),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
-              child: ClipOval(
-                child: CustomPaint(
-                  painter: _ConstellationPainter(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    Widget center = Center(
-      child: Text(
-        island.emoji,
-        style: const TextStyle(fontSize: 38),
-      ),
-    );
-
-    // sway swaying plant leaves for vogais
-    if (island.id == 'vogais' && !isLocked) {
-      center = center
-          .animate(onPlay: (c) => c.repeat(reverse: true))
-          .rotate(begin: -0.05, end: 0.05, duration: 1500.ms, curve: Curves.easeInOut);
-    }
-    // crown spinning flares for historias
-    if (island.id == 'historias' && !isLocked) {
-      center = center
-          .animate(onPlay: (c) => c.repeat(reverse: true))
-          .scaleXY(begin: 0.9, end: 1.1, duration: 1200.ms);
-    }
-
-    return Container(
-      width: 72,
-      height: 72,
-      decoration: BoxDecoration(
-        color: bg,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: isLocked
-              ? Colors.grey.shade400
-              : isDone
-                  ? const Color(0xFFFFF176)
-                  : Colors.white,
-          width: 3.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (isLocked ? Colors.black : island.primaryColor).withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            ],
           ),
         ],
       ),
-      child: center,
-    )
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scaleXY(
-          begin: 1.0,
-          end: isLocked ? 1.0 : (isDone ? 1.05 : 1.02),
-          duration: 2000.ms,
-        );
-  }
-}
-
-class _CustomStateBadge extends StatelessWidget {
-  final _IslandState state;
-
-  const _CustomStateBadge({required this.state});
-
-  @override
-  Widget build(BuildContext context) {
-    switch (state) {
-      case _IslandState.completed:
-        return Container(
-          width: 24,
-          height: 24,
-          decoration: const BoxDecoration(
-            color: Color(0xFF22C55E),
-            shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
-          ),
-          child: const Icon(Icons.check_rounded, color: Colors.white, size: 14),
-        );
-      case _IslandState.current:
-        return const Text('✨', style: TextStyle(fontSize: 18))
-            .animate(onPlay: (c) => c.repeat(reverse: true))
-            .scaleXY(begin: 0.8, end: 1.25, duration: 800.ms);
-      case _IslandState.locked:
-        return Container(
-          width: 24,
-          height: 24,
-          decoration: const BoxDecoration(
-            color: Color(0xFF6B7280),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.lock_rounded, color: Colors.white, size: 12),
-        );
-    }
-  }
-}
-
-class _ProgressLabel extends StatelessWidget {
-  final int completed;
-  final int total;
-  final _IslandState state;
-  final bool isSoon;
-
-  const _ProgressLabel({
-    required this.completed,
-    required this.total,
-    required this.state,
-    required this.isSoon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDone = state == _IslandState.completed;
-    final isLocked = state == _IslandState.locked;
-
-    final Color bg;
-    final String label;
-
-    if (isDone) {
-      bg = const Color(0xFF22C55E);
-      label = 'Completo';
-    } else if (!isLocked) {
-      bg = const Color(0xFF00F2FE);
-      label = 'Capítulo $completed/$total';
-    } else if (isSoon) {
-      bg = const Color(0xFF6B7280);
-      label = 'Em breve';
-    } else {
-      bg = const Color(0xFF6B7280);
-      label = 'Bloqueado';
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-      decoration: BoxDecoration(
-        color: bg.withOpacity(0.85),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontFamily: 'Nunito',
-          fontSize: 9,
-          fontWeight: FontWeight.w900,
-          color: Colors.white,
-        ),
-      ),
     );
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TOP HUD HEADER BAR
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _TopBar extends StatelessWidget {
+class _CoinsLives extends StatelessWidget {
   final int coins;
-  final int xp;
-  final AnimationController avatarSpinCtrl;
+  final int lives;
+  const _CoinsLives({required this.coins, required this.lives});
 
-  const _TopBar({
-    required this.coins,
-    required this.xp,
-    required this.avatarSpinCtrl,
+  @override
+  Widget build(BuildContext context) {
+    Widget pill(Widget icon, String value) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C2A24).withOpacity(0.6),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withOpacity(0.18), width: 1.5),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              icon,
+              const SizedBox(width: 5),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontFamily: 'Nunito',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        );
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        pill(
+          Container(
+            width: 18,
+            height: 18,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const RadialGradient(
+                center: Alignment(-0.3, -0.4),
+                colors: [Color(0xFFFDE047), Color(0xFFEAB308)],
+              ),
+              border: Border.all(color: const Color(0xFFFDE68A), width: 2),
+            ),
+          ),
+          '$coins',
+        ),
+        const SizedBox(width: 8),
+        pill(
+          const Icon(Icons.favorite, color: Color(0xFFFF6B4A), size: 16),
+          '$lives',
+        ),
+      ],
+    );
+  }
+}
+
+class _MissionBanner extends StatelessWidget {
+  final String label;
+  final int done;
+  final int total;
+  final VoidCallback onExplore;
+
+  const _MissionBanner({
+    required this.label,
+    required this.done,
+    required this.total,
+    required this.onExplore,
   });
-
-  String get _levelName {
-    if (xp < 50) return 'Explorador';
-    if (xp < 150) return 'Aventureiro';
-    if (xp < 300) return 'Descobridor';
-    return 'Mestre';
-  }
-
-  int get _levelNumber {
-    if (xp < 50) return 1;
-    if (xp < 150) return 2;
-    if (xp < 300) return 3;
-    return 4;
-  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(18, 12, 14, 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
+        color: Colors.white.withOpacity(0.94),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(color: Colors.white.withOpacity(0.6), width: 2),
+        boxShadow: const [
+          BoxShadow(color: Color(0x59000000), blurRadius: 28, offset: Offset(0, 12)),
+        ],
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Rotating neon gradient avatar badge
-          RotationTransition(
-            turns: avatarSpinCtrl,
-            child: Container(
-              padding: const EdgeInsets.all(2.5),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: SweepGradient(
-                  colors: [
-                    Color(0xFF00F2FE),
-                    Color(0xFF8B5CF6),
-                    Color(0xFFD946EF),
-                    Color(0xFF00F2FE),
-                  ],
-                ),
-              ),
-              child: RotationTransition(
-                turns: ReverseAnimation(avatarSpinCtrl),
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Text('👦', style: TextStyle(fontSize: 22)),
-                  ),
-                ),
-              ),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFF6B4A),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [BoxShadow(color: const Color(0xFFFF6B4A).withOpacity(0.45), blurRadius: 10, offset: const Offset(0, 4))],
             ),
+            child: const Icon(Icons.home_rounded, color: Colors.white, size: 22),
           ),
           const SizedBox(width: 12),
-          // Player Rank & Level tag
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      _levelName,
-                      style: const TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'Nível $_levelNumber',
-                        style: const TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'MISSÃO ATUAL',
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                  color: Color(0xFFFF6B4A),
                 ),
-                const SizedBox(height: 2),
-                // Glowing coins pill
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFBBF24).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFFBBF24).withOpacity(0.3), width: 1),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('🪙', style: TextStyle(fontSize: 12)),
-                      const SizedBox(width: 4),
-                      Text(
-                        '$coins',
-                        style: const TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+              ),
+              Text(
+                '$label · $done/$total',
+                style: const TextStyle(
+                  fontFamily: 'Baloo 2',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF3A2A1E),
+                  height: 1.1,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          // Chart metric top-right button
+          const SizedBox(width: 14),
           GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const DashboardRelatorioScreen()),
-            ),
+            onTap: onExplore,
             child: Container(
-              width: 40,
-              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFFF8A52), Color(0xFFE5522F)],
+                ),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: const [BoxShadow(color: Color(0xFFB8451F), offset: Offset(0, 5))],
               ),
-              child: const Icon(
-                Icons.bar_chart_rounded,
-                color: Colors.white,
-                size: 22,
+              child: const Text(
+                'Explorar ›',
+                style: TextStyle(
+                  fontFamily: 'Baloo 2',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
               ),
             ),
-          )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .scaleXY(begin: 1.0, end: 1.08, duration: 1500.ms),
+          ),
         ],
-      ),
-    ).animate().fadeIn(duration: 400.ms);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// CTA PLAY GAME BUTTON
-// ═══════════════════════════════════════════════════════════════════════════
-
-class _PlayButton extends StatelessWidget {
-  const _PlayButton();
-
-  Widget _resolveActiveScreen(BuildContext context) {
-    final progress = context.read<ProgressService>();
-
-    int vogaisCompletedFamilies = 0;
-    for (final v in const ['A', 'E', 'I', 'O', 'U']) {
-      if (progress.getFamilyProgress('vogal_$v', 3).isCompleted) {
-        vogaisCompletedFamilies++;
-      }
-    }
-    final bool vogaisComplete = vogaisCompletedFamilies >= 5;
-
-    if (!vogaisComplete) {
-      return const VilaDasVogaisScreen();
-    }
-
-    int bairroDone = 0;
-    for (final f in const ['B', 'C', 'D', 'F', 'M']) {
-      if (progress.getFamilyProgress(f, 5).isCompleted) {
-        bairroDone++;
-      }
-    }
-    final bool bairroPassed = bairroDone >= 1;
-
-    if (!bairroPassed || bairroDone < 5) {
-      return const BairroDasFamiliasScreen();
-    }
-
-    return const PracaCentralScreen();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        AudioManager().playSFX(SFXType.correct);
-        final screen = _resolveActiveScreen(context);
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => screen,
-          ),
-        );
-      },
-      child: Container(
-        width: 120,
-        height: 120,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFFFF176), Color(0xFFF57F17)],
-          ),
-          border: Border.all(color: Colors.white, width: 3.5),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFF57F17).withOpacity(0.55),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.mic_rounded, color: Colors.white, size: 36),
-            SizedBox(height: 3),
-            Text(
-              'JOGAR\nAGORA',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Nunito',
-                fontWeight: FontWeight.w900,
-                fontSize: 14,
-                color: Colors.white,
-                height: 1.1,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
 }
 
-
 // ═══════════════════════════════════════════════════════════════════════════
-// PORTAL ESTELAR CONSTELLATION PAINTER
+// HELPERS DE DESENHO
 // ═══════════════════════════════════════════════════════════════════════════
 
-class _ConstellationPainter extends CustomPainter {
+/// Triângulo apontando para cima (usado em telhados, vulcão e cristais).
+class _TriPainter extends CustomPainter {
+  final Color color;
+  final bool glow;
+  const _TriPainter(this.color, {this.glow = false});
   @override
   void paint(Canvas canvas, Size size) {
-    final paintLine = Paint()
-      ..color = Colors.white.withOpacity(0.9)
-      ..strokeWidth = 2.2
-      ..style = PaintingStyle.stroke;
-      
-    final paintStar = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-      
-    final paintGlow = Paint()
-      ..color = Colors.white.withOpacity(0.4)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-
-    // Relatives coordinates matching the golden whirlpool reference image constellation
-    final stars = [
-      Offset(cx - 16, cy - 8),  // Left-top
-      Offset(cx - 6, cy - 10),  // Mid-left-top
-      Offset(cx + 12, cy - 12), // Right-top
-      Offset(cx + 14, cy + 6),  // Right-bottom
-      Offset(cx + 2, cy + 18),  // Mid-right-bottom
-      Offset(cx - 10, cy + 4),  // Left-bottom
-    ];
-
-    // Connection paths
-    canvas.drawLine(stars[0], stars[1], paintLine);
-    canvas.drawLine(stars[1], stars[2], paintLine);
-    canvas.drawLine(stars[2], stars[3], paintLine);
-    canvas.drawLine(stars[3], stars[4], paintLine);
-    canvas.drawLine(stars[4], stars[5], paintLine);
-    canvas.drawLine(stars[5], stars[0], paintLine);
-    canvas.drawLine(stars[1], stars[5], paintLine); // Inner cross closing connection
-
-    // Draw glowing stars
-    for (final s in stars) {
-      canvas.drawCircle(s, 6.0, paintGlow);
-      canvas.drawCircle(s, 3.0, paintStar);
+    final p = Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    if (glow) {
+      canvas.drawPath(
+        p,
+        Paint()
+          ..color = color.withOpacity(0.8)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+      );
     }
+    canvas.drawPath(p, Paint()..color = color);
   }
 
   @override
-  bool shouldRepaint(covariant _ConstellationPainter oldDelegate) => false;
+  bool shouldRepaint(_TriPainter old) => old.color != color;
 }
-                              
+
+/// Paint com gradiente linear vertical sobre a bounding box do path.
+Paint _vGrad(Path p, Color top, Color bottom) {
+  final b = p.getBounds();
+  return Paint()
+    ..shader = ui.Gradient.linear(
+      Offset(b.left, b.top),
+      Offset(b.left, b.bottom),
+      [top, bottom],
+    );
+}
+
+/// Paint com gradiente radial sobre a bounding box do path.
+Paint _rGrad(Path p, Color inner, Color outer) {
+  final b = p.getBounds();
+  final c = Offset(b.left + b.width * 0.5, b.top + b.height * 0.4);
+  final r = math.max(b.width, b.height) * 0.7;
+  return Paint()..shader = ui.Gradient.radial(c, r, [inner, outer]);
+}
+
+/// Parser mínimo de path SVG (comandos absolutos M, L, C, A, Z).
+Path _svgPath(String d) {
+  final path = Path();
+  final tokens = RegExp(r'[MLCAZmlcaz]|-?\d*\.?\d+(?:[eE]-?\d+)?')
+      .allMatches(d)
+      .map((m) => m.group(0)!)
+      .toList();
+  int i = 0;
+  double rd() => double.parse(tokens[i++]);
+  bool isNum(String t) => RegExp(r'^-?\.?\d').hasMatch(t);
+
+  String cmd = '';
+  while (i < tokens.length) {
+    final t = tokens[i];
+    if (!isNum(t)) {
+      cmd = t;
+      i++;
+    }
+    switch (cmd) {
+      case 'M':
+        path.moveTo(rd(), rd());
+        cmd = 'L'; // pares seguintes viram lineTo (spec SVG)
+        break;
+      case 'L':
+        path.lineTo(rd(), rd());
+        break;
+      case 'C':
+        path.cubicTo(rd(), rd(), rd(), rd(), rd(), rd());
+        break;
+      case 'A':
+        final rx = rd(), ry = rd(), rot = rd(), large = rd(), sweep = rd();
+        final x = rd(), y = rd();
+        path.arcToPoint(
+          Offset(x, y),
+          radius: Radius.elliptical(rx, ry),
+          rotation: rot,
+          largeArc: large != 0,
+          clockwise: sweep != 0,
+        );
+        break;
+      case 'Z':
+        path.close();
+        break;
+      default:
+        i++; // segurança
+    }
+  }
+  return path;
+}

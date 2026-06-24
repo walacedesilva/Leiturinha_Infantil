@@ -1197,3 +1197,65 @@ class _BuildingSheet extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          Icon(Icons.volume_up_rounded,
+                              size: 12,
+                              color: building.primary.withOpacity(0.70)),
+                          const SizedBox(width: 4),
+                          Text(
+                            word,
+                            style: TextStyle(
+                              fontFamily: 'Nunito',
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: building.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 24),
+          // Practice button
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                final family = _findFamily();
+                if (family != null) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          SyllableSelectorScreen(family: family),
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: building.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              icon: const Icon(Icons.mic_rounded, size: 22),
+              label: const Text(
+                'Praticar Agora',
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

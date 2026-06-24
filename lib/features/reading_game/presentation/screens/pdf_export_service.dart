@@ -287,4 +287,14 @@ class PdfExportService {
                   fontSize: 8.5, color: PdfColors.teal900),
               textAlign: pw.TextAlign.center,
             ),
-     
+          ),
+        ],
+      ),
+    );
+
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/relatorio_semanal.pdf');
+    await file.writeAsBytes(await pdf.save());
+    return file;
+  }
+}

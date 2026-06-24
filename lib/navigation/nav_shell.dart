@@ -58,6 +58,10 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
   // Controladores para animação dos ícones
   late final List<AnimationController> _iconCtrl;
 
+  // Observa push/pop da aba Início para reaplicar a orientação (paisagem no
+  // overworld, retrato nas telas internas).
+  late final _OrientationNavObserver _homeNavObserver;
+
   @override
   void initState() {
     super.initState();
@@ -69,6 +73,18 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
       ),
     );
     _iconCtrl[0].value = 1.0; // Início ativo por padrão
+    _homeNavObserver = _OrientationNavObserver(_applyOrientation);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _applyOrientation());
+  }
+
+  /// App inteiro em retrato — reaplica a orientação ao trocar de aba ou
+  /// empilhar/desempilhar telas, garantindo que nada volte para paisagem.
+  void _applyOrientation() {
+    if (!mounted) return;
+    SystemChrome.setPreferredOrientations(const [
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
   }
 
   @override
@@ -106,6 +122,7 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
     _iconCtrl[index].forward();
 
     setState(() => _currentIndex = index);
+    _applyOrientation();
   }
 
   // ── Modal "Quer pausar?" ────────────────────────────────────────────────────
@@ -137,6 +154,7 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
       setState(() => _currentIndex = 0);
     }
     // Se já está no Início na raiz → permanece no app (não sai)
+    _applyOrientation();
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
@@ -156,6 +174,7 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
             children: [
               _TabNavigator(
                 navigatorKey: _navKeys[0],
+                observers: [_homeNavObserver],
                 child: const IlhaDasPalavrasScreen(),
               ),
               _TabNavigator(
@@ -194,22 +213,49 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
 class _TabNavigator extends StatelessWidget {
   final GlobalKey<NavigatorState> navigatorKey;
   final Widget child;
+  final List<NavigatorObserver> observers;
 
   const _TabNavigator({
     required this.navigatorKey,
     required this.child,
+    this.observers = const [],
   });
 
   @override
   Widget build(BuildContext context) {
     return Navigator(
       key: navigatorKey,
+      observers: observers,
       onGenerateRoute: (settings) => MaterialPageRoute(
         settings: settings,
         builder: (_) => child,
       ),
     );
   }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ORIENTATION NAV OBSERVER — reaplica a orientação quando a aba Início
+// empilha/desempilha telas (overworld em paisagem, internas em retrato).
+// ═════════════════════════════════════════════════════════════════════════════
+
+class _OrientationNavObserver extends NavigatorObserver {
+  final VoidCallback onChanged;
+  _OrientationNavObserver(this.onChanged);
+
+  void _notify() =>
+      WidgetsBinding.instance.addPostFrameCallback((_) => onChanged());
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) => _notify();
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => _notify();
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      _notify();
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) =>
+      _notify();
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -518,4 +564,3 @@ class _TabItem extends StatelessWidget {
   }
 }
 
-                                                                                                                                                               

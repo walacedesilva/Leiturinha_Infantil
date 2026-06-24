@@ -40,4 +40,24 @@ class DistrictCompletion {
 
   static bool isComplete(String id, ProgressService p) {
     bool fam(String key, int total) =>
-        p.getFamilyProgress(k
+        p.getFamilyProgress(key, total).isCompleted;
+    switch (id) {
+      case 'vogais':
+        return const ['A', 'E', 'I', 'O', 'U'].every((v) => fam('vogal_$v', 3));
+      case 'silabas':
+        return const ['B', 'C', 'D', 'F', 'M']
+            .every((c) => fam('consonant_$c', 5));
+      case 'familias':
+        return const ['J', 'L', 'M', 'N'].every((c) => fam('consonant_$c', 5));
+      case 'palavras':
+        return const ['P', 'R', 'S', 'T', 'V']
+            .every((c) => fam('consonant_$c', 5));
+      case 'construcao':
+        return const ['G', 'X', 'Z'].every((c) => fam('consonant_$c', 5));
+      case 'circo':
+        return fam('circo_rimas', 5) && fam('circo_danca', 4);
+      default:
+        return false;
+    }
+  }
+}

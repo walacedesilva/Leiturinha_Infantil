@@ -567,4 +567,144 @@ class _MinigameCard extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'Nunito',
                 fontSize: 13,
-  
+                fontWeight: FontWeight.w900,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontSize: 10.5,
+                color: _kSub,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MISSION CARD
+// ─────────────────────────────────────────────────────────────────────────────
+class _MissionCard extends StatelessWidget {
+  final _Mission mission;
+  final int current;
+  final int delay;
+
+  const _MissionCard({
+    required this.mission,
+    required this.current,
+    required this.delay,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDone   = current >= mission.target;
+    final progress = (current / mission.target).clamp(0.0, 1.0);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDone ? const Color(0xFFF0FDF4) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDone
+              ? _kGreen.withOpacity(0.4)
+              : const Color(0xFFF3F4F6),
+          width: isDone ? 2 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Ícone
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: mission.bgColor,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Center(
+              child: Text(mission.icon,
+                  style: const TextStyle(fontSize: 26)),
+            ),
+          ),
+          const SizedBox(width: 14),
+          // Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  mission.title,
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: isDone ? _kGreen : _kText,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  mission.desc,
+                  style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 11,
+                    color: _kSub,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: progress),
+                          duration: const Duration(milliseconds: 800),
+                          curve: Curves.easeOutCubic,
+                          builder: (_, v, __) => LinearProgressIndicator(
+                            value: v,
+                            minHeight: 6,
+                            backgroundColor: const Color(0xFFF3F4F6),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              isDone ? _kGreen : mission.color,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      isDone ? '✅' : '$current/${mission.target}',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: isDone ? _kGreen : _kGray,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    )
+        .animate(delay: Duration(milliseconds: delay))
+        .fadeIn(duration: 350.ms)
+        .slideX(begin: 0.1, curve: Curves.easeOutCubic);
+  }
+}

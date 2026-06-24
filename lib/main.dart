@@ -32,8 +32,11 @@ void main() async {
   // Inicializar AudioManager e TTS em background
   AudioManager().preloadSyllables([]);
 
-  // Travar em Portrait (padrão infantil)
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  // Travar em Retrato (app inteiro na vertical)
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
   // Inicializar SharedPreferences para o ProgressService e ThemeProvider
@@ -80,4 +83,20 @@ void main() async {
   );
 }
 
-class LearnToReadApp extends Sta
+class LearnToReadApp extends StatelessWidget {
+  const LearnToReadApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return MaterialApp(
+          title: 'Aprenda a Ler',
+          debugShowCheckedModeBanner: false,
+          theme: themeProvider.themeData,
+          home: const SplashScreen(),
+        );
+      },
+    );
+  }
+}
