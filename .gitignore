@@ -48,3 +48,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Scripts auxiliares e logs locais (gerados durante a sessao, caminhos da maquina)
+/analyze_out.txt
+/build_log.txt
+/audio_gen.log
+/analyze_map.bat
+/build_apk.bat
+/clean_rebuild.bat
+/run_gen_audio.bat
+/commit_*.bat
