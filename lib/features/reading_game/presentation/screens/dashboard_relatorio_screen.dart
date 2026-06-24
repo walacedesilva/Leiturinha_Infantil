@@ -114,9 +114,13 @@ class _DashboardRelatorioScreenState extends State<DashboardRelatorioScreen> {
         text: 'Relatório semanal de alfabetização fonética 📊',
       );
     } catch (e) {
+      debugPrint('Dashboard: falha ao exportar PDF: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao exportar: $e')),
+          const SnackBar(
+            content: Text(
+                'Não foi possível gerar o PDF. Tente novamente em instantes.'),
+          ),
         );
       }
     } finally {
@@ -1459,13 +1463,4 @@ class _ActionBtn extends StatelessWidget {
               style: const TextStyle(
                 fontFamily: 'Nunito',
                 fontWeight: FontWeight.bold,
-                fontSize: 11,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+    

@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'navigation/nav_shell.dart';
+import 'features/reading_game/presentation/screens/login_screen.dart';
 import 'services/speech_validator.dart';
 
 /// Tela de splash exibida na abertura do app (~2.8s) antes do menu principal.
@@ -21,11 +23,21 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(milliseconds: 2800), _goToMenu);
   }
 
-  void _goToMenu() {
+  void _goToMenu() async {
     if (!mounted) return;
+    
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('auth_google_user');
+    
+    if (!mounted) return;
+    
+    final Widget nextScreen = userJson != null 
+        ? const NavShell() 
+        : const LoginScreen();
+
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, animation, __) => const NavShell(),
+        pageBuilder: (_, animation, __) => nextScreen,
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 600),

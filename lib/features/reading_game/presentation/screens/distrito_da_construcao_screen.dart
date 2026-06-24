@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../services/gamification_service.dart';
 import '../../../../services/progress_service.dart';
+import '../../domain/lock_policy.dart';
 import '../../data/word_bank.dart';
 import 'syllable_selector_screen.dart';
 
@@ -132,19 +133,22 @@ class DistritoConstucaoScreen extends StatelessWidget {
   }
 
   List<_WorkZone> _buildZones(ProgressService progress) {
+    var prevCompleted = true; // a primeira zona está sempre liberada
     return _kZones.map((z) {
       final fp =
           progress.getFamilyProgress('consonant_${z.familyKey}', z.total);
       final done = fp.completedWords;
       _WCardState state;
+      // Bloqueio sequencial: só abre quando a zona anterior é concluída.
       if (done >= z.total) {
         state = _WCardState.completed;
-      } else if (done > 0 || z == _kZones.first) {
+      } else if (isLevelUnlocked(
+          prevCompleted: prevCompleted, hasProgress: done > 0)) {
         state = _WCardState.active;
       } else {
-        // TODO: restaurar lock sequencial para produção
-        state = _WCardState.active;
+        state = _WCardState.locked;
       }
+      prevCompleted = done >= z.total;
       return _WorkZone(
         letter: z.letter,
         zoneEmoji: z.zoneEmoji,
@@ -1149,15 +1153,4 @@ class _ZoneSheet extends StatelessWidget {
               label: const Text(
                 'Montar Palavra',
                 style: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+       

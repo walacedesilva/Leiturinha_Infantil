@@ -13,7 +13,7 @@ import 'syllable_crane_screen.dart';
 /// Tela de seleção de sílabas antes de entrar no jogo.
 ///
 /// Fluxo:
-///   MenuScreen → SyllableSelectorScreen → GameScreen
+///   (mapa de família) → SyllableSelectorScreen → tela de prática
 ///
 /// A criança (ou educador) marca quais sílabas da família farão parte
 /// da sessão. O WordBank filtra palavras que usam apenas essas sílabas.
@@ -740,6 +740,4 @@ class _SyllableChipState extends State<_SyllableChip>
           end: const Offset(1, 1),
           duration: 300.ms,
           curve: Curves.easeOutBack,
-        );
-  }
-}
+      

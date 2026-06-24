@@ -84,7 +84,11 @@ class SessionTrackingService extends ChangeNotifier {
       _sessions = list
           .map((e) => GameSession.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (_) {}
+    } catch (e) {
+      // Dados corrompidos/incompatíveis: começa do zero em vez de quebrar.
+      debugPrint('SessionTracking: falha ao ler sessões salvas: $e');
+      _sessions = [];
+    }
   }
 
   Future<void> _save() async {
@@ -196,11 +200,4 @@ class SessionTrackingService extends ChangeNotifier {
     final combined = <String, int>{};
     for (final s in _sessions) {
       s.errorsPerSyllable.forEach((syl, count) {
-        combined[syl] = (combined[syl] ?? 0) + count;
-      });
-    }
-    final sorted = combined.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return sorted.take(limit).toList();
-  }
-}
+        combined[syl] = (combined[syl] ??

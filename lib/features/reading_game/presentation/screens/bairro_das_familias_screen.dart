@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 
 import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
+import '../../../../services/progress_service.dart';
+import '../../domain/lock_policy.dart';
 import '../../data/word_bank.dart';
 import 'syllable_selector_screen.dart';
 
@@ -47,6 +49,9 @@ class _FamilyBuilding {
   });
 }
 
+// NOTA: os campos `state` e `progress` abaixo são apenas placeholders.
+// Os valores reais são recalculados a partir do ProgressService em
+// `_buildingsFrom`. Não dependa destes valores fixos.
 const _kBuildings = <_FamilyBuilding>[
   _FamilyBuilding(
     letter: 'B',
@@ -58,8 +63,8 @@ const _kBuildings = <_FamilyBuilding>[
     dark: Color(0xFFC2410C),
     syllables: ['BA', 'BE', 'BI', 'BO', 'BU'],
     exampleWords: ['BALA', 'BELO', 'BICO', 'BOLO', 'BULE'],
-    state: _BCardState.completed,
-    progress: 5,
+    state: _BCardState.locked, // placeholder — recalculado em _buildingsFrom
+    progress: 0,
     total: 5,
     familyKey: 'B',
   ),
@@ -73,8 +78,8 @@ const _kBuildings = <_FamilyBuilding>[
     dark: Color(0xFF166534),
     syllables: ['CA', 'CE', 'CI', 'CO', 'CU'],
     exampleWords: ['CAMA', 'CEDO', 'CIMA', 'COCO', 'CUBO'],
-    state: _BCardState.active,
-    progress: 2,
+    state: _BCardState.locked, // placeholder — recalculado em _buildingsFrom
+    progress: 0,
     total: 5,
     familyKey: 'C',
   ),
@@ -88,7 +93,7 @@ const _kBuildings = <_FamilyBuilding>[
     dark: Color(0xFF1D4ED8),
     syllables: ['DA', 'DE', 'DI', 'DO', 'DU'],
     exampleWords: ['DADO', 'DEDO', 'DICA', 'DOCE', 'DUNA'],
-    state: _BCardState.active, // TODO: locked em produção
+    state: _BCardState.locked, // placeholder — recalculado em _buildingsFrom
     progress: 0,
     total: 5,
     familyKey: 'D',
@@ -103,7 +108,7 @@ const _kBuildings = <_FamilyBuilding>[
     dark: Color(0xFF6B21A8),
     syllables: ['FA', 'FE', 'FI', 'FO', 'FU'],
     exampleWords: ['FADA', 'FETO', 'FITA', 'FOCA', 'FUMO'],
-    state: _BCardState.active, // TODO: locked em produção
+    state: _BCardState.locked, // placeholder — recalculado em _buildingsFrom
     progress: 0,
     total: 5,
     familyKey: 'F',
@@ -118,7 +123,7 @@ const _kBuildings = <_FamilyBuilding>[
     dark: Color(0xFF991B1B),
     syllables: ['MA', 'ME', 'MI', 'MO', 'MU'],
     exampleWords: ['MALA', 'MEDO', 'MICO', 'MOTO', 'MULA'],
-    state: _BCardState.active, // TODO: locked em produção
+    state: _BCardState.locked, // placeholder — recalculado em _buildingsFrom
     progress: 0,
     total: 5,
     familyKey: 'M',
@@ -129,12 +134,56 @@ const _kBuildings = <_FamilyBuilding>[
 // SCREEN
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// Recalcula os prédios a partir do progresso REAL do ProgressService.
+/// Antes os estados/progresso estavam fixos (hardcoded) na lista `_kBuildings`,
+/// ignorando o que a criança realmente concluiu — e tudo ficava liberado.
+/// Agora aplicamos bloqueio sequencial: um prédio só abre quando o anterior
+/// é concluído.
+List<_FamilyBuilding> _buildingsFrom(ProgressService progress) {
+  var prevCompleted = true; // o primeiro prédio está sempre liberado
+  return _kBuildings.map((b) {
+    final fp = progress.getFamilyProgress('consonant_${b.familyKey}', b.total);
+    final done = fp.completedWords;
+    _BCardState state;
+    if (done >= b.total) {
+      state = _BCardState.completed;
+    } else if (isLevelUnlocked(
+        prevCompleted: prevCompleted, hasProgress: done > 0)) {
+      state = _BCardState.active;
+    } else {
+      state = _BCardState.locked;
+    }
+    prevCompleted = done >= b.total;
+    return _FamilyBuilding(
+      letter: b.letter,
+      buildingEmoji: b.buildingEmoji,
+      buildingType: b.buildingType,
+      mascot: b.mascot,
+      primary: b.primary,
+      light: b.light,
+      dark: b.dark,
+      syllables: b.syllables,
+      exampleWords: b.exampleWords,
+      state: state,
+      progress: done,
+      total: b.total,
+      familyKey: b.familyKey,
+    );
+  }).toList();
+}
+
 class BairroDasFamiliasScreen extends StatelessWidget {
   const BairroDasFamiliasScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final gam = context.watch<GamificationService>();
+    final progress = context.watch<ProgressService>();
+    final buildings = _buildingsFrom(progress);
+    final firstPlayable = buildings.firstWhere(
+      (b) => b.state != _BCardState.locked,
+      orElse: () => buildings.first,
+    );
     return Scaffold(
       backgroundColor: const Color(0xFF14532D),
       body: SafeArea(
@@ -142,9 +191,9 @@ class BairroDasFamiliasScreen extends StatelessWidget {
           children: [
             _Header(coins: gam.state.coins),
             const _MapTitle(),
-            const Expanded(child: _BuildingList()),
+            Expanded(child: _BuildingList(buildings: buildings)),
             _PlayButton(
-              onTap: () => _openBuilding(context, _kBuildings[1]),
+              onTap: () => _openBuilding(context, firstPlayable),
             ),
           ],
         ),
@@ -343,15 +392,16 @@ class _MapTitle extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _BuildingList extends StatelessWidget {
-  const _BuildingList();
+  final List<_FamilyBuilding> buildings;
+  const _BuildingList({required this.buildings});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      itemCount: _kBuildings.length,
+      itemCount: buildings.length,
       itemBuilder: (context, idx) {
-        return _BuildingCard(building: _kBuildings[idx], index: idx)
+        return _BuildingCard(building: buildings[idx], index: idx)
             .animate(delay: Duration(milliseconds: 80 * idx))
             .fadeIn(duration: 400.ms)
             .slideX(begin: 0.08, end: 0, duration: 400.ms, curve: Curves.easeOut);
@@ -1147,65 +1197,3 @@ class _BuildingSheet extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.volume_up_rounded,
-                              size: 12,
-                              color: building.primary.withOpacity(0.70)),
-                          const SizedBox(width: 4),
-                          Text(
-                            word,
-                            style: TextStyle(
-                              fontFamily: 'Nunito',
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: building.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-          const SizedBox(height: 24),
-          // Practice button
-          SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.of(context).pop();
-                final family = _findFamily();
-                if (family != null) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          SyllableSelectorScreen(family: family),
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: building.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 0,
-              ),
-              icon: const Icon(Icons.mic_rounded, size: 22),
-              label: const Text(
-                'Praticar Agora',
-                style: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

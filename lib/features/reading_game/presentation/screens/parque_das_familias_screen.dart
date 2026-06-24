@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
 import '../../../../services/progress_service.dart';
+import '../../domain/lock_policy.dart';
 import '../../data/word_bank.dart';
 import 'syllable_selector_screen.dart';
 
@@ -151,18 +152,21 @@ class ParqueDasFamiliasScreen extends StatelessWidget {
 
   /// Builds family list with dynamic state from ProgressService.
   List<_ParkFamily> _buildFamilies(ProgressService progress) {
+    var prevCompleted = true; // a primeira família está sempre liberada
     return _kFamilies.map((f) {
       final fp = progress.getFamilyProgress('consonant_${f.familyKey}', f.total);
       final done = fp.completedWords;
       _PCardState state;
+      // Bloqueio sequencial: só abre quando a família anterior é concluída.
       if (done >= f.total) {
         state = _PCardState.completed;
-      } else if (done > 0 || f == _kFamilies.first) {
+      } else if (isLevelUnlocked(
+          prevCompleted: prevCompleted, hasProgress: done > 0)) {
         state = _PCardState.active;
       } else {
-        // TODO: restaurar lock sequencial para produção
-        state = _PCardState.active;
+        state = _PCardState.locked;
       }
+      prevCompleted = done >= f.total;
       return _ParkFamily(
         letter: f.letter,
         attractionEmoji: f.attractionEmoji,
@@ -1226,15 +1230,4 @@ class _FamilySheet extends StatelessWidget {
               label: const Text(
                 'Praticar Agora',
                 style: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+  

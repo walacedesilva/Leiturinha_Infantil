@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
 import '../../../../services/progress_service.dart';
+import '../../domain/lock_policy.dart';
 import 'vowel_practice_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -127,16 +128,21 @@ const _kLevels = <_VowelLevel>[
 /// Computes real card state and progress for each vowel from ProgressService.
 List<_VowelLevel> _computeLevels(ProgressService progress) {
   final computed = <_VowelLevel>[];
+  var prevCompleted = true; // a primeira vogal está sempre liberada
   for (final base in _kLevels) {
     final key = 'vogal_${base.vowel}';
     final fp = progress.getFamilyProgress(key, base.total);
     final _CardState state;
-    // TODO: restaurar lock sequencial para produção
+    // Bloqueio sequencial: uma vogal só abre quando a anterior é concluída.
     if (fp.isCompleted) {
       state = _CardState.completed;
-    } else {
+    } else if (isLevelUnlocked(
+        prevCompleted: prevCompleted, hasProgress: fp.completedWords > 0)) {
       state = _CardState.active;
+    } else {
+      state = _CardState.locked;
     }
+    prevCompleted = fp.isCompleted;
     computed.add(_VowelLevel(
       vowel: base.vowel,
       emoji: base.emoji,
@@ -1520,17 +1526,3 @@ class _NavItem extends StatelessWidget {
             color: active ? Colors.white : Colors.white38,
             size: 24,
           ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontFamily: 'Nunito',
-            fontSize: 10,
-            fontWeight: active ? FontWeight.bold : FontWeight.normal,
-            color: active ? Colors.white : Colors.white38,
-          ),
-        ),
-      ],
-    );
-  }
-}

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../services/gamification_service.dart';
 import '../../../../services/progress_service.dart';
+import '../../domain/lock_policy.dart';
 import 'bairro_das_familias_screen.dart';
 import 'castelo_das_palavras_screen.dart';
 import 'circo_das_rimas_screen.dart';
@@ -143,9 +144,6 @@ const _kDistricts = <_DistrictDef>[
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-bool _isVogaisComplete(ProgressService p) => const ['A', 'E', 'I', 'O', 'U']
-    .every((v) => p.getFamilyProgress('vogal_$v', 3).isCompleted);
-
 ({int done, int total}) _vogaisCount(ProgressService p) {
   final done = const ['A', 'E', 'I', 'O', 'U']
       .fold(0, (s, v) => s + p.getFamilyProgress('vogal_$v', 3).completedWords);
@@ -153,8 +151,22 @@ bool _isVogaisComplete(ProgressService p) => const ['A', 'E', 'I', 'O', 'U']
 }
 
 _DState _stateOf(int index, _DistrictDef d, ProgressService p) {
-  // TODO: remover para produção — libera tudo para testes
-  return _DState.available;
+  if (kUnlockAll) {
+    return d.comingSoon ? _DState.comingSoon : _DState.available;
+  }
+  if (d.comingSoon) return _DState.comingSoon;
+  // O primeiro distrito (Vila das Vogais) está sempre disponível.
+  if (index == 0) return _DState.available;
+  // Distritos até o Circo (índice 5) têm conclusão rastreável e abrem em
+  // sequência: cada um exige o anterior concluído. Os distritos avançados
+  // (aventura, dígrafos, encontros, portal) ainda não rastreiam conclusão,
+  // então liberam juntos assim que o caminho principal (até o Circo) termina.
+  final gateIndex = index <= DistrictCompletion.lastTrackedIndex
+      ? index - 1
+      : DistrictCompletion.lastTrackedIndex;
+  return DistrictCompletion.isComplete(_kDistricts[gateIndex].id, p)
+      ? _DState.available
+      : _DState.locked;
 }
 
 String _firstAvailableId(ProgressService p) {
@@ -1277,27 +1289,4 @@ class _PlayButton extends StatelessWidget {
                 const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.10),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Text(
-              'JOGAR AGORA',
-              style: TextStyle(
-                fontFamily: 'Nunito',
-                fontSize: 14,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFFF97316),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+              b

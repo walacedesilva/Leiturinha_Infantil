@@ -398,49 +398,52 @@ class _MissaoDecodificacaoGalacticaScreenState
   }
 
   Widget _buildWordDisplay() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(_displayLetters.length, (index) {
-        final char = _displayLetters[index];
-        final isBlank = char == "_";
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(_displayLetters.length, (index) {
+          final char = _displayLetters[index];
+          final isBlank = char == "_";
 
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 5),
-          width: 42,
-          height: 52,
-          decoration: BoxDecoration(
-            color: isBlank
-                ? Colors.white.withOpacity(0.04)
-                : const Color(0xFF00F2FE).withOpacity(0.12),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 5),
+            width: 42,
+            height: 52,
+            decoration: BoxDecoration(
               color: isBlank
-                  ? const Color(0xFFD946EF).withOpacity(0.4)
-                  : const Color(0xFF00F2FE),
-              width: isBlank ? 1.5 : 2.0,
+                  ? Colors.white.withOpacity(0.04)
+                  : const Color(0xFF00F2FE).withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isBlank
+                    ? const Color(0xFFD946EF).withOpacity(0.4)
+                    : const Color(0xFF00F2FE),
+                width: isBlank ? 1.5 : 2.0,
+              ),
+              boxShadow: !isBlank
+                  ? [
+                      BoxShadow(
+                        color: const Color(0xFF00F2FE).withOpacity(0.3),
+                        blurRadius: 8,
+                      )
+                    ]
+                  : null,
             ),
-            boxShadow: !isBlank
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF00F2FE).withOpacity(0.3),
-                      blurRadius: 8,
-                    )
-                  ]
-                : null,
-          ),
-          child: Center(
-            child: Text(
-              isBlank ? "?" : char,
-              style: TextStyle(
-                fontFamily: 'Nunito',
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: isBlank ? const Color(0xFFD946EF) : Colors.white,
+            child: Center(
+              child: Text(
+                isBlank ? "?" : char,
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: isBlank ? const Color(0xFFD946EF) : Colors.white,
+                ),
               ),
             ),
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 

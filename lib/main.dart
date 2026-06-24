@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +17,14 @@ import 'services/avatar_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Silencia toda a saída de debugPrint em builds de produção (release).
+  // Em desenvolvimento os logs continuam visíveis. Isso evita vazar dados
+  // de diagnóstico (voz, conta, gameplay) no console em produção sem precisar
+  // alterar as ~80 chamadas espalhadas pelo app.
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
 
   // Inicializar localizações de data em pt_BR
   await initializeDateFormatting('pt_BR', null);
@@ -71,20 +80,4 @@ void main() async {
   );
 }
 
-class LearnToReadApp extends StatelessWidget {
-  const LearnToReadApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, _) {
-        return MaterialApp(
-          title: 'Aprenda a Ler',
-          debugShowCheckedModeBanner: false,
-          theme: themeProvider.themeData,
-          home: const SplashScreen(),
-        );
-      },
-    );
-  }
-}
+class LearnToReadApp extends Sta

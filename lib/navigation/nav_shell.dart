@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../features/reading_game/presentation/screens/ilha_das_palavras_screen.dart';
-import '../features/reading_game/presentation/screens/praca_central_screen.dart';
 import '../features/reading_game/presentation/screens/desafios_screen.dart';
 import '../features/reading_game/presentation/screens/conquistas_screen.dart';
-import '../features/reading_game/presentation/screens/perfil_screen.dart';
 import '../features/reading_game/presentation/screens/avatar_personalizacao_screen.dart';
+import '../features/reading_game/presentation/screens/settings_screen.dart';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // NAV TAB CONTROLLER
@@ -53,6 +52,7 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
     GlobalKey<NavigatorState>(), // 1: Desafios
     GlobalKey<NavigatorState>(), // 2: Conquistas
     GlobalKey<NavigatorState>(), // 3: Perfil
+    GlobalKey<NavigatorState>(), // 4: Ajustes
   ];
 
   // Controladores para animação dos ícones
@@ -62,7 +62,7 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _iconCtrl = List.generate(
-      4,
+      5,
       (_) => AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 280),
@@ -169,6 +169,10 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
               _TabNavigator(
                 navigatorKey: _navKeys[3],
                 child: const AvatarPersonalizacaoScreen(),
+              ),
+              _TabNavigator(
+                navigatorKey: _navKeys[4],
+                child: const SettingsScreen(),
               ),
             ],
           ),
@@ -357,6 +361,7 @@ class _BottomTabBar extends StatelessWidget {
     _TabDef(icon: Icons.sports_esports_rounded, label: 'Desafios', activeColor: Color(0xFF00F2FE)),
     _TabDef(icon: Icons.star_rounded, label: 'Conquistas', activeColor: Color(0xFF00F2FE)),
     _TabDef(icon: Icons.person_rounded, label: 'Perfil', activeColor: Color(0xFF00F2FE)),
+    _TabDef(icon: Icons.settings_rounded, label: 'Ajustes', activeColor: Color(0xFF00F2FE)),
   ];
 
   @override
@@ -513,3 +518,4 @@ class _TabItem extends StatelessWidget {
   }
 }
 
+                                                                                                                                                               

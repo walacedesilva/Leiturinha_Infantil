@@ -6,7 +6,10 @@ import 'package:provider/provider.dart';
 import '../../../../navigation/nav_shell.dart';
 import '../../../../services/gamification_service.dart';
 import '../../../../services/gamification_models.dart';
-import 'praca_central_screen.dart';
+import '../../../../services/progress_service.dart';
+import '../../data/word_bank.dart';
+import 'corrida_silabas_screen.dart';
+import 'desafio_pronuncia_screen.dart';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // DESAFIOS SCREEN — Aba 1 da Tab Bar
@@ -155,6 +158,8 @@ class DesafiosScreen extends StatelessWidget {
                       NavTabController.maybeOf(context)?.setTab(0),
                 ),
               ),
+              // ── Minijogos ────────────────────────────────────────────────
+              const SliverToBoxAdapter(child: _MinigamesSection()),
               // ── Título missões ──────────────────────────────────────────
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
@@ -446,123 +451,120 @@ class _FeaturedChallenge extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MISSION CARD
+// MINIJOGOS — pontos de entrada para as telas de jogo
 // ─────────────────────────────────────────────────────────────────────────────
-class _MissionCard extends StatelessWidget {
-  final _Mission mission;
-  final int current;
-  final int delay;
+class _MinigamesSection extends StatelessWidget {
+  const _MinigamesSection();
 
-  const _MissionCard({
-    required this.mission,
-    required this.current,
-    required this.delay,
+  void _openCorrida(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const CorridaSilabasScreen()),
+    );
+  }
+
+  void _openPronuncia(BuildContext context) {
+    // Usa a última família jogada; se não houver, começa pela primeira.
+    final key = context.read<ProgressService>().getLastPlayedFamilyKey();
+    final family =
+        (key != null ? WordBank.getFamily(key) : null) ?? WordBank.families.first;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DesafioDePronunciaScreen(family: family),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '🎮 Minijogos',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+              color: _kText,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _MinigameCard(
+                  icon: '🏁',
+                  title: 'Corrida de Sílabas',
+                  subtitle: 'Forme palavras contra o tempo',
+                  color: _kOrange,
+                  bgColor: _kOrangeBg,
+                  onTap: () => _openCorrida(context),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _MinigameCard(
+                  icon: '🎤',
+                  title: 'Desafio de Pronúncia',
+                  subtitle: 'Fale as palavras em voz alta',
+                  color: _kPurple,
+                  bgColor: const Color(0xFFEDE9FE),
+                  onTap: () => _openPronuncia(context),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ).animate(delay: 120.ms).fadeIn(duration: 450.ms).slideY(begin: 0.12);
+  }
+}
+
+class _MinigameCard extends StatelessWidget {
+  final String icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final Color bgColor;
+  final VoidCallback onTap;
+
+  const _MinigameCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.bgColor,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDone   = current >= mission.target;
-    final progress = (current / mission.target).clamp(0.0, 1.0);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDone ? const Color(0xFFF0FDF4) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDone
-              ? _kGreen.withOpacity(0.4)
-              : const Color(0xFFF3F4F6),
-          width: isDone ? 2 : 1,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: color.withOpacity(0.35), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Ícone
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: mission.bgColor,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Center(
-              child: Text(mission.icon,
-                  style: const TextStyle(fontSize: 26)),
-            ),
-          ),
-          const SizedBox(width: 14),
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  mission.title,
-                  style: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: isDone ? _kGreen : _kText,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  mission.desc,
-                  style: const TextStyle(
-                    fontFamily: 'Nunito',
-                    fontSize: 11,
-                    color: _kSub,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: TweenAnimationBuilder<double>(
-                          tween: Tween(begin: 0, end: progress),
-                          duration: const Duration(milliseconds: 800),
-                          curve: Curves.easeOutCubic,
-                          builder: (_, v, __) => LinearProgressIndicator(
-                            value: v,
-                            minHeight: 6,
-                            backgroundColor: const Color(0xFFF3F4F6),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              isDone ? _kGreen : mission.color,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      isDone ? '✅' : '$current/${mission.target}',
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: isDone ? _kGreen : _kGray,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    )
-        .animate(delay: Duration(milliseconds: delay))
-        .fadeIn(duration: 350.ms)
-        .slideX(begin: 0.1, curve: Curves.easeOutCubic);
-  }
-}
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 30)),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontFamily: 'Nunito',
+                fontSize: 13,
+  

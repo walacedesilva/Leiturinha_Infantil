@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Configurações Gerais -->
+    <string name="settings_title">Configurações</string>
+    
+    <!-- Seção Conta & Login -->
+    <string name="category_account">Conta &amp; Acesso</string>
+    <string name="btn_sign_in_google">Entrar com o Google</string>
+    <string name="btn_sign_out">Sair da conta</string>
+    <string name="account_not_logged">Nenhuma conta conectada</string>
+    <string name="account_logged_as">Conectado como %1$s</string>
+    <string name="manage_google_permissions">Gerenciar permissões na Conta Google</string>
+    
+    <!-- Seção Notificações -->
+    <string name="category_notifications">Notificações</string>
+    <string name="setting_push_notifications">Notificações Push</string>
+    <string name="setting_push_desc">Receber alertas de novos conteúdos e novidades</string>
+    <string name="setting_email_notifications">Notificações por E-mail</string>
+    <string name="setting_email_desc">Receber newsletters semanais e atualizações do app</string>
+    <string name="setting_sound_notifications">Som e Efeitos</string>
+    <string name="setting_sound_desc">Tocar sons ao receber alertas e novidades no app</string>
+    
+    <!-- Seção Privacidade & Segurança -->
+    <string name="category_privacy">Privacidade &amp; Segurança</string>
+    <string name="setting_privacy_policy">Política de Privacidade</string>
+    <string name="setting_privacy_policy_desc">Leia como tratamos e protegemos seus dados pessoais</string>
+    <string name="setting_analytics_sharing">Compartilhar dados de uso</string>
+    <string name="setting_analytics_desc">Envie dados anônimos para nos ajudar a melhorar o app</string>
+    <string name="setting_export_data">Exportar meus dados</string>
+    <string name="setting_export_data_desc">Solicitar um relatório com todas as suas informações (LGPD/GDPR)</string>
+    <string name="setting_delete_account">Excluir minha conta</string>
+    <string name="setting_delete_account_desc">Apagar permanentemente seus dados e progresso de nossos servidores</string>
+    <string name="privacy_storage_warning">Os dados de progresso de leitura são armazenados localmente e sincronizados de forma criptografada na nuvem para garantir a segurança da criança.</string>
+    
+    <!-- Seção Aparência & Idioma -->
+    <string name="category_appearance">Aparência &amp; Idioma</string>
+    <string name="setting_theme">Tema do Aplicativo</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Escuro</string>
+    <string name="theme_system">Seguir o sistema</string>
+    <string name="setting_language">Idioma do App</string>
+    <string name="language_pt">Português</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    
+    <!-- Seção Sobre o App -->
+    <string name="category_about">Sobre</string>
+    <string name="about_version">Versão</string>
+    <string name="about_build">Build</string>
+    <string name="about_licenses">Licenças de código aberto</string>
+    <string name="about_terms">Termos de Uso</string>
+    
+    <!-- Seção Suporte & Contato -->
+    <string name="category_support">Suporte &amp; Feedback</string>
+    <string name="support_email">Entrar em contato por E-mail</string>
+    <string name="support_email_desc">Tire dúvidas ou reporte problemas aos nossos desenvolvedores</string>
+    <string name="support_faq">Perguntas Frequentes (FAQ)</string>
+    <string name="support_faq_desc">Encontre respostas rápidas para as principais dúvidas</string>
+    <string name="support_rate">Avaliar na Play Store</string>
+    <string name="support_rate_desc">Ajude-nos a crescer avaliando nosso aplicativo</string>
+    
+    <!-- Descrições de Acessibilidade (TalkBack) -->
+    <string name="acc_user_avatar">Foto de perfil do usuário logado</string>
+    <string name="acc_loading_auth">Carregando autenticação, aguarde…</string>
+    <string name="acc_toggle_push">Ativar ou desativar notificações push</string>
+    <string name="acc_toggle_email">Ativar ou desativar notificações por e-mail</string>
+    <string name="acc_toggle_sound">Ativar ou desativar sons do aplicativo</string>
+    <string name="acc_toggle_analytics">Ativar ou desativar compartilhamento de dados anônimos de telemetria</string>
+    <string name="acc_external_link">Abre em uma página externa</string>
+    <string name="acc_email_link">Abre o aplicativo de e-mail padrão</string>
+    
+    <!-- Mensagens de Erro/Sucesso -->
+    <string name="error_auth_failed">Falha na autenticação com o Google. Tente novamente.</string>
+    <string name="error_no_network">Sem conexão com a internet.</string>
+    <string name="success_sign_out">Você desconectou da sua conta com sucesso.</string>
+</resources>

@@ -9,7 +9,6 @@ import '../../../../services/audio_manager.dart';
 import 'corrida_silabas_screen.dart';
 import 'dashboard_relatorio_screen.dart';
 import 'bairro_das_familias_screen.dart';
-import 'profile_screen.dart';
 import 'vila_das_vogais_screen.dart';
 import 'praca_central_screen.dart';
 import 'reino_historias_screen.dart';
@@ -1429,3 +1428,4 @@ class _ConstellationPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _ConstellationPainter oldDelegate) => false;
 }
+                              

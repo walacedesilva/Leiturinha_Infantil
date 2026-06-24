@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
 import '../../../../services/progress_service.dart';
+import '../../domain/lock_policy.dart';
 import '../../data/word_bank.dart';
 import 'syllable_selector_screen.dart';
 
@@ -163,19 +164,22 @@ class CastelodasPalavrasScreen extends StatelessWidget {
   }
 
   List<_CastleTower> _buildTowers(ProgressService progress) {
+    var prevCompleted = true; // a primeira torre está sempre liberada
     return _kTowers.map((t) {
       final fp =
           progress.getFamilyProgress('consonant_${t.familyKey}', t.total);
       final done = fp.completedWords;
       _CCardState state;
+      // Bloqueio sequencial: só abre quando a torre anterior é concluída.
       if (done >= t.total) {
         state = _CCardState.completed;
-      } else if (done > 0 || t == _kTowers.first) {
+      } else if (isLevelUnlocked(
+          prevCompleted: prevCompleted, hasProgress: done > 0)) {
         state = _CCardState.active;
       } else {
-        // TODO: restaurar lock sequencial para produção
-        state = _CCardState.active;
+        state = _CCardState.locked;
       }
+      prevCompleted = done >= t.total;
       return _CastleTower(
         letter: t.letter,
         towerEmoji: t.towerEmoji,
@@ -1231,15 +1235,4 @@ class _TowerSheet extends StatelessWidget {
               label: const Text(
                 'Praticar Agora',
                 style: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+      

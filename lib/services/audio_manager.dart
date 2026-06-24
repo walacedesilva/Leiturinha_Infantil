@@ -2,6 +2,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Tipos de efeitos sonoros pre-definidos
 enum SFXType { correct, balloons, pop, error }
@@ -12,12 +13,61 @@ enum SFXType { correct, balloons, pop, error }
 class AudioManager {
   static final AudioManager _instance = AudioManager._internal();
   factory AudioManager() => _instance;
-  AudioManager._internal();
+  
+  AudioManager._internal() {
+    initVolumeSettings();
+  }
 
   final FlutterTts _tts = FlutterTts();
   final List<AudioPlayer> _activePlayers = [];
 
   bool _ttsReady = false;
+
+  // Variáveis de volume dinâmicas
+  double _masterVolume = 0.8;
+  double _sfxVolume = 0.7;
+  double _narrationVolume = 0.9;
+  double _musicVolume = 0.5;
+
+  /// Inicializa e carrega os volumes do SharedPreferences
+  Future<void> initVolumeSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _masterVolume = prefs.getDouble('cfg_master_volume') ?? 0.8;
+      _sfxVolume = prefs.getDouble('cfg_sfx_volume') ?? 0.7;
+      _narrationVolume = prefs.getDouble('cfg_narration_volume') ?? 0.9;
+      _musicVolume = prefs.getDouble('cfg_music_volume') ?? 0.5;
+      
+      await _tts.setVolume(_narrationVolume * _masterVolume);
+    } catch (e) {
+      debugPrint('[AudioManager] Erro ao carregar SharedPreferences de volume: $e');
+    }
+  }
+
+  // Getters para os volumes atuais
+  double get masterVolume => _masterVolume;
+  double get sfxVolume => _sfxVolume;
+  double get narrationVolume => _narrationVolume;
+  double get musicVolume => _musicVolume;
+
+  // Setters dinâmicos
+  void setMasterVolume(double val) {
+    _masterVolume = val;
+    _tts.setVolume(_narrationVolume * _masterVolume);
+  }
+
+  void setNarrationVolume(double val) {
+    _narrationVolume = val;
+    _tts.setVolume(_narrationVolume * _masterVolume);
+  }
+
+  void setSfxVolume(double val) {
+    _sfxVolume = val;
+  }
+
+  void setMusicVolume(double val) {
+    _musicVolume = val;
+  }
 
   // Debounce para playSyllableInstant (150ms)
   DateTime? _lastSyllablePlay;
@@ -78,8 +128,12 @@ class AudioManager {
   }
 
   Future<void> _ensureTTS() async {
-    if (_ttsReady) return;
+    if (_ttsReady) {
+      await _tts.setVolume(_narrationVolume * _masterVolume);
+      return;
+    }
     await AudioManager.applyChildVoice(_tts);
+    await _tts.setVolume(_narrationVolume * _masterVolume);
     _ttsReady = true;
   }
 
@@ -150,7 +204,11 @@ class AudioManager {
       debugPrint('TTS palavra lenta: $word - $e');
       _fallbackFeedback();
       // Garante restauração da velocidade em caso de erro
-      try { await _tts.setSpeechRate(0.45); } catch (_) {}
+      try {
+        await _tts.setSpeechRate(0.45);
+      } catch (e) {
+        debugPrint('TTS: falha ao restaurar velocidade: $e');
+      }
     }
   }
 
@@ -184,6 +242,7 @@ class AudioManager {
     try {
       final player = AudioPlayer();
       _activePlayers.add(player);
+      await player.setVolume(_sfxVolume * _masterVolume);
       await player.play(AssetSource('audio/sfx/$file'));
       player.onPlayerComplete.first.then((_) {
         player.dispose();
@@ -198,9 +257,4 @@ class AudioManager {
 
   void dispose() {
     _tts.stop();
-    for (final p in _activePlayers) {
-      p.dispose();
-    }
-    _activePlayers.clear();
-  }
-}
+    for (final p

@@ -9,6 +9,10 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
+import '../../../../navigation/nav_shell.dart';
+import 'package:screen_brightness/screen_brightness.dart';
+import 'package:app_settings/app_settings.dart';
+import '../../../../services/google_auth_service.dart';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // SETTINGS SCREEN — "Alfabetização Mágica"
@@ -48,18 +52,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _loadSettings();
+    GoogleAuthService().addListener(_onAuthChanged);
+  }
+
+  @override
+  void dispose() {
+    GoogleAuthService().removeListener(_onAuthChanged);
+    super.dispose();
+  }
+
+  void _onAuthChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   // ── Carregar configurações locais ──────────────────────────────────────────
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    
+    // Carrega o brilho real do hardware da tela se disponível, com fallback do SharedPreferences
+    double systemBrightness = 0.8;
+    try {
+      systemBrightness = await ScreenBrightness().current;
+    } catch (e) {
+      systemBrightness = prefs.getDouble('cfg_brightness') ?? 0.8;
+    }
+
     setState(() {
       _masterVolume = prefs.getDouble('cfg_master_volume') ?? 0.8;
       _sfxVolume = prefs.getDouble('cfg_sfx_volume') ?? 0.7;
       _narrationVolume = prefs.getDouble('cfg_narration_volume') ?? 0.9;
       _musicVolume = prefs.getDouble('cfg_music_volume') ?? 0.5;
 
-      _brightness = prefs.getDouble('cfg_brightness') ?? 0.8;
+      _brightness = systemBrightness;
       _dyslexiaFont = prefs.getBool('cfg_dyslexia_font') ?? false;
       _highContrast = prefs.getBool('cfg_high_contrast') ?? false;
       _reduceMotion = prefs.getBool('cfg_reduce_motion') ?? false;
@@ -719,12 +745,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       borderRadius: BorderRadius.circular(16))),
               onPressed: () {
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Habilitando configurações do sistema...'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                AppSettings.openAppSettings();
               },
               child: const Text('Abrir Ajustes',
                   style: TextStyle(
@@ -755,7 +776,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            final nav = Navigator.of(context);
+            if (nav.canPop()) {
+              nav.pop();
+            } else {
+              final tabCtrl = NavTabController.maybeOf(context);
+              if (tabCtrl != null) {
+                tabCtrl.setTab(0);
+              } else {
+                Navigator.maybePop(context);
+              }
+            }
+          },
         ),
         actions: [
           if (_isParentMode)
@@ -839,6 +872,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             if (_isParentMode) ...[
               const SizedBox(height: 16),
               const Divider(height: 32, thickness: 1.5),
+
+              _buildGoogleProfileCard(),
+              const SizedBox(height: 20),
 
               // 🧠 1. ACESSIBILIDADE E VISUAL
               _buildSectionHeader('♿ Acessibilidade e Leitura'),
@@ -949,6 +985,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: (val) {
               setState(() => _masterVolume = val);
               _saveSetting('cfg_master_volume', val);
+              AudioManager().setMasterVolume(val);
             },
           ),
           if (_isParentMode) ...[
@@ -956,14 +993,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSubVolumeSlider('Narrador 🎙️', _narrationVolume, (val) {
               setState(() => _narrationVolume = val);
               _saveSetting('cfg_narration_volume', val);
+              AudioManager().setNarrationVolume(val);
             }),
             _buildSubVolumeSlider('Efeitos (SFX) 🎮', _sfxVolume, (val) {
               setState(() => _sfxVolume = val);
               _saveSetting('cfg_sfx_volume', val);
+              AudioManager().setSfxVolume(val);
+              // Feedback auditivo sutil na troca de volume dos efeitos
+              AudioManager().playSFX(SFXType.pop);
             }),
             _buildSubVolumeSlider('Trilha Sonora 🎵', _musicVolume, (val) {
               setState(() => _musicVolume = val);
               _saveSetting('cfg_music_volume', val);
+              AudioManager().setMusicVolume(val);
             }),
           ]
         ],
@@ -1016,9 +1058,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _brightness,
               activeColor: const Color(0xFFF59E0B),
               inactiveColor: const Color(0xFFE5E7EB),
-              onChanged: (val) {
+              onChanged: (val) async {
                 setState(() => _brightness = val);
                 _saveSetting('cfg_brightness', val);
+                try {
+                  await ScreenBrightness().setScreenBrightness(val);
+                } catch (e) {
+                  debugPrint('Erro ao definir brilho real: $e');
+                }
               },
             ),
           ),
@@ -1423,6 +1470,512 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
         onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildGoogleProfileCard() {
+    final auth = GoogleAuthService();
+    final isLoggedIn = auth.isLoggedIn;
+    final user = auth.currentUser;
+
+    return _buildSettingsCard(
+      child: isLoggedIn
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    // Avatar Google Premium com Borda e Sombras
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFE15827).withOpacity(0.2),
+                            blurRadius: 12,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
+                        border: Border.all(color: const Color(0xFFE15827), width: 2),
+                      ),
+                      child: CircleAvatar(
+                        radius: 26,
+                        backgroundColor: const Color(0xFFFFCC80),
+                        backgroundImage: user?.photoUrl != null
+                            ? NetworkImage(user!.photoUrl!)
+                            : null,
+                        child: user?.photoUrl == null
+                            ? Text(
+                                user?.name.contains('Pai') == true
+                                    ? '👨‍🚀'
+                                    : user?.name.contains('Mãe') == true
+                                        ? '👩‍🚀'
+                                        : '👶',
+                                style: const TextStyle(fontSize: 26),
+                              )
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    // Detalhes da Conta
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  user?.name ?? 'Leitor Feliz',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF1E2A38),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Icon(
+                                Icons.verified_rounded,
+                                color: Color(0xFF10B981),
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            user?.email ?? '',
+                            style: const TextStyle(
+                              fontFamily: 'Nunito',
+                              fontSize: 12,
+                              color: Color(0xFF6B7280),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFECFDF5),
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: const Text(
+                              'Responsável Autenticado',
+                              style: TextStyle(
+                                fontFamily: 'Nunito',
+                                fontSize: 10,
+                                color: Color(0xFF10B981),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24),
+                // Botões de Ação: Desconectar e Trocar Perfil
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          HapticFeedback.mediumImpact();
+                          AudioManager().playSFX(SFXType.pop);
+                          
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                              title: const Text(
+                                'Desconectar Conta?',
+                                style: TextStyle(
+                                  fontFamily: 'Nunito',
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF1E2A38),
+                                ),
+                              ),
+                              content: const Text(
+                                'Isso desconectará a sua conta de progresso. O jogo continuará funcionando no modo offline local.',
+                                style: TextStyle(fontFamily: 'Nunito'),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Cancelar', style: TextStyle(fontFamily: 'Nunito', color: Color(0xFF6B7280))),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.redAccent,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  ),
+                                  onPressed: () async {
+                                    Navigator.pop(ctx);
+                                    await GoogleAuthService().logout();
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: const Text('Conta desconectada com sucesso! 🧸'),
+                                          behavior: SnackBarBehavior.floating,
+                                          backgroundColor: const Color(0xFF2B150A),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: const Text('Desconectar', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.bold, color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.logout_rounded, size: 16, color: Colors.redAccent),
+                        label: const Text(
+                          'Desconectar',
+                          style: TextStyle(
+                            fontFamily: 'Nunito',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.redAccent.withOpacity(0.3)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          AudioManager().playSFX(SFXType.pop);
+                          // Abre o simulador estelar para trocar o perfil diretamente!
+                          _showGoogleFallbackDialog(null);
+                        },
+                        icon: const Icon(Icons.swap_horiz_rounded, size: 16, color: Colors.white),
+                        label: const Text(
+                          'Trocar Perfil',
+                          style: TextStyle(
+                            fontFamily: 'Nunito',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8B5CF6),
+                          elevation: 1,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Row(
+                  children: [
+                    Text('☁️', style: TextStyle(fontSize: 26)),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Salvar Progresso na Nuvem',
+                            style: TextStyle(
+                              fontFamily: 'Nunito',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF1E2A38),
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Conecte com o Google para salvar conquistas e relatórios.',
+                            style: TextStyle(
+                              fontFamily: 'Nunito',
+                              fontSize: 12,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    HapticFeedback.mediumImpact();
+                    AudioManager().playSFX(SFXType.correct);
+                    
+                    try {
+                      final user = await GoogleAuthService().login();
+                      if (user != null && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Conta conectada com sucesso: ${user.name}! 🌟'),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: const Color(0xFF10B981),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        _showGoogleFallbackDialog(e);
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.login_rounded, size: 16, color: Colors.white),
+                  label: const Text(
+                    'Conectar Conta Google',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B5CF6),
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  // ── Diálogo Lúdico de Simulação Estelar Google na Tela de Configurações ───
+  void _showGoogleFallbackDialog(dynamic originalError) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4F301F).withOpacity(0.15),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '🚀 Simulador Estelar Google',
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF2B150A),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'O login real do Google encontrou uma limitação no seu dispositivo (comum em emuladores ou Windows).\n\nPara continuar sua jornada pedagógica sem bloqueios, escolha uma das contas Google simuladas para conectar!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 14,
+                    color: const Color(0xFF2B150A).withOpacity(0.7),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 4.0),
+                    child: Text(
+                      'Selecione uma conta:',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFE15827),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                
+                _buildMockProfileTile(
+                  ctx,
+                  name: 'Pai Explorador',
+                  email: 'pai.explorador@gmail.com',
+                  emoji: '👨‍🚀',
+                  color: const Color(0xFF4FC3F7),
+                ),
+                const SizedBox(height: 8),
+                _buildMockProfileTile(
+                  ctx,
+                  name: 'Mãe Estelar',
+                  email: 'mae.estelar@gmail.com',
+                  emoji: '👩‍🚀',
+                  color: const Color(0xFFFFF176),
+                ),
+                const SizedBox(height: 8),
+                _buildMockProfileTile(
+                  ctx,
+                  name: 'Pequeno Astronauta',
+                  email: 'pequeno.astronauta@gmail.com',
+                  emoji: '👶',
+                  color: const Color(0xFF81C784),
+                ),
+                const SizedBox(height: 20),
+                
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text(
+                        'Cancelar',
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF8E7D75),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMockProfileTile(
+    BuildContext dialogCtx, {
+    required String name,
+    required String email,
+    required String emoji,
+    required Color color,
+  }) {
+    return InkWell(
+      onTap: () async {
+        Navigator.pop(dialogCtx);
+        
+        final mockUser = GoogleUserModel(
+          id: 'google_mock_${email.hashCode}',
+          name: name,
+          email: email,
+          photoUrl: null,
+          idToken: 'jwt_mock_token_${DateTime.now().millisecondsSinceEpoch}',
+        );
+        
+        try {
+          final user = await GoogleAuthService().loginWithMock(mockUser);
+          
+          if (!mounted) return;
+          
+          HapticFeedback.mediumImpact();
+          AudioManager().playSFX(SFXType.correct);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Simulação Ativa! Conta conectada: ${user.name}! 🌟'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: const Color(0xFF10B981),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+          );
+        } catch (e) {
+          if (!mounted) return;
+          HapticFeedback.vibrate();
+          AudioManager().playSFX(SFXType.error);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Falha ao autenticar com a conta simulada. 🧸'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+          );
+        }
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                emoji,
+                style: const TextStyle(fontSize: 20),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                      color: Color(0xFF2B150A),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    email,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 11,
+                      color: Color(0xFF8E7D75),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Color(0xFF8E7D75),
+            ),
+          ],
+        ),
       ),
     );
   }

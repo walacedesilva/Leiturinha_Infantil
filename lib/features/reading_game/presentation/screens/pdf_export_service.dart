@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -17,13 +18,17 @@ class PdfExportService {
       final fontData =
           await rootBundle.load('assets/fonts/Nunito-Regular.ttf');
       font = pw.Font.ttf(fontData);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('PDF: falha ao carregar Nunito-Regular, usando fonte padrão: $e');
+    }
 
     pw.Font? fontBold;
     try {
       final fontData = await rootBundle.load('assets/fonts/Nunito-Bold.ttf');
       fontBold = pw.Font.ttf(fontData);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('PDF: falha ao carregar Nunito-Bold, usando fonte padrão: $e');
+    }
 
     final baseStyle = pw.TextStyle(font: font, fontSize: 11);
     final boldStyle =
@@ -282,14 +287,4 @@ class PdfExportService {
                   fontSize: 8.5, color: PdfColors.teal900),
               textAlign: pw.TextAlign.center,
             ),
-          ),
-        ],
-      ),
-    );
-
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/relatorio_semanal.pdf');
-    await file.writeAsBytes(await pdf.save());
-    return file;
-  }
-}
+     
