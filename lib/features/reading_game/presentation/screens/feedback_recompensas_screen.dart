@@ -84,9 +84,22 @@ class _FeedbackRecompensasScreenState extends State<FeedbackRecompensasScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFBF0),
+      backgroundColor: const Color(0xFFF5F3FF),
       body: Stack(
         children: [
+          // Fundo — gradiente lilas -> quente (prototipo)
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFF5F3FF), Color(0xFFFDF4FF), Color(0xFFFFF7ED)],
+                  stops: [0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
+          ),
           // ── Confetti layer ────────────────────────────────────────────
           Positioned.fill(
             child: AnimatedBuilder(
