@@ -82,8 +82,17 @@ class _DesafioDePronunciaScreenState extends State<DesafioDePronunciaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      body: SafeArea(
+      backgroundColor: const Color(0xFFFFFBEB),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFFF7ED), Color(0xFFFFFBEB), Color(0xFFF0FDF4)],
+            stops: [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: SafeArea(
         child: Consumer2<GameLogic, ProgressService>(
           builder: (context, gameLogic, progress, _) {
             // Reward toast — only for non-success (full-screen feedback handles success)
@@ -262,6 +271,7 @@ class _DesafioDePronunciaScreenState extends State<DesafioDePronunciaScreen> {
               ],
             );
           },
+        ),
         ),
       ),
     );
