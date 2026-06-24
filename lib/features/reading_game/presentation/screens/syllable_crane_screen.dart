@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/landscape_stage.dart';
 import '../../../../services/audio_manager.dart';
 import '../../../../services/speech_validator.dart';
 import '../../domain/game_logic.dart';
@@ -139,7 +140,7 @@ class _SyllableCraneScreenState extends State<SyllableCraneScreen>
         return Scaffold(
           backgroundColor: _kSky,
           body: SafeArea(
-            child: Column(
+            child: LandscapeStage(child: Column(
               children: [
                 // ── Top bar ──────────────────────────────────────────────
                 _TopBar(gl: gl),
@@ -211,7 +212,7 @@ class _SyllableCraneScreenState extends State<SyllableCraneScreen>
                 // ── Bottom buttons ───────────────────────────────────────
                 _BottomBar(gl: gl, isPostAssembly: isPostAssembly),
               ],
-            ),
+            )),
           ),
         );
       },

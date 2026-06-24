@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/landscape_stage.dart';
 import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
 import '../../../../services/progress_service.dart';
@@ -308,7 +309,7 @@ class _MontaSilabasScreenState extends State<MontaSilabasScreen>
           Positioned.fill(child: _FactoryBg()),
           // ── Conteúdo principal ────────────────────────────────────────────
           SafeArea(
-            child: Column(
+            child: LandscapeStage(child: Column(
               children: [
                 _TopBar(
                   puzzleIndex: _puzzleIndex,
@@ -359,7 +360,7 @@ class _MontaSilabasScreenState extends State<MontaSilabasScreen>
                 ),
                 const SizedBox(height: 8),
               ],
-            ),
+            )),
           ),
           // ── Overlay de sucesso ───────────────────────────────────────────
           if (_showSuccess)

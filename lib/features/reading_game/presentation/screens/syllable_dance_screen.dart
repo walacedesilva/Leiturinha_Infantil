@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../../core/landscape_stage.dart';
 import '../../../../services/audio_manager.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -228,7 +229,7 @@ class _SyllableDanceScreenState extends State<SyllableDanceScreen>
 
           // Main content
           SafeArea(
-            child: Column(
+            child: LandscapeStage(child: Column(
               children: [
                 // Top bar
                 _TopBar(
@@ -292,7 +293,7 @@ class _SyllableDanceScreenState extends State<SyllableDanceScreen>
                   onNext: _nextRound,
                 ),
               ],
-            ),
+            )),
           ),
         ],
       ),

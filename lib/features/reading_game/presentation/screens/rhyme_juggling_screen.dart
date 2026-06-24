@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../../core/landscape_stage.dart';
 import '../../../../services/audio_manager.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -261,7 +262,7 @@ class _RhymeJugglingScreenState extends State<RhymeJugglingScreen>
 
           // Main content
           SafeArea(
-            child: Column(
+            child: LandscapeStage(child: Column(
               children: [
                 // Top bar
                 _TopBar(
@@ -321,7 +322,7 @@ class _RhymeJugglingScreenState extends State<RhymeJugglingScreen>
                   onNext: _nextRound,
                 ),
               ],
-            ),
+            )),
           ),
         ],
       ),
