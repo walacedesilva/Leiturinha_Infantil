@@ -92,6 +92,7 @@ class _CorridaPronunciaScreenState extends State<CorridaPronunciaScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
 
     _carCtrl = AnimationController(
       vsync: this,
@@ -146,6 +147,7 @@ class _CorridaPronunciaScreenState extends State<CorridaPronunciaScreen>
     _speedCtrl.dispose();
     _betoCtrl.dispose();
     _successCtrl.dispose();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

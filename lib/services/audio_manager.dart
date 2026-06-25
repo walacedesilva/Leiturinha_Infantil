@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum SFXType { correct, balloons, pop, error }
+enum SFXType { correct, balloons, pop, error, coin }
 
 /// Perfil de prosódia (velocidade + tom) por contexto de fala.
 class _VoiceProfile {
@@ -38,6 +38,12 @@ class AudioManager {
   final List<AudioPlayer> _activePlayers = [];
   bool _ttsReady = false;
 
+  // Canais dedicados de trilha de fundo e ambiente de história (loop contínuo).
+  AudioPlayer? _musicPlayer;
+  String? _currentMusic;
+  AudioPlayer? _ambientPlayer;
+  String? _currentAmbient;
+
   // Índice de áudios gravados (.mp3) presentes nos assets.
   final Map<String, String> _sylAssets = {};
   final Map<String, String> _wordAssets = {};
@@ -69,6 +75,8 @@ class AudioManager {
   void setMasterVolume(double val) {
     _masterVolume = val;
     _tts.setVolume(_narrationVolume * _masterVolume);
+    _musicPlayer?.setVolume(_musicVolume * _masterVolume);
+    _ambientPlayer?.setVolume(_musicVolume * _masterVolume * 0.7);
   }
 
   void setNarrationVolume(double val) {
@@ -77,7 +85,12 @@ class AudioManager {
   }
 
   void setSfxVolume(double val) => _sfxVolume = val;
-  void setMusicVolume(double val) => _musicVolume = val;
+
+  void setMusicVolume(double val) {
+    _musicVolume = val;
+    _musicPlayer?.setVolume(_musicVolume * _masterVolume);
+    _ambientPlayer?.setVolume(_musicVolume * _masterVolume * 0.7);
+  }
 
   DateTime? _lastSyllablePlay;
   String? _lastSyllablePlayed;
@@ -133,7 +146,6 @@ class AudioManager {
   /// Carrega (uma vez) o índice de áudios gravados .mp3 do manifesto.
   Future<void> _ensureIndex() async {
     if (_indexLoaded) return;
-    _indexLoaded = true;
     try {
       final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
       for (final key in manifest.listAssets()) {
@@ -146,8 +158,22 @@ class AudioManager {
           _wordAssets[stem] = path;
         }
       }
+      // Só considera carregado se realmente indexou algo. Se o manifesto
+      // falhar ou vier vazio, mantém false para tentar de novo na próxima.
+      if (_sylAssets.isNotEmpty || _wordAssets.isNotEmpty) _indexLoaded = true;
     } catch (e) {
       debugPrint('[AudioManager] indice de audio: $e');
+    }
+  }
+
+  /// Verifica se um asset existe no bundle (independe do AssetManifest).
+  /// [assetKey] deve incluir o prefixo 'assets/'.
+  Future<bool> _assetExists(String assetKey) async {
+    try {
+      await rootBundle.load(assetKey);
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -212,10 +238,15 @@ class AudioManager {
         now.difference(_lastSyllablePlay!).inMilliseconds < 150) return;
     _lastSyllablePlay = now;
     _lastSyllablePlayed = syllable;
+    final lower = syllable.toLowerCase();
     await _ensureIndex();
-    if (await _playAsset(_sylAssets[syllable.toLowerCase()])) return;
-    await _speak(syllable.toLowerCase(), _VoiceProfile.syllable,
-        stopFirst: false);
+    // 1) gravação indexada pelo manifesto
+    if (await _playAsset(_sylAssets[lower])) return;
+    // 2) gravação pelo caminho convencional (caso o índice tenha falhado)
+    if (await _assetExists('assets/audio/syllables/$lower.mp3') &&
+        await _playAsset('audio/syllables/$lower.mp3')) return;
+    // 3) só então TTS (último recurso) — caixa baixa p/ não soletrar
+    await _speak(lower, _VoiceProfile.syllable, stopFirst: false);
   }
 
   Future<void> playSyllable(String syllable) => playSyllableInstant(syllable);
@@ -223,9 +254,16 @@ class AudioManager {
   /// Palavra/letra/frase curta. Usa audio gravado se houver; senao TTS com
   /// entonacao automatica ('?' pergunta, '!' animada).
   Future<void> playWord(String word) async {
+    final lower = word.toLowerCase();
     await _ensureIndex();
-    if (await _playAsset(_wordAssets[word.toLowerCase()])) return;
-    await _speak(word.toLowerCase(), _profileForPhrase(word));
+    if (await _playAsset(_wordAssets[lower])) return;
+    // Palavra de uma só (sem espaço): tenta gravação convencional antes do TTS.
+    if (!lower.contains(' ') &&
+        await _assetExists('assets/audio/words/$lower.mp3') &&
+        await _playAsset('audio/words/$lower.mp3')) {
+      return;
+    }
+    await _speak(lower, _profileForPhrase(word));
   }
 
   Future<void> playWordSlow(String word) =>
@@ -250,6 +288,7 @@ class AudioManager {
       SFXType.balloons => 'balloons.wav',
       SFXType.pop => 'pop.wav',
       SFXType.error => 'error.wav',
+      SFXType.coin => 'coin.wav',
     };
     try {
       final player = AudioPlayer();
@@ -284,6 +323,125 @@ class AudioManager {
     }
   }
 
+  // ───────────────────────────────────────────────────────────────────────
+  // TRILHA SONORA DE FUNDO (assets/audio/music/<name>.mp3)
+  // ───────────────────────────────────────────────────────────────────────
+
+  /// Toca uma trilha de tela em loop. Ex.: playMusic('menu'), playMusic('mapa').
+  /// Ignora a chamada se a mesma faixa já estiver tocando (não reinicia ao
+  /// navegar entre telas que pedem a mesma trilha). Silencioso se o arquivo
+  /// ainda não existir.
+  Future<void> playMusic(String name, {bool loop = true}) async {
+    final n = name.trim().toLowerCase();
+    if (n.isEmpty) return;
+    if (_currentMusic == n && _musicPlayer != null) return;
+    await stopMusic();
+    try {
+      final p = AudioPlayer();
+      _musicPlayer = p;
+      _currentMusic = n;
+      await p.setReleaseMode(loop ? ReleaseMode.loop : ReleaseMode.release);
+      await p.setVolume(_musicVolume * _masterVolume);
+      await p.play(AssetSource('audio/music/$n.mp3'));
+    } catch (e) {
+      debugPrint('[AudioManager] music $n: $e');
+      _currentMusic = null;
+    }
+  }
+
+  Future<void> stopMusic() async {
+    final p = _musicPlayer;
+    _musicPlayer = null;
+    _currentMusic = null;
+    if (p == null) return;
+    try {
+      await p.stop();
+      await p.dispose();
+    } catch (_) {}
+  }
+
+  // ───────────────────────────────────────────────────────────────────────
+  // AMBIENTE DE HISTÓRIA (caminho vindo do JSON: 'assets/...' ou relativo)
+  // ───────────────────────────────────────────────────────────────────────
+
+  /// Toca o ambiente de uma cena em loop. Aceita o caminho completo do JSON
+  /// (com ou sem o prefixo 'assets/'). Silencioso se o arquivo não existir.
+  Future<void> playAmbient(String? assetPath, {bool loop = true}) async {
+    if (assetPath == null || assetPath.trim().isEmpty) {
+      await stopAmbient();
+      return;
+    }
+    final path =
+        assetPath.startsWith('assets/') ? assetPath.substring(7) : assetPath;
+    if (_currentAmbient == path && _ambientPlayer != null) return;
+    await stopAmbient();
+    // Tenta o caminho do JSON; se falhar, recorre a audio/ambient/<arquivo>.
+    final fallback = 'audio/ambient/${path.split('/').last}';
+    for (final candidate in <String>[path, if (fallback != path) fallback]) {
+      try {
+        final p = AudioPlayer();
+        _ambientPlayer = p;
+        _currentAmbient = path;
+        await p.setReleaseMode(loop ? ReleaseMode.loop : ReleaseMode.release);
+        await p.setVolume(_musicVolume * _masterVolume * 0.7);
+        await p.play(AssetSource(candidate));
+        return;
+      } catch (e) {
+        debugPrint('[AudioManager] ambient $candidate: $e');
+        try {
+          await _ambientPlayer?.dispose();
+        } catch (_) {}
+        _ambientPlayer = null;
+        _currentAmbient = null;
+      }
+    }
+  }
+
+  Future<void> stopAmbient() async {
+    final p = _ambientPlayer;
+    _ambientPlayer = null;
+    _currentAmbient = null;
+    if (p == null) return;
+    try {
+      await p.stop();
+      await p.dispose();
+    } catch (_) {}
+  }
+
+  /// Pausa só a trilha de fundo (ex.: ao entrar numa história, deixando o
+  /// ambiente da cena assumir). Use resumeMusic() ao voltar.
+  Future<void> pauseMusic() async {
+    try {
+      await _musicPlayer?.pause();
+    } catch (_) {}
+  }
+
+  Future<void> resumeMusic() async {
+    try {
+      await _musicPlayer?.resume();
+    } catch (_) {}
+  }
+
+  /// Pausa trilha e ambiente (ex.: app foi para segundo plano).
+  Future<void> pauseBackground() async {
+    try {
+      await _musicPlayer?.pause();
+    } catch (_) {}
+    try {
+      await _ambientPlayer?.pause();
+    } catch (_) {}
+  }
+
+  /// Retoma trilha e ambiente que estavam tocando.
+  Future<void> resumeBackground() async {
+    try {
+      await _musicPlayer?.resume();
+    } catch (_) {}
+    try {
+      await _ambientPlayer?.resume();
+    } catch (_) {}
+  }
+
   void _fallbackFeedback() => HapticFeedback.mediumImpact();
 
   void dispose() {
@@ -292,5 +450,11 @@ class AudioManager {
       p.dispose();
     }
     _activePlayers.clear();
+    _musicPlayer?.dispose();
+    _musicPlayer = null;
+    _currentMusic = null;
+    _ambientPlayer?.dispose();
+    _ambientPlayer = null;
+    _currentAmbient = null;
   }
 }

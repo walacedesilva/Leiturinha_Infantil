@@ -94,6 +94,8 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
     _storyIndex = _resolveStoryIndex();
     _initStt();
     _brushColor = const Color(0xFF4ECDC4);
+    AudioManager().pauseMusic(); // Silencia a trilha do hub durante a história
+    AudioManager().playAmbient(_act.background.ambientAudio);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _playActiveDialogue();
     });
@@ -161,6 +163,8 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
     _sttSafetyTimer?.cancel();
     _stt.stop();
     AudioManager().speakSentence('', isChild: false); // Silencia fala ao sair
+    AudioManager().stopAmbient(); // Para o ambiente da história ao sair
+    AudioManager().resumeMusic(); // Retoma a trilha do hub
     super.dispose();
   }
 
@@ -191,6 +195,7 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
       _currentStroke = [];
       _feedbackDialogue = [];
     });
+    AudioManager().playAmbient(_act.background.ambientAudio);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _playActiveDialogue();
     });

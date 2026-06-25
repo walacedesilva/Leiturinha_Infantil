@@ -108,6 +108,7 @@ class _SyllableDanceScreenState extends State<SyllableDanceScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
 
     _pulseCtrl = AnimationController(
       vsync: this,
@@ -136,6 +137,7 @@ class _SyllableDanceScreenState extends State<SyllableDanceScreen>
     _foxCtrl.dispose();
     _notesCtrl.dispose();
     _confettiCtrl.dispose();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

@@ -151,6 +151,7 @@ class _RhymeJugglingScreenState extends State<RhymeJugglingScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
     _shuffleBalls();
 
     _juggleCtrl = AnimationController(
@@ -174,6 +175,7 @@ class _RhymeJugglingScreenState extends State<RhymeJugglingScreen>
     _juggleCtrl.dispose();
     _feedbackCtrl.dispose();
     _confettiCtrl.dispose();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

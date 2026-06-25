@@ -39,6 +39,7 @@ class _MissaoDecodificacaoGalacticaScreenState
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
     _portalCtrl = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -80,6 +81,7 @@ class _MissaoDecodificacaoGalacticaScreenState
   void dispose() {
     _portalCtrl.dispose();
     _particleCtrl.dispose();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

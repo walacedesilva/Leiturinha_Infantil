@@ -58,7 +58,7 @@
         "title": "Bem-vindo ao Safari!",
         "background": {
           "image": "assets/stories/story_safari_v1/act1_background.png",
-          "ambientAudio": "assets/stories/story_safari_v1/act1_ambient_savana.mp3"
+          "ambientAudio": "assets/audio/ambient/safari_act1_ambient_savana.mp3"
         },
         "text": {
           "narrative": "Tico chegou na savana dourada.\nOs animais fizeram barulhos incríveis!\nVocê consegue ouvir o leão?",
@@ -164,7 +164,7 @@
         "title": "Cada Animal no Seu Lar",
         "background": {
           "image": "assets/stories/story_safari_v1/act2_background.png",
-          "ambientAudio": "assets/stories/story_safari_v1/act2_ambient_mixed.mp3"
+          "ambientAudio": "assets/audio/ambient/safari_act2_ambient_mixed.mp3"
         },
         "text": {
           "narrative": "Os animais querem ir para casa.\nA floresta, o lago e a savana esperam!\nVocê vai ajudar cada um?",
@@ -293,7 +293,7 @@
         "title": "Qual Animal Vamos Seguir?",
         "background": {
           "image": "assets/stories/story_safari_v1/act3_background.png",
-          "ambientAudio": "assets/stories/story_safari_v1/act3_ambient_crossroads.mp3"
+          "ambientAudio": "assets/audio/ambient/safari_act3_ambient_crossroads.wav"
         },
         "text": {
           "narrative": "Tico chegou numa bifurcação!\nO leão vai à savana dourada.\nO sapo vai ao lago de cristal.\nQual caminho você escolhe?",
@@ -316,7 +316,7 @@
               "label": "Seguir o Léo",
               "image": "assets/stories/story_safari_v1/act3_choice_leao.png",
               "consequence": {
-                "ambientAudio": "assets/stories/story_safari_v1/act3b_savana_golden.mp3",
+                "ambientAudio": "assets/audio/ambient/safari_act3b_savana_golden.wav",
                 "dialogue": [
                   {
                     "character": "animal_leao",
@@ -332,7 +332,7 @@
               "label": "Seguir o Sapinho",
               "image": "assets/stories/story_safari_v1/act3_choice_sapo.png",
               "consequence": {
-                "ambientAudio": "assets/stories/story_safari_v1/act3b_lago_crystal.mp3",
+                "ambientAudio": "assets/audio/ambient/safari_act3b_lago_crystal.wav",
                 "dialogue": [
                   {
                     "character": "animal_sapo",
@@ -356,7 +356,7 @@
         "title": "Seu Safari Sonoro!",
         "background": {
           "image": "assets/stories/story_safari_v1/act4_background.png",
-          "ambientAudio": "assets/stories/story_safari_v1/act4_ambient_celebration.mp3"
+          "ambientAudio": "assets/audio/ambient/safari_act4_ambient_celebration.wav"
         },
         "text": {
           "narrative": "Você conheceu todos os sons!\nAgora é hora de gravar\nseu próprio safari sonoro!",
@@ -491,7 +491,7 @@
         "title": "A Receita Mágica!",
         "background": {
           "image": "assets/stories/story_cozinha_v1/act1_background.png",
-          "ambientAudio": "assets/stories/story_cozinha_v1/act1_ambient_kitchen.mp3"
+          "ambientAudio": "assets/audio/ambient/cozinha_act1_ambient_kitchen.mp3"
         },
         "text": {
           "narrative": "Chef Pipoca encontrou uma receita mágica!\nPara fazer o café quentinho,\nprecisa juntar as sílabas!\nCA + FÉ = CAFÉ!",
@@ -591,7 +591,7 @@
         "title": "Os Ingredientes na Ordem Certa",
         "background": {
           "image": "assets/stories/story_cozinha_v1/act2_background.png",
-          "ambientAudio": "assets/stories/story_cozinha_v1/act2_ambient_cooking.mp3"
+          "ambientAudio": "assets/audio/ambient/cozinha_act2_ambient_cooking.mp3"
         },
         "text": {
           "narrative": "A receita tem uma ordem certa!\nPrimeiro o leite, depois o mel,\ndepois a farinha!\nVocê lembra a ordem?",
@@ -715,7 +715,7 @@
         "title": "Doce ou Salgado?",
         "background": {
           "image": "assets/stories/story_cozinha_v1/act3_background.png",
-          "ambientAudio": "assets/stories/story_cozinha_v1/act3_ambient_choice.mp3"
+          "ambientAudio": "assets/audio/ambient/cozinha_act3_ambient_choice.wav"
         },
         "text": {
           "narrative": "A receita pode ser doce ou salgada!\nSe escolher doce, vira bolo de morango!\nSe escolher salgado, vira pão de queijo!\nO que você prefere?",
@@ -738,7 +738,7 @@
               "label": "DO-CE",
               "image": "assets/stories/story_cozinha_v1/act3_choice_bolo.png",
               "consequence": {
-                "ambientAudio": "assets/stories/story_cozinha_v1/act3b_sweet_jingle.mp3",
+                "ambientAudio": "assets/audio/ambient/cozinha_act3b_sweet_jingle.wav",
                 "unlockItem": "bolo_morango",
                 "dialogue": [
                   {
@@ -755,7 +755,7 @@
               "label": "SAL-GA-DO",
               "image": "assets/stories/story_cozinha_v1/act3_choice_pao_queijo.png",
               "consequence": {
-                "ambientAudio": "assets/stories/story_cozinha_v1/act3b_savory_jingle.mp3",
+                "ambientAudio": "assets/audio/ambient/cozinha_act3b_savory_jingle.wav",
                 "unlockItem": "pao_queijo",
                 "dialogue": [
                   {
@@ -780,7 +780,7 @@
         "title": "Seu Prato Mágico!",
         "background": {
           "image": "assets/stories/story_cozinha_v1/act4_background.png",
-          "ambientAudio": "assets/stories/story_cozinha_v1/act4_ambient_celebration.mp3"
+          "ambientAudio": "assets/audio/ambient/cozinha_act4_ambient_celebration.mp3"
         },
         "text": {
           "narrative": "Parabéns, Chef!\nAgora desenhe seu próprio\nprato mágico!\nQue palavras você vai usar?",
@@ -2320,7 +2320,7 @@
         "title": "O Caminho da Proteção",
         "background": {
           "image": "assets/stories/whispering_forest/act2_background.png",
-          "ambientAudio": "assets/stories/whispering_forest/act2_rain.mp3"
+          "ambientAudio": "assets/audio/ambient/floresta_act2_rain.mp3"
         },
         "text": {
           "narrative": "As primeiras gotas caíram: ping, ping, ping. Heloisa precisava de um lugar seguro.",
@@ -2470,7 +2470,7 @@
         "title": "O Grande Trovão",
         "background": {
           "image": "assets/stories/whispering_forest/act4_background.png",
-          "ambientAudio": "assets/stories/whispering_forest/act4_thunder.mp3"
+          "ambientAudio": "assets/audio/ambient/floresta_act4_thunder.mp3"
         },
         "text": {
           "narrative": "O céu escureceu de novo. Mas Heloisa lembrou: barulho não é perigo. É só som esperando virar palavra.",
@@ -2686,7 +2686,7 @@
         "title": "O Céu que Escurece",
         "background": {
           "image": "assets/stories/Heloisa_thunder_friend/act1_background.png",
-          "ambientAudio": "assets/stories/Heloisa_thunder_friend/act1_ambient.mp3"
+          "ambientAudio": "assets/audio/ambient/heloisa_act1_ambient.mp3"
         },
         "text": {
           "narrative": "Heloisa olhou para cima. Uma grande nuvem cobriu o sol. Mas ela sabia respirar para ter coragem!",
@@ -2773,7 +2773,7 @@
         "title": "O Caminho da Proteção",
         "background": {
           "image": "assets/stories/Heloisa_thunder_friend/act2_background.png",
-          "ambientAudio": "assets/stories/Heloisa_thunder_friend/act2_ambient.mp3"
+          "ambientAudio": "assets/audio/ambient/heloisa_act2_ambient.mp3"
         },
         "text": {
           "narrative": "A chuva começou a cair forte. Dois caminhos cheios de magia apareceram!",

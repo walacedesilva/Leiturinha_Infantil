@@ -130,6 +130,7 @@ class _DistritoDigrafosScreenState extends State<DistritoDigrafosScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
 
     _cauldronCtrl = AnimationController(
       vsync: this,
@@ -173,6 +174,7 @@ class _DistritoDigrafosScreenState extends State<DistritoDigrafosScreen>
     _mascotCtrl.dispose();
     _runeCtrl.dispose();
     for (final c in _floatCtrl) c.dispose();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

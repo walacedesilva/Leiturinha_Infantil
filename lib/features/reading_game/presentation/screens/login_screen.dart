@@ -26,6 +26,13 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _isAuthenticating = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Trilha do menu (loop). Silenciosa até existir assets/audio/music/menu.mp3.
+    AudioManager().playMusic('menu');
+  }
+
   // ═══════════════════════════════════════════════════════════════════════
   // NAVEGAÇÃO
   // ═══════════════════════════════════════════════════════════════════════

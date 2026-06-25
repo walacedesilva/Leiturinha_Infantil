@@ -139,6 +139,7 @@ class _DistritoEncontrosScreenState extends State<DistritoEncontrosScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
 
     _gearCtrl = AnimationController(
       vsync: this,
@@ -188,6 +189,7 @@ class _DistritoEncontrosScreenState extends State<DistritoEncontrosScreen>
     _betoCtrl.dispose();
     _sparkCtrl.dispose();
     for (final c in _floatCtrl) c.dispose();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

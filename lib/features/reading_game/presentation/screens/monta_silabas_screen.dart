@@ -129,6 +129,7 @@ class _MontaSilabasScreenState extends State<MontaSilabasScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
 
     _beltCtrl = AnimationController(
       vsync: this,
@@ -183,6 +184,7 @@ class _MontaSilabasScreenState extends State<MontaSilabasScreen>
     _mascotCtrl.dispose();
     _sparkCtrl.dispose();
     _magnetCtrl.dispose();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

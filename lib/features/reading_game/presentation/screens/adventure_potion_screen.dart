@@ -55,6 +55,7 @@ class _AdventurePotionScreenState extends State<AdventurePotionScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
     _bubbleCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1600),
@@ -82,6 +83,7 @@ class _AdventurePotionScreenState extends State<AdventurePotionScreen>
     _successCtrl.dispose();
     _pulseCtrl.dispose();
     _mascotCtrl.dispose();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

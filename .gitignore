@@ -58,3 +58,9 @@ app.*.map.json
 /clean_rebuild.bat
 /run_gen_audio.bat
 /commit_*.bat
+/install_apk.bat
+/pub_get.bat
+/fix_ba.bat
+/install_log.txt
+/pub_get_out.txt
+/push_out.txt

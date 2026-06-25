@@ -90,6 +90,7 @@ class _VowelPracticeScreenState extends State<VowelPracticeScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
 
     _bounceCtrl = AnimationController(
       vsync: this,
@@ -122,6 +123,7 @@ class _VowelPracticeScreenState extends State<VowelPracticeScreen>
     _pulseCtrl.dispose();
     _starsCtrl.dispose();
     _glowCtrl.dispose();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

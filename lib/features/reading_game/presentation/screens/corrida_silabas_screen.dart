@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import '../../../../services/audio_manager.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -103,6 +104,7 @@ class _CorridaSilabasScreenState extends State<CorridaSilabasScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
 
     _remaining = _kEventDuration;
 
@@ -131,6 +133,7 @@ class _CorridaSilabasScreenState extends State<CorridaSilabasScreen>
     _flagCtrl.dispose();
     _pulseCtrl.dispose();
     _ticker?.cancel();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'gamification_models.dart';
+import 'audio_manager.dart';
 
 /// Serviço de gamificação: XP, moedas, badges, streak, adaptação dinâmica.
 /// Persiste tudo em SharedPreferences. Notifica listeners ao mudar estado.
@@ -275,6 +276,7 @@ class GamificationService extends ChangeNotifier {
   Future<void> addCoins(int amount) async {
     if (amount <= 0) return;
     _state = _state.copyWith(coins: _state.coins + amount);
+    AudioManager().playSFX(SFXType.coin); // tilintar de moeda ao creditar
     await _save();
     notifyListeners();
   }

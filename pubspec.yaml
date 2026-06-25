@@ -48,6 +48,8 @@ flutter:
     - assets/audio/syllables/
     - assets/audio/words/
     - assets/audio/sfx/
+    - assets/audio/music/
+    - assets/audio/ambient/
     - assets/animations/
     - assets/phonetic_reference_bank.json
     - assets/stories/

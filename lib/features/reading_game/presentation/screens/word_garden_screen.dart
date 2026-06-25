@@ -54,6 +54,7 @@ class _WordGardenScreenState extends State<WordGardenScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
     _queue = List.of(kGardenWords)..shuffle(math.Random(12));
 
     _butterflyCtrl = AnimationController(
@@ -83,6 +84,7 @@ class _WordGardenScreenState extends State<WordGardenScreen>
     _growCtrl.dispose();
     _mascotCtrl.dispose();
     _pollenCtrl.dispose();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

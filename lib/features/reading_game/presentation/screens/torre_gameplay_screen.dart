@@ -156,6 +156,7 @@ class _TorreGameplayScreenState extends State<TorreGameplayScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
     _pulseCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
@@ -180,6 +181,7 @@ class _TorreGameplayScreenState extends State<TorreGameplayScreen>
     _feedbackCtrl.dispose();
     AudioManager().dispose();
     _speechValidator.cancelListening().catchError((_) {});
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

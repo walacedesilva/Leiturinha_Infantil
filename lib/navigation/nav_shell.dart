@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../services/audio_manager.dart';
+
 import '../features/reading_game/presentation/screens/ilha_das_palavras_screen.dart';
 import '../features/reading_game/presentation/screens/desafios_screen.dart';
 import '../features/reading_game/presentation/screens/conquistas_screen.dart';
@@ -75,6 +77,9 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
     _iconCtrl[0].value = 1.0; // Início ativo por padrão
     _homeNavObserver = _OrientationNavObserver(_applyOrientation);
     WidgetsBinding.instance.addPostFrameCallback((_) => _applyOrientation());
+    // Trilha de fundo do mapa/hub (loop). Persiste enquanto o NavShell viver.
+    // Silenciosa até existir assets/audio/music/mapa.mp3.
+    AudioManager().playMusic('mapa');
   }
 
   /// App inteiro em retrato — reaplica a orientação ao trocar de aba ou
@@ -89,6 +94,7 @@ class NavShellState extends State<NavShell> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    AudioManager().stopMusic(); // Para a trilha do hub ao sair (logout etc.)
     for (final c in _iconCtrl) {
       c.dispose();
     }

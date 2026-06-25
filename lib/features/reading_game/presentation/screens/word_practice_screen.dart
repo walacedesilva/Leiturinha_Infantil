@@ -100,6 +100,7 @@ class _WordPracticeScreenState extends State<WordPracticeScreen>
   @override
   void initState() {
     super.initState();
+    AudioManager().playMusic('jogo');
     _words = _kWords[widget.vowel] ?? _kWords['A']!;
 
     _pulseCtrl = AnimationController(
@@ -123,6 +124,7 @@ class _WordPracticeScreenState extends State<WordPracticeScreen>
     SpeechValidator().cancelListening();
     _pulseCtrl.dispose();
     _confettiCtrl.dispose();
+    AudioManager().playMusic('mapa');
     super.dispose();
   }
 

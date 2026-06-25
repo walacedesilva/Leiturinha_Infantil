@@ -83,8 +83,38 @@ void main() async {
   );
 }
 
-class LearnToReadApp extends StatelessWidget {
+class LearnToReadApp extends StatefulWidget {
   const LearnToReadApp({super.key});
+
+  @override
+  State<LearnToReadApp> createState() => _LearnToReadAppState();
+}
+
+class _LearnToReadAppState extends State<LearnToReadApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Pausa a trilha/ambiente quando o app sai de foco e retoma ao voltar.
+    if (state == AppLifecycleState.resumed) {
+      AudioManager().resumeBackground();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      AudioManager().pauseBackground();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
