@@ -61,9 +61,12 @@ app.*.map.json
 /install_apk.bat
 /pub_get.bat
 /fix_ba.bat
+/build_aab.bat
+/gerar_keystore.bat
 /install_log.txt
 /pub_get_out.txt
 /push_out.txt
+/build_aab_log.txt
 
 # Assinatura de release (NUNCA versionar a keystore nem as senhas)
 /android/key.properties

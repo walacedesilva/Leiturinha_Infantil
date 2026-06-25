@@ -6,7 +6,7 @@ Auditoria do projeto + requisitos atuais da Play (junho/2026). Itens marcados �
 
 ## 1. Bloqueadores técnicos (no código/projeto)
 
-✅ **applicationId** — definido como **`br.com.wpghub.leiturinha`** (reverso do domínio `leiturinha.wpghub.com.br`) em `android/app/build.gradle.kts`. *(O `namespace` interno segue `com.example...`, o que é inofensivo — a Play só usa o applicationId.)*
+✅ **applicationId** — definido como **`br.com.wpghub.leiturinhainfantil`** (reverso do domínio `leiturinhainfantil.wpghub.com.br`) em `android/app/build.gradle.kts`. *(O `namespace` interno segue `com.example...`, o que é inofensivo — a Play só usa o applicationId.)*
    - ⚠️ Atenção: o novo package afeta o **Google Sign-In** — recrie/atualize o **OAuth client Android** no Google Cloud com packageName `br.com.wpghub.leiturinha` + a **SHA-1** da keystore de upload (e a SHA do App Signing da Play).
 
 ✅ **Assinatura de release** — antes usava a **chave de debug** (a Play recusa). Configurei o Gradle para assinar com uma keystore de upload via `android/key.properties` (com fallback para debug enquanto a keystore não existe).

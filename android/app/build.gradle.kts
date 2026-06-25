@@ -31,8 +31,8 @@ android {
     }
 
     defaultConfig {
-        // ID definitivo na Play (reverso do domínio leiturinha.wpghub.com.br).
-        applicationId = "br.com.wpghub.leiturinha"
+        // ID definitivo na Play (reverso do domínio leiturinhainfantil.wpghub.com.br).
+        applicationId = "br.com.wpghub.leiturinhainfantil"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
