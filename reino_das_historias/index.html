@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Best Practices -->
+  <title>Reino das Histórias - Storytelling Imersivo e Narração por IA Avançada</title>
+  <meta name="description" content="Explore narrativas mágicas ramificadas com interatividade drag-and-drop total, narração por IA com modulação de voz emocional, legendas sincronizadas karaoke e acessibilidade auditiva completa.">
+  <meta name="keywords" content="storytelling, educação infantil, narração ia, drag and drop, acessibilidade auditiva, reino das historias, livros interativos">
+  <meta name="author" content="Reino das Histórias S/A">
+  <meta name="robots" content="index, follow">
+
+  <!-- iOS support and Icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Reino das Histórias">
+
+  <!-- Tailwind CSS / Extra CDNs NOT USED (As per core system, standard Vanilla CSS is preferred!) -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- HEADER / MENU DE NAVEGAÇÃO -->
+    <header id="main-header">
+      <div class="brand-section">
+        <span class="logo-icon" role="img" aria-label="Livro Mágico">📖</span>
+        <div class="logo-text">
+          <h1>Reino das Histórias</h1>
+          <span>Storytelling Multissensorial & IA</span>
+        </div>
+      </div>
+      
+      <div class="header-controls">
+        <div class="input-container" style="margin:0;">
+          <select id="story-selector" class="select-field" aria-label="Escolher História">
+            <!-- Loaded dynamically from JSON -->
+          </select>
+        </div>
+        <button id="btn-home-lobby" class="btn-small" title="Voltar ao Menu Principal">
+          🏰 Menu Principal
+        </button>
+        <button id="reset-story-btn" class="btn-small" title="Reiniciar História Atual">
+          🔄 Reiniciar Jornada
+        </button>
+      </div>
+    </header>
+
+    <!-- CORE PLATFORM BOARD GRID -->
+    <main class="main-grid">
+      
+      <!-- ESQUERDA: PALCO DA HISTÓRIA & INTERATIVIDADE -->
+      <section class="story-stage-card" aria-label="Palco da Narrativa Interativa">
+        <div class="stage-header">
+          <h2 id="current-scene-title" class="stage-title">Carregando história...</h2>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button id="btn-toggle-device" class="btn-small" title="Alternar Modo Celular">
+              📱 Simulador
+            </button>
+            <button id="btn-rotate-device" class="btn-small hidden" title="Rotacionar Tela">
+              🔄 Girar
+            </button>
+            <div class="story-progress-bar" title="Progresso da História">
+              <div id="story-progress-fill" class="story-progress-fill"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REVOLUCIONÁRIO SIMULADOR DE DISPOSITIVO MÓVEL INTERATIVO -->
+        <div id="device-frame-wrapper" class="device-frame-desktop-full">
+          <div class="device-bezel-shadow"></div>
+          <div class="device-notch"></div>
+          <div class="device-side-button device-vol-up"></div>
+          <div class="device-side-button device-vol-down"></div>
+          <div class="device-side-button device-power"></div>
+          
+          <!-- O PALCO VISUAL -->
+          <div id="stage-canvas" class="stage-canvas scene-forest" aria-live="polite">
+            <canvas id="particles-overlay" class="particles-overlay"></canvas>
+            
+            <!-- Dropzones will be generated dynamically -->
+            <div id="active-zones-container" class="active-zones-container"></div>
+            
+            <!-- Dynamic Visual Assets / Characters will go here -->
+            <div id="scenic-actors-container" style="pointer-events: none; position: absolute; width:100%; height:100%; top:0; left:0; z-index:2;"></div>
+          </div>
+          
+          <div class="device-home-bar"></div>
+        </div>
+
+        <!-- DRAG AND DROP SHELF -->
+        <div id="drag-shelf" class="drag-shelf" aria-label="Prateleira de Elementos Draggáveis">
+          <p class="text-muted" style="font-size:0.9rem; text-align:center; width:100%;">
+            Arraste itens daqui para o palco acima!
+          </p>
+          <!-- Loaded dynamically -->
+        </div>
+
+        <!-- LEGENDAS KARAOKE E NARRATIVA -->
+        <article class="narration-subtitles-card" aria-label="Caixa de Legenda Sincronizada">
+          <div id="speaker-name" class="speaker-indicator speaker-narrator">Narrador</div>
+          <div id="karaoke-board" class="narration-text-box" aria-live="assertive">
+            <!-- Sincronized words highlight karaoke style will render here -->
+            Prepare-se para embarcar em uma incrível aventura interativa...
+          </div>
+        </article>
+      </section>
+
+      <!-- DIREITA: CONSOLE DE CONTROLES DE IA, VOZ E ACESSIBILIDADE -->
+      <aside class="control-panel" aria-label="Console do Maestro de IA">
+        
+        <!-- CONTROLADORES DA IA DE VOZ -->
+        <section class="glass-card" aria-labelledby="ai-settings-title">
+          <h3 id="ai-settings-title" class="panel-title">
+            <span>🎛️</span> Controle de Voz por IA
+          </h3>
+          
+          <div class="sliders-group">
+            <!-- Stability -->
+            <div class="slider-container">
+              <div class="slider-labels">
+                <span class="slider-name">🎭 Estabilidade (Stability)</span>
+                <span id="stability-val" class="slider-value">0.5</span>
+              </div>
+              <input type="range" id="stability-slider" class="slider-input" min="0.1" max="1.0" step="0.05" value="0.5" aria-label="Ajustar estabilidade da voz">
+              <span class="slider-desc">Baixo (0.3) = Mais emoção e tons teatrais. Alto (0.8) = Firme e estável.</span>
+            </div>
+
+            <!-- Clarity -->
+            <div class="slider-container">
+              <div class="slider-labels">
+                <span class="slider-name">✨ Clareza (Clarity)</span>
+                <span id="clarity-val" class="slider-value">0.7</span>
+              </div>
+              <input type="range" id="clarity-slider" class="slider-input" min="0.1" max="1.0" step="0.05" value="0.7" aria-label="Ajustar clareza da voz">
+              <span class="slider-desc">Valores médios (0.6-0.7) expressam mais emoções e sutilezas sonoras.</span>
+            </div>
+
+            <!-- Speech Speed -->
+            <div class="slider-container">
+              <div class="slider-labels">
+                <span class="slider-name">🏃 Velocidade da Narração</span>
+                <span id="speed-val" class="slider-value">1.0x</span>
+              </div>
+              <input type="range" id="speed-slider" class="slider-input" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="Ajustar velocidade da voz">
+              <span class="slider-desc">0.8x para momentos tensos, 1.2x para cenas dinâmicas de ação.</span>
+            </div>
+
+            <!-- Voice Pitch -->
+            <div class="slider-container">
+              <div class="slider-labels">
+                <span class="slider-name">🎼 Tom (Pitch)</span>
+                <span id="pitch-val" class="slider-value">1.0</span>
+              </div>
+              <input type="range" id="pitch-slider" class="slider-input" min="0.5" max="1.5" step="0.1" value="1.0" aria-label="Ajustar tom da voz">
+              <span class="slider-desc">Grave e lento para gigantes/dragões, agudo e rápido para fadas.</span>
+            </div>
+          </div>
+
+          <!-- WAVEFORM PANEL VISUALIZER -->
+          <div class="waveform-container" aria-label="Visualizador de Onda de Voz">
+            <span style="font-size:0.75rem; color:var(--text-muted);">Sinal IA:</span>
+            <div id="waveform-bars" class="waveform-container" style="border:none; margin:0; padding:0; gap:4px; height: 100%;">
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+              <div class="waveform-bar"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MODOS DE NARRATIVA -->
+        <section class="glass-card" aria-labelledby="narrative-modes-title">
+          <h3 id="narrative-modes-title" class="panel-title">
+            <span>🎭</span> Modo de Narração
+          </h3>
+          <div class="modes-grid">
+            <button id="mode-teatral" class="mode-btn active" aria-label="Selecionar modo teatral">
+              <span class="icon">🎭</span>
+              <span class="label">Teatral</span>
+              <span class="desc">Vozes expressivas e efeitos</span>
+            </button>
+            <button id="mode-guiado" class="mode-btn" aria-label="Selecionar modo leitura guiada">
+              <span class="icon">📚</span>
+              <span class="label">Guiado</span>
+              <span class="desc">Foco em alfabetização</span>
+            </button>
+            <button id="mode-dinamico" class="mode-btn" aria-label="Selecionar modo dinâmico">
+              <span class="icon">⚡</span>
+              <span class="label">Dinâmico</span>
+              <span class="desc">Ação e ritmo rápido</span>
+            </button>
+            <button id="mode-texto" class="mode-btn" aria-label="Selecionar modo somente texto">
+              <span class="icon">🔇</span>
+              <span class="label">Silencioso</span>
+              <span class="desc">Sem narração por voz</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- ACESSIBILIDADE AUDITIVA -->
+        <section class="glass-card" aria-labelledby="accessibility-title">
+          <h3 id="accessibility-title" class="panel-title">
+            <span>♿</span> Acessibilidade Auditiva
+          </h3>
+          <div class="access-flex">
+            <button id="btn-repeat-phrase" class="btn-icon-text" aria-label="Repetir últimos 10 segundos da narração">
+              <span>🔊</span> Repetir Frase
+            </button>
+            <button id="btn-headphone-mode" class="btn-icon-text" aria-label="Ativar Modo Fone de Ouvido de Áudio Espacial">
+              <span>🎧</span> Áudio Espacial MOCK
+            </button>
+            <button id="btn-character-colors" class="btn-icon-text active" aria-label="Destacar falas de personagens com cores exclusivas">
+              <span>🎨</span> Cores de Personagens
+            </button>
+            <button id="btn-play-pause-narration" class="btn-icon-text" aria-label="Tocar ou pausar narração de voz">
+              <span>▶️</span> Tocar Narração
+            </button>
+          </div>
+        </section>
+
+      </aside>
+
+      <!-- SEÇÃO COMPARTILHADA: CRIADOR VISUAL DE HISTÓRIAS (EDITOR) -->
+      <section class="glass-card editor-section" aria-labelledby="editor-title">
+        <h3 id="editor-title" class="panel-title">
+          <span>🛠️</span> Criador Visual de Histórias (Editor do Reino)
+        </h3>
+        
+        <div class="editor-layout">
+          <!-- Editor Form -->
+          <form id="scene-editor-form" class="editor-form" onsubmit="return false;">
+            <div class="input-container">
+              <label for="editor-story-title">Título da História</label>
+              <input type="text" id="editor-story-title" class="input-field" value="Minha Nova Aventura Mágica" required>
+            </div>
+            
+            <div class="input-container">
+              <label for="editor-scene-id">ID da Cena</label>
+              <input type="text" id="editor-scene-id" class="input-field" placeholder="ex: cena_floresta_secreta" required>
+            </div>
+
+            <div class="input-container">
+              <label for="editor-scene-title">Título da Cena</label>
+              <input type="text" id="editor-scene-title" class="input-field" placeholder="ex: A Caverna do Dragão" required>
+            </div>
+
+            <div class="input-container">
+              <label for="editor-visual-theme">Tema Visual / Fundo</label>
+              <select id="editor-visual-theme" class="select-field">
+                <option value="forest">🌲 Floresta Encantada</option>
+                <option value="cave">💎 Caverna de Cristais</option>
+                <option value="castle">🏰 Castelo Medieval</option>
+                <option value="victory">✨ Grande Celebração (Vitória)</option>
+              </select>
+            </div>
+
+            <div class="input-container">
+              <label for="editor-narration-text">Texto de Narração (Suporta marcas de voz ex: [sussurrando], [pausa 1s], ...)</label>
+              <textarea id="editor-narration-text" class="textarea-field" placeholder="[misterioso] De repente... [pausa 1s] ele ouviu um rugido: [dragao_anciao] 'Quem ousa entrar aqui?!'" required></textarea>
+            </div>
+
+            <div class="input-container">
+              <label for="editor-drag-item-select">Tipo de Objeto para Arrastar</label>
+              <select id="editor-drag-item-select" class="select-field">
+                <option value="backpack">🎒 Mochila Mágica</option>
+                <option value="crown">👑 Coroa Perdida</option>
+                <option value="crystal_red">🔴 Cristal de Fogo</option>
+                <option value="crystal_blue">🔵 Cristal de Gelo</option>
+                <option value="crystal_green">🟢 Cristal da Natureza</option>
+              </select>
+            </div>
+
+            <div class="input-container">
+              <label for="editor-prompt-text">Instrução para o Jogador</label>
+              <input type="text" id="editor-prompt-text" class="input-field" placeholder="ex: Arraste a coroa para a cabeça do rei!" required>
+            </div>
+
+            <div class="input-container">
+              <label for="editor-success-text">Narração de Sucesso</label>
+              <input type="text" id="editor-success-text" class="input-field" placeholder="[alegre] Uau! Você conseguiu!" required>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button id="add-scene-btn" class="btn-primary" style="flex:1;">
+                💾 Salvar Cena & Adicionar
+              </button>
+              <button id="export-json-btn" class="btn-icon-text" style="flex:0 0 120px;">
+                📥 Exportar JSON
+              </button>
+            </div>
+          </form>
+
+          <!-- Scene Tree List / Quick Actions -->
+          <div class="editor-scenes-manager">
+            <h4 style="margin-bottom:12px; font-family:var(--font-display); color:var(--secondary);">
+              Árvore de Cenas na História Customizada
+            </h4>
+            <div id="custom-scenes-list" class="editor-scenes-list">
+              <!-- Rendered dynamic scene list items -->
+              <p class="text-muted" style="font-size:0.85rem; font-style:italic;">
+                Nenhuma cena customizada criada ainda. Complete o formulário para criar a primeira!
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- FOOTER / CREDITS -->
+    <footer style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.8rem; border-top:1px solid var(--border-glass); margin-top:20px; display:flex; justify-content:space-between; align-items:center;">
+      <span>© 2026 Reino das Histórias. Desenvolvido para aprendizado imersivo.</span>
+      <span>Acessibilidade Nível Triple-A ♿</span>
+    </footer>
+
+  </div>
+
+  <!-- CORE SCRIPTS -->
+  <script src="app.js"></script>
+</body>
+</html>

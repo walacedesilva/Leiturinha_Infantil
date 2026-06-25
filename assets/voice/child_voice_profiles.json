@@ -1,0 +1,203 @@
+{
+  "child_voice_profiles": {
+    "version": "1.0",
+    "language": "pt-BR",
+    "lgpd_note": "Perfis 100% sintéticos. Nenhum dado de voz infantil real é armazenado, processado ou usado para fine-tuning sem consentimento parental explícito e anonimização.",
+
+    "pt_br_girl_6y": {
+      "description": "Voz feminina, 6 anos, pt-BR, pedagógica",
+      "target_age": "4-7 years",
+      "pedagogical_mode": true,
+
+      "acoustic": {
+        "f0_mean_hz": 260,
+        "f0_range_hz": [220, 320],
+        "f0_range_semitones": 35,
+        "formant_shift_percent": 18,
+        "spectral_tilt_db": -8,
+        "jitter_percent": 0.8,
+        "shimmer_db": 0.4,
+        "loudness_lufs": -17,
+        "freq_safety_band_hz": [180, 9000]
+      },
+      "prosody": {
+        "rate_multiplier": 0.9,
+        "pause_syllable_ms": 180,
+        "stress_duration_factor": 1.12,
+        "stress_intensity_db": 4,
+        "intonation_contour": "slight_rise_on_stress"
+      },
+      "articulation": {
+        "vowel_mode": "full_vowels",
+        "vowel_space_expansion": 1.15,
+        "consonant_attack": "clear_controlled",
+        "consonant_release_controlled": true,
+        "cluster_handling": "unit_with_light_separation",
+        "cluster_separation_ms": 40,
+        "digraph_handling": "single_phoneme_exaggerated",
+        "digraph_emphasis": "frication_boost"
+      },
+
+      "platform_mapping": {
+        "azure": {
+          "voice_name": "pt-BR-FranciscaNeural",
+          "style": "cheerful",
+          "style_degree": 1.2,
+          "prosody": { "rate": "90%", "pitch": "+15%", "volume": "medium" },
+          "post_effect": "small-speaker-compensation",
+          "audio_format": "riff-24khz-16bit-mono-pcm"
+        },
+        "elevenlabs": {
+          "voice_id": "child_pt_br_female_01",
+          "model_id": "eleven_multilingual_v2",
+          "settings": {
+            "stability": 0.45,
+            "similarity_boost": 0.75,
+            "style": 0.25,
+            "use_speaker_boost": true
+          },
+          "custom_prompt": "Fale como uma criança brasileira de 6 anos, clara, alegre e paciente, ensinando sílabas para um amigo. Velocidade levemente reduzida, vogais bem abertas, tom acolhedor.",
+          "optimize_streaming_latency": 2
+        },
+        "google": {
+          "voice_name": "pt-BR-Standard-A",
+          "ssml_gender": "FEMALE",
+          "config_overrides": {
+            "audioEncoding": "LINEAR16",
+            "sampleRateHertz": 24000,
+            "speakingRate": 0.9,
+            "pitch": 4.0,
+            "volumeGainDb": 2.0,
+            "effectsProfileId": [
+              "small-bluetooth-speaker-class-device",
+              "headphone-class-device"
+            ]
+          }
+        },
+        "playht": {
+          "voice": "child_female_pt_br_01",
+          "voice_engine": "PlayHT2.0-turbo",
+          "temperature": 0.3,
+          "top_p": 0.95,
+          "speed": 0.9,
+          "pitch": 1.15,
+          "style": "cheerful",
+          "emotion": "friendly"
+        }
+      },
+
+      "validation_checklist": [
+        "Soa como criança 4-7 anos (não adulto com pitch shifted)",
+        "Vogais plenas e discrimináveis (/a/ != /ɐ/, /e/ != /ɛ/)",
+        "Consoantes com ataque claro sem elisão",
+        "Encontros consonantais como unidade com articulação perceptível",
+        "Dígrafos como fonemas únicos (CH=/ʃ/, LH=/ʎ/, NH=/ɲ/)",
+        "Prosódia alegre/acolhedora sem ser exagerada",
+        "Loudness entre -18 e -16 LUFS",
+        "Sem sibilância estridente ou plosivas explosivas",
+        "Mesma sílaba => mesma pronúncia em múltiplas gerações",
+        "Teste com crianças reais: >=80% identifica como 'voz de criança'"
+      ]
+    },
+
+    "pt_br_boy_6y": {
+      "description": "Voz masculina, 6 anos, pt-BR, pedagógica",
+      "target_age": "4-7 years",
+      "pedagogical_mode": true,
+      "acoustic": {
+        "f0_mean_hz": 245,
+        "f0_range_hz": [200, 300],
+        "f0_range_semitones": 32,
+        "formant_shift_percent": 15,
+        "spectral_tilt_db": -7,
+        "jitter_percent": 0.9,
+        "shimmer_db": 0.5,
+        "loudness_lufs": -17,
+        "freq_safety_band_hz": [180, 9000]
+      },
+      "prosody": {
+        "rate_multiplier": 0.9,
+        "pause_syllable_ms": 180,
+        "stress_duration_factor": 1.12,
+        "stress_intensity_db": 4,
+        "intonation_contour": "slight_rise_on_stress"
+      },
+      "articulation": {
+        "vowel_mode": "full_vowels",
+        "vowel_space_expansion": 1.12,
+        "consonant_attack": "clear_controlled",
+        "consonant_release_controlled": true,
+        "cluster_handling": "unit_with_light_separation",
+        "cluster_separation_ms": 40,
+        "digraph_handling": "single_phoneme_exaggerated",
+        "digraph_emphasis": "frication_boost"
+      },
+      "platform_mapping": {
+        "azure": {
+          "voice_name": "pt-BR-AntonioNeural",
+          "style": "cheerful",
+          "style_degree": 1.1,
+          "prosody": { "rate": "90%", "pitch": "+12%", "volume": "medium" },
+          "post_effect": "small-speaker-compensation",
+          "audio_format": "riff-24khz-16bit-mono-pcm"
+        },
+        "elevenlabs": {
+          "voice_id": "child_pt_br_male_01",
+          "model_id": "eleven_multilingual_v2",
+          "settings": {
+            "stability": 0.50,
+            "similarity_boost": 0.75,
+            "style": 0.20,
+            "use_speaker_boost": true
+          }
+        },
+        "google": {
+          "voice_name": "pt-BR-Standard-B",
+          "ssml_gender": "MALE",
+          "config_overrides": {
+            "audioEncoding": "LINEAR16",
+            "sampleRateHertz": 24000,
+            "speakingRate": 0.9,
+            "pitch": 3.0,
+            "volumeGainDb": 2.0,
+            "effectsProfileId": [
+              "small-bluetooth-speaker-class-device",
+              "headphone-class-device"
+            ]
+          }
+        }
+      }
+    },
+
+    "validation_protocol": {
+      "ab_test": {
+        "n_children": 20,
+        "age_range": "4-7",
+        "conditions": ["voz_adulta_pitch_shift", "voz_infantil_perfil_completo"],
+        "environment": "controlado, fones infantis",
+        "questions": [
+          "Essa voz parece de quem? (adulto/criança/robô)",
+          "Você consegue repetir o que ela falou?",
+          "Essa voz é legal para aprender?"
+        ],
+        "metrics": {
+          "identifica_como_crianca_pct_min": 80,
+          "repete_corretamente_pct_min": 85,
+          "avalia_legal_pct_min": 90
+        },
+        "fail_criteria": "Se >=2 metricas abaixo da meta -> reajustar parametros"
+      }
+    },
+
+    "fallback_strategy": [
+      "Se plataforma X não oferecer voz infantil nativa de qualidade aceitável",
+      "  1. Coletar 30-60 min de fala infantil pt-BR (consentimento parental + LGPD)",
+      "  2. Anotação fonética com Montreal Forced Aligner",
+      "  3. Extrair F0, formantes, duração silábica, prosódia",
+      "  4. Fine-tune de modelo base (Resemble/ElevenLabs Voice Lab) com perfil infantil",
+      "  5. Validar com protocolo A/B acima",
+      "  6. Versionar como child_voice_pt_br_vX.Y_pedagogical",
+      "Atenção LGPD: dados anonimizados, consentimento explícito, deleção após fine-tune."
+    ]
+  }
+}

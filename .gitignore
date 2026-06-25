@@ -33,6 +33,11 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Expo/Node cache na raiz (o subprojeto react-native/ tem seu próprio .gitignore
+# que já exclui node_modules/, .expo/, android/ e ios/).
+.expo/
+**/node_modules/
+
 # Symbolication related
 app.*.symbols
 
@@ -43,3 +48,24 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Scripts auxiliares e logs locais (gerados durante a sessao, caminhos da maquina)
+/analyze_out.txt
+/build_log.txt
+/audio_gen.log
+/analyze_map.bat
+/build_apk.bat
+/clean_rebuild.bat
+/run_gen_audio.bat
+/commit_*.bat
+/install_apk.bat
+/pub_get.bat
+/fix_ba.bat
+/install_log.txt
+/pub_get_out.txt
+/push_out.txt
+
+# Assinatura de release (NUNCA versionar a keystore nem as senhas)
+/android/key.properties
+*.jks
+*.keystore

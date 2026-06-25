@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Metrics -->
+  <title>Leitura Feliz - Entrar no Reino da Alfabetização</title>
+  <meta name="description" content="Faça seu login no Leitura Feliz. Aprenda a ler brincando em um universo de historinhas, planetas estelares e divertidos desafios pedagógicos.">
+  <meta name="keywords" content="leitura feliz, login educativo, alfabetizacao infantil, login google, portal estelar">
+  
+  <!-- Modern Typography (Inter & Outfit) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;900&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+  <!-- Background Bubble Orbs (Decorativas) -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <main class="login-wrapper">
+    <section class="login-card" id="login-form-card">
+      
+      <!-- ESQUERDA: FORMULÁRIO DE LOGIN -->
+      <div class="form-container">
+        <h2 class="form-title">Login</h2>
+        
+        <form id="auth-form" class="auth-form">
+          <div class="input-group">
+            <label for="email" id="lbl-email">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              placeholder="username@gmail.com" 
+              required
+              aria-labelledby="lbl-email"
+            >
+          </div>
+          
+          <div class="input-group">
+            <div class="label-row">
+              <label for="password" id="lbl-password">Password</label>
+              <a href="#" class="forgot-link">Forgot Password?</a>
+            </div>
+            <div class="password-wrapper">
+              <input 
+                type="password" 
+                id="password" 
+                placeholder="Password" 
+                required
+                aria-labelledby="lbl-password"
+              >
+              <button type="button" class="btn-toggle-password" id="btn-toggle-pwd" aria-label="Exibir senha">👁️</button>
+            </div>
+          </div>
+          
+          <button type="submit" id="btn-signin" class="btn-submit">Sign in</button>
+          
+          <div class="divider-row">
+            <span>Or Continue With</span>
+          </div>
+          
+          <!-- Google Sign-In Button conforme diretrizes de branding -->
+          <button type="button" id="btn-google-login" class="btn-google">
+            <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+              <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.68 1.54 14.98 1 12 1 7.35 1 3.37 3.67 1.39 7.56l3.85 2.99c.92-2.75 3.48-4.51 6.76-4.51z"/>
+              <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.76 2.91c2.2-2.03 3.67-5.01 3.67-8.64z"/>
+              <path fill="#FBBC05" d="M5.24 10.55c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.39 4.98C.5 6.77 0 8.8 0 11s.5 4.23 1.39 6.02l3.85-2.99c-.24-.72-.38-1.49-.38-2.29z"/>
+              <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.76-2.91c-1.1.74-2.52 1.18-4.2 1.18-3.28 0-5.84-1.76-6.76-4.51L1.39 16.84C3.37 20.33 7.35 23 12 23z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- DIREITA: ILUSTRAÇÃO VETORIAL LÚDICA PREMIUM (SVG EM BUTIDO) -->
+      <div class="illustration-container">
+        
+        <!-- O Card de Ilustração Fofa -->
+        <div class="vector-card">
+          <!-- Ilustração Vetorial Integrada SVG Puro -->
+          <svg class="girl-reading-svg" viewBox="0 0 400 400" width="100%" height="100%">
+            <!-- Definições para sombras e gradientes -->
+            <defs>
+              <linearGradient id="skin-gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#FFD1B3"/>
+                <stop offset="100%" stop-color="#FCA888"/>
+              </linearGradient>
+              <linearGradient id="hair-gradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#4F301F"/>
+                <stop offset="100%" stop-color="#2B150A"/>
+              </linearGradient>
+              <linearGradient id="glass-gradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#F9A03F"/>
+                <stop offset="100%" stop-color="#E15827"/>
+              </linearGradient>
+              <filter id="soft-shadow" x="-10%" y="-10%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#4F301F" flood-opacity="0.15"/>
+              </filter>
+            </defs>
+
+            <!-- 1. Texto da Marca em Arco -->
+            <path id="text-path" d="M 60,110 A 130,130 0 0,1 340,110" fill="none"/>
+            <text class="brand-text">
+              <textPath href="#text-path" startOffset="50%" text-anchor="middle">
+                LEITURA FELIZ
+              </textPath>
+            </text>
+            <text class="brand-subtext" x="200" y="112" text-anchor="middle">
+              APRENDENDO BRINCANDO
+            </text>
+
+            <!-- 2. Livros Flutuantes Esquerdos e Direitos -->
+            <!-- Livro Esquerdo -->
+            <g class="float-book-left" filter="url(#soft-shadow)">
+              <rect x="52" y="148" width="46" height="34" rx="4" fill="#FFF176" transform="rotate(-15, 75, 165)"/>
+              <path d="M 56,150 L 75,164 L 94,152" fill="none" stroke="#2B150A" stroke-width="1.5"/>
+              <circle cx="65" cy="164" r="5" fill="#E57373"/>
+              <circle cx="85" cy="166" r="4" fill="#4FC3F7"/>
+            </g>
+
+            <!-- Livro Direito -->
+            <g class="float-book-right" filter="url(#soft-shadow)">
+              <rect x="302" y="144" width="44" height="32" rx="4" fill="#81C784" transform="rotate(18, 324, 160)"/>
+              <path d="M 306,146 L 324,158 L 342,148" fill="none" stroke="#2B150A" stroke-width="1.5"/>
+              <line x1="312" y1="160" x2="336" y2="152" stroke="white" stroke-width="2"/>
+            </g>
+
+            <!-- Estrelinhas decorativas -->
+            <path d="M 40,220 L 44,228 L 52,228 L 46,234 L 48,242 L 40,236 L 32,242 L 34,234 L 28,228 L 36,228 Z" fill="#FCA888" opacity="0.6"/>
+            <path d="M 350,210 L 354,216 L 360,216 L 356,220 L 357,226 L 350,222 L 343,226 L 344,220 L 340,216 L 346,216 Z" fill="#F9A03F" opacity="0.6"/>
+
+            <!-- 3. Personagem Menina -->
+            <!-- Cabelo de fundo (Traseiro) -->
+            <path d="M 120,240 C 90,260 85,320 120,350 C 150,370 250,370 280,350 C 315,320 310,260 280,240 Z" fill="url(#hair-gradient)"/>
+
+            <!-- Rosto -->
+            <path d="M 135,230 C 135,170 265,170 265,230 C 265,290 135,290 135,230 Z" fill="url(#skin-gradient)"/>
+
+            <!-- Cabelo superior e franja -->
+            <path d="M 132,210 C 160,180 200,180 215,200 C 230,180 250,180 268,210 C 278,230 285,250 280,270 C 275,290 270,300 270,300 C 270,300 285,250 270,230 C 255,210 240,212 230,220 C 215,205 185,200 160,225 C 145,240 140,265 140,265 C 140,265 130,245 132,210 Z" fill="url(#hair-gradient)"/>
+            
+            <!-- Detalhe da mecha de cabelo caída -->
+            <path d="M 135,230 C 120,260 125,320 140,340 C 145,320 142,280 145,260 Z" fill="#2B150A"/>
+            <path d="M 265,230 C 280,260 275,320 260,340 C 255,320 258,280 255,260 Z" fill="#2B150A"/>
+
+            <!-- Olhos Grandes Brilhantes -->
+            <!-- Olho Esquerdo -->
+            <ellipse cx="178" cy="226" rx="14" ry="12" fill="#2B150A"/>
+            <circle cx="174" cy="222" r="5" fill="white"/>
+            <circle cx="182" cy="230" r="2.5" fill="white"/>
+            
+            <!-- Olho Direito -->
+            <ellipse cx="222" cy="226" rx="14" ry="12" fill="#2B150A"/>
+            <circle cx="218" cy="222" r="5" fill="white"/>
+            <circle cx="226" cy="230" r="2.5" fill="white"/>
+
+            <!-- Sobrancelhas expressivas -->
+            <path d="M 160,212 C 168,206 182,206 190,212" fill="none" stroke="#2B150A" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 210,212 C 218,206 232,206 240,212" fill="none" stroke="#2B150A" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- Bochechas rosadas (Blush) -->
+            <ellipse cx="160" cy="242" rx="12" ry="7" fill="#E57373" opacity="0.35"/>
+            <ellipse cx="240" cy="242" rx="12" ry="7" fill="#E57373" opacity="0.35"/>
+
+            <!-- Sorriso com dentinhos de leite separados -->
+            <path d="M 180,250 C 180,250 200,274 220,250 Z" fill="#2B150A"/>
+            <path d="M 180,250 Q 200,270 220,250" fill="none" stroke="#2B150A" stroke-width="1.5"/>
+            <!-- Dentinhos brancos superiores separados -->
+            <rect x="191" y="250" width="5" height="4" fill="white"/>
+            <rect x="204" y="250" width="5" height="4" fill="white"/>
+
+            <!-- 4. Óculos Grandes Mágicos de "A" e "B" -->
+            <!-- Lente Esquerda -->
+            <circle cx="168" cy="285" r="42" fill="none" stroke="url(#glass-gradient)" stroke-width="10" filter="url(#soft-shadow)"/>
+            <circle cx="168" cy="285" r="37" fill="#FCA888" opacity="0.2"/>
+            <circle cx="168" cy="285" r="28" fill="#4FC3F7" opacity="0.8"/>
+            <text x="168" y="295" font-family="Nunito" font-size="28" font-weight="900" fill="white" text-anchor="middle">A</text>
+
+            <!-- Lente Direita -->
+            <circle cx="232" cy="285" r="42" fill="none" stroke="url(#glass-gradient)" stroke-width="10" filter="url(#soft-shadow)"/>
+            <circle cx="232" cy="285" r="37" fill="#FCA888" opacity="0.2"/>
+            <circle cx="232" cy="285" r="28" fill="#FFF176" opacity="0.8"/>
+            <text x="232" y="295" font-family="Nunito" font-size="28" font-weight="900" fill="#2B150A" text-anchor="middle">B</text>
+
+            <!-- Ponte dos Óculos -->
+            <path d="M 194,272 Q 200,266 206,272" fill="none" stroke="url(#glass-gradient)" stroke-width="10" stroke-linecap="round"/>
+
+            <!-- Gola de livro/capa (Roupas da menina exploradora) -->
+            <path d="M 175,280 L 200,305 L 225,280 L 235,320 L 165,320 Z" fill="#E57373" stroke="#2B150A" stroke-width="2"/>
+            <path d="M 200,305 L 200,320" stroke="#2B150A" stroke-width="2"/>
+          </svg>
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <!-- POPUP NOTIFICAÇÃO LÚDICA -->
+  <div id="playful-toast" class="toast hidden">
+    <span class="toast-emoji">🌟</span>
+    <span id="toast-message">Bem-vindo ao Reino da Leitura!</span>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+# Normaliza fim de linha: LF no repositório (e na árvore de trabalho).
+# Evita o churn de CRLF<->LF que deixava diffs ilegíveis.
+* text=auto eol=lf
+
+# ── Fontes / texto: força tratamento como texto e LF (diffs legíveis) ──
+*.dart    text eol=lf
+*.yaml    text eol=lf
+*.yml     text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf
+*.txt     text eol=lf
+*.gradle  text eol=lf
+*.xml     text eol=lf
+*.kt      text eol=lf
+*.kts     text eol=lf
+*.java    text eol=lf
+*.html    text eol=lf
+*.css     text eol=lf
+*.js      text eol=lf
+*.ts      text eol=lf
+*.properties text eol=lf
+*.svg     text eol=lf
+
+# Scripts batch do Windows precisam de CRLF
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+
+# ── Binários: nunca normalizar ──
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.wav  binary
+*.mp3  binary
+*.ogg  binary
+*.m4a  binary
+*.ttf  binary
+*.otf  binary
+*.woff binary
+*.woff2 binary
+*.glb  binary
+*.gltf binary
+*.zip  binary
+*.apk  binary
+*.aab  binary
+*.jar  binary
+*.keystore binary
+*.jks  binary
+*.lottie binary
+*.dill binary
+*.so   binary
+*.dylib binary
+*.a    binary

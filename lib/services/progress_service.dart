@@ -29,6 +29,7 @@ class ProgressService extends ChangeNotifier {
   final SharedPreferences _prefs;
 
   static const String _progressPrefix = 'progress_';
+  static const String _lastFamilyKey = 'last_played_family';
 
   ProgressService(this._prefs);
 
@@ -73,6 +74,22 @@ class ProgressService extends ChangeNotifier {
     }
   }
 
+  /// Marca todas as palavras de uma família como concluídas (garante 100%).
+  Future<void> markAllWordsCompleted(String familyKey, List<String> allWords) async {
+    final completed = getCompletedWords(familyKey);
+    bool changed = false;
+    for (final word in allWords) {
+      if (!completed.contains(word)) {
+        completed.add(word);
+        changed = true;
+      }
+    }
+    if (changed) {
+      await _save(familyKey, completed);
+      notifyListeners();
+    }
+  }
+
   /// Reseta o progresso de uma família específica.
   Future<void> resetFamily(String familyKey) async {
     await _prefs.remove('$_progressPrefix$familyKey');
@@ -85,6 +102,18 @@ class ProgressService extends ChangeNotifier {
       await _prefs.remove('$_progressPrefix$key');
     }
     notifyListeners();
+  }
+
+  // ────────────────────────────────────────────────
+  // ÚLTIMA FAMÍLIA JOGADA
+  // ────────────────────────────────────────────────
+
+  /// Retorna a chave da última família jogada, ou null se nunca jogou.
+  String? getLastPlayedFamilyKey() => _prefs.getString(_lastFamilyKey);
+
+  /// Salva a última família jogada.
+  Future<void> saveLastPlayedFamily(String familyKey) async {
+    await _prefs.setString(_lastFamilyKey, familyKey);
   }
 
   // ────────────────────────────────────────────────
