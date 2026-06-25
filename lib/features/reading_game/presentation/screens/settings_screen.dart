@@ -999,9 +999,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               setState(() => _sfxVolume = val);
               _saveSetting('cfg_sfx_volume', val);
               AudioManager().setSfxVolume(val);
-              // Feedback auditivo sutil na troca de volume dos efeitos
-              AudioManager().playSFX(SFXType.pop);
-            }),
+            },
+                // Preview só ao SOLTAR (evita criar dezenas de players no arraste)
+                onChangeEnd: () => AudioManager().playSFX(SFXType.pop)),
             _buildSubVolumeSlider('Trilha Sonora 🎵', _musicVolume, (val) {
               setState(() => _musicVolume = val);
               _saveSetting('cfg_music_volume', val);
@@ -1014,7 +1014,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildSubVolumeSlider(
-      String label, double val, ValueChanged<double> onChanged) {
+      String label, double val, ValueChanged<double> onChanged,
+      {VoidCallback? onChangeEnd}) {
     return Row(
       children: [
         SizedBox(
@@ -1031,6 +1032,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             activeColor: const Color(0xFF8B5CF6).withOpacity(0.7),
             inactiveColor: const Color(0xFFE5E7EB),
             onChanged: onChanged,
+            onChangeEnd: onChangeEnd == null ? null : (_) => onChangeEnd(),
           ),
         ),
       ],

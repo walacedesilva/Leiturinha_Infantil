@@ -109,9 +109,10 @@ class _LearnToReadAppState extends State<LearnToReadApp>
     // Pausa a trilha/ambiente quando o app sai de foco e retoma ao voltar.
     if (state == AppLifecycleState.resumed) {
       AudioManager().resumeBackground();
-    } else if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.hidden) {
+    } else if (state == AppLifecycleState.paused) {
+      // Só pausa quando o app vai realmente para segundo plano.
+      // 'inactive'/'hidden' são transitórios (diálogos, overlays do sistema)
+      // e pausar neles deixava o áudio travado.
       AudioManager().pauseBackground();
     }
   }

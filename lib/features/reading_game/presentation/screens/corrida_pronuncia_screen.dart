@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/landscape_stage.dart';
 import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
 import 'encontros_celebracao_screen.dart';
@@ -255,7 +254,7 @@ class _CorridaPronunciaScreenState extends State<CorridaPronunciaScreen>
           Positioned.fill(child: _TrackBg(speedT: _speedCtrl)),
           // ── Conteúdo ────────────────────────────────────────────────────
           SafeArea(
-            child: LandscapeStage(child: Column(
+            child: Column(
               children: [
                 // HUD topo
                 _RaceHud(
@@ -292,7 +291,7 @@ class _CorridaPronunciaScreenState extends State<CorridaPronunciaScreen>
                 ),
                 const SizedBox(height: 8),
               ],
-            )),
+            ),
           ),
           // ── Overlay de sucesso ───────────────────────────────────────────
           if (_showSuccess)

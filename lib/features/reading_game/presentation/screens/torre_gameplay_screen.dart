@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/landscape_stage.dart';
 import '../../../../services/audio_manager.dart';
 import '../../../../services/gamification_service.dart';
 import '../../../../services/progress_service.dart';
@@ -363,7 +362,7 @@ class _TorreGameplayScreenState extends State<TorreGameplayScreen>
         ),
         child: SafeArea(
           bottom: false,
-          child: LandscapeStage(child: Column(
+          child: Column(
             children: [
               // ── Top bar ─────────────────────────────────────────────────
               _TopBar(
@@ -412,7 +411,7 @@ class _TorreGameplayScreenState extends State<TorreGameplayScreen>
               ),
               const SizedBox(height: 100), // tab bar clearance
             ],
-          )),
+          ),
         ),
       ),
     );

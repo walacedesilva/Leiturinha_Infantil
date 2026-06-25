@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/landscape_stage.dart';
 import '../../../../services/audio_manager.dart';
 import '../../../../services/speech_validator.dart';
 import '../../domain/game_logic.dart';
@@ -140,7 +139,7 @@ class _SyllableCraneScreenState extends State<SyllableCraneScreen>
         return Scaffold(
           backgroundColor: _kSky,
           body: SafeArea(
-            child: LandscapeStage(child: Column(
+            child: Column(
               children: [
                 // ── Top bar ──────────────────────────────────────────────
                 _TopBar(gl: gl),
@@ -168,7 +167,8 @@ class _SyllableCraneScreenState extends State<SyllableCraneScreen>
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             // Space for crane arm
-                            const SizedBox(height: 68),
+                            const SizedBox(height: 56),
+                            const Spacer(),
 
                             // Mascot speech bubble
                             _MascotBubble(gl: gl).animate()
@@ -196,12 +196,15 @@ class _SyllableCraneScreenState extends State<SyllableCraneScreen>
                                 },
                               ),
 
-                            const Spacer(),
+                            // Fundação (slots) só durante a montagem — no
+                            // pós-montagem a palavra já aparece pronta no card,
+                            // e esconder libera espaço (evita overflow).
+                            if (isAssembling) ...[
+                              const SizedBox(height: 28),
+                              _WordFoundation(gl: gl),
+                            ],
 
-                            // Word foundation (slots)
-                            _WordFoundation(gl: gl),
-
-                            const SizedBox(height: 12),
+                            const Spacer(flex: 2),
                           ],
                         ),
                       ),
@@ -212,7 +215,7 @@ class _SyllableCraneScreenState extends State<SyllableCraneScreen>
                 // ── Bottom buttons ───────────────────────────────────────
                 _BottomBar(gl: gl, isPostAssembly: isPostAssembly),
               ],
-            )),
+            ),
           ),
         );
       },
@@ -1088,10 +1091,12 @@ class _BottomBar extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(width: 14),
-
-          // "FALAR" mic button — orange gradient when active
-          _FalarButton(gl: gl, isPostAssembly: isPostAssembly),
+          // Botão FALAR/Próxima: escondido quando a palavra já foi validada
+          // (o avanço fica só no botão "Próxima Palavra!" do card de feedback).
+          if (!gl.isValidated) ...[
+            const SizedBox(width: 14),
+            _FalarButton(gl: gl, isPostAssembly: isPostAssembly),
+          ],
         ],
       ),
     );

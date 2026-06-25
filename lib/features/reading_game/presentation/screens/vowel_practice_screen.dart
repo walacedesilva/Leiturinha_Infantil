@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../../../core/landscape_stage.dart';
 import '../../../../services/audio_manager.dart';
 import '../../../../services/speech_validator.dart';
 import 'word_practice_screen.dart';
@@ -248,7 +247,7 @@ class _VowelPracticeScreenState extends State<VowelPracticeScreen>
               ),
 
               // Layer 1: Main column
-              LandscapeStage(child: Column(
+              Column(
                 children: [
                   _buildHeader(context),
                   const Spacer(flex: 1),
@@ -289,7 +288,7 @@ class _VowelPracticeScreenState extends State<VowelPracticeScreen>
                   ),
                   const SizedBox(height: 32),
                 ],
-              )),
+              ),
             ],
           ),
         ),

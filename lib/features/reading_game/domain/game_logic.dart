@@ -262,6 +262,9 @@ class GameLogic extends ChangeNotifier {
     debugPrint('[GAME] → estado: validating (tentativa $_validationAttempts)');
     notifyListeners();
 
+    // Silencia trilha/ambiente/fala durante a gravação no microfone.
+    _audioManager.pauseForMic();
+
     await SpeechValidator().startListening(
       targetWord: _currentWord,
       syllables: _targetSyllables,
@@ -312,6 +315,7 @@ class GameLogic extends ChangeNotifier {
         _state = GameState.validated;
         debugPrint('[GAME] → estado: validated (attempts=$_validationAttempts)');
         HapticFeedback.mediumImpact();
+        _audioManager.resumeFromMic(); // retoma sons após a gravação
         notifyListeners();
       },
     );
@@ -322,6 +326,7 @@ class GameLogic extends ChangeNotifier {
     debugPrint('[GAME] cancelSpeechValidation(): state=$_state');
     if (_state != GameState.validating) return;
     await SpeechValidator().cancelListening();
+    _audioManager.resumeFromMic();
     _state = GameState.completed;
     _partialTranscript = '';
     debugPrint('[GAME] → estado: completed (cancelado)');

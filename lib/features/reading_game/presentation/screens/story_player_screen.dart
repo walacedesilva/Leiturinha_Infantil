@@ -95,7 +95,7 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
     _initStt();
     _brushColor = const Color(0xFF4ECDC4);
     AudioManager().pauseMusic(); // Silencia a trilha do hub durante a história
-    AudioManager().playAmbient(_act.background.ambientAudio);
+    AudioManager().playAmbient(_act.background.ambientAudio, loop: false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _playActiveDialogue();
     });
@@ -119,10 +119,57 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
 
     if (d != null) {
       final isNarrator = d.character.toLowerCase().contains('narrator');
-      final clip = d.animalSound;
-      if (clip != null) AudioManager().playClip(clip);
-      AudioManager().speakSentence(d.spokenText, isChild: !isNarrator);
+      String toSpeak = d.spokenText;
+
+      // Onomatopeias de animais NÃO devem ser lidas/soletradas pelo TTS: são
+      // removidas do texto e o SOM REAL do animal é tocado no lugar.
+      final clips = <String>{};
+      if (d.animalSound != null) clips.add(d.animalSound!);
+      _animalOnomatopoeia.forEach((onom, clip) {
+        if (toSpeak.toUpperCase().contains(onom)) {
+          toSpeak = _stripWord(toSpeak, onom);
+          clips.add(clip);
+        }
+      });
+
+      // Toca os sons (em sequência quando há mais de um, ex.: ato de gravar
+      // "RROARRR, COAX, PIU" → rugido, coaxar, piu, um após o outro).
+      final list = clips.toList();
+      for (var i = 0; i < list.length; i++) {
+        if (i == 0) {
+          AudioManager().playClip(list[i]);
+        } else {
+          Future.delayed(Duration(milliseconds: i * 1400), () {
+            if (mounted) AudioManager().playClip(list[i]);
+          });
+        }
+      }
+      AudioManager().speakSentence(toSpeak, isChild: !isNarrator);
     }
+  }
+
+  /// Onomatopeia (em MAIÚSCULAS, como aparece no texto) → nome do clipe de som
+  /// em assets/audio/sfx/<clipe>.mp3.
+  static const Map<String, String> _animalOnomatopoeia = {
+    'RROARRR': 'leao',
+    'COAX': 'sapo',
+    'PIU': 'passaro',
+  };
+
+  /// Remove uma onomatopeia do texto e limpa pontuação/espaços/linhas órfãs.
+  String _stripWord(String text, String word) {
+    var out = text.replaceAll(RegExp(RegExp.escape(word), caseSensitive: false), '');
+    out = out.replaceAll(RegExp(r'[ \t]*,[ \t]*,'), ','); // vírgulas duplas
+    out = out.replaceAll(RegExp(r'[,\s]+([!?.])'), r'$1'); // lixo antes de . ! ?
+    out = out.replaceAll(RegExp(r'[ \t]+([!?.,])'), r'$1'); // espaço antes de pontuação
+    out = out.replaceAll(RegExp(r'[ \t]{2,}'), ' ');
+    // limpa cada linha e descarta as que ficaram só com pontuação/espaços
+    out = out
+        .split('\n')
+        .map((l) => l.replaceAll(RegExp(r'^[\s,]+|[\s,]+$'), '').trim())
+        .where((l) => RegExp(r'[A-Za-zÀ-ÿ0-9]').hasMatch(l))
+        .join('\n');
+    return out.trim();
   }
 
   int _resolveStoryIndex() {
@@ -195,7 +242,7 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
       _currentStroke = [];
       _feedbackDialogue = [];
     });
-    AudioManager().playAmbient(_act.background.ambientAudio);
+    AudioManager().playAmbient(_act.background.ambientAudio, loop: false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _playActiveDialogue();
     });
@@ -233,12 +280,8 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
     if (nextAct != null) {
       _goToAct(nextAct);
     } else {
-      // re-enter interaction
-      setState(() {
-        _phase = _Phase.interaction;
-        _feedbackDialogue = [];
-        _feedbackIdx = 0;
-      });
+      // Sem próximo ato = fim da história. Conclui (não re-entra na interação).
+      _complete();
     }
   }
 
@@ -320,6 +363,7 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
   // ─────────────────────────────────────────────────────────────────────────
   Future<void> _startListening() async {
     if (!_sttAvailable || _isListening) return;
+    AudioManager().pauseForMic(); // silencia tudo durante a gravação
     setState(() { _isListening = true; _lastSpeech = ''; });
 
     _sttSafetyTimer?.cancel();
@@ -360,11 +404,29 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
     _sttSafetyTimer?.cancel();
     _sttSafetyTimer = null;
     _stt.stop();
+    AudioManager().resumeFromMic(); // retoma sons após a gravação
     setState(() => _isListening = false);
     _validateSpeech();
   }
 
+  /// Prompts de SOM DE ANIMAL / onomatopeia (ex.: "RROARRR", "AAAA") não são
+  /// reconhecíveis por STT — um rugido não vira texto. Para esses, basta a
+  /// criança tentar (imitar) = acerto. Detecta por instrução "fale o som do..."
+  /// ou por alvo sem espaço com letra repetida (rr, aaaa...).
+  bool _isAnimalSoundPrompt() {
+    final instr = _act.interaction.instruction.toLowerCase();
+    if (instr.contains('som do ') ||
+        instr.contains('som da ') ||
+        instr.contains('som de ')) return true;
+    final target = _act.interaction.targetPhrase;
+    final letters = target.replaceAll(RegExp(r'[^A-Za-zÀ-ÿ]'), '').toLowerCase();
+    return !target.trim().contains(' ') && RegExp(r'(.)\1').hasMatch(letters);
+  }
+
   void _validateSpeech() {
+    // Som de animal/onomatopeia: imitar já conta como acerto (STT não valida).
+    if (_isAnimalSoundPrompt()) { _onSuccess(); return; }
+
     final target = _act.interaction.targetPhrase.toLowerCase().trim();
     final heard = _lastSpeech.toLowerCase().trim();
     if (heard.isEmpty) { _onFail(); return; }
@@ -970,41 +1032,44 @@ class _DialogueArea extends StatelessWidget {
             ),
           ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.05, end: 0),
           const SizedBox(height: 16),
-          // Next indicator
-          if (isLast)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Continuar',
-                    style: TextStyle(
-                      fontFamily: 'Nunito',
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(width: 6),
-                  Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
-                ],
-              ),
-            ).animate(onPlay: (c) => c.repeat(reverse: true))
-                .fadeIn(duration: 600.ms)
-          else
-            Text(
-              'Toque para continuar',
-              style: TextStyle(
-                fontFamily: 'Nunito',
-                fontSize: 13,
-                color: Colors.white.withOpacity(0.55),
-              ),
-            ),
+          // Indicador ANIMADO de toque: mostra à criança que ela deve tocar a
+          // tela para avançar (ícone de toque pulsando + texto).
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withOpacity(0.35)),
+                ),
+                child: const Icon(Icons.touch_app_rounded,
+                    color: Colors.white, size: 30),
+              )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .scaleXY(
+                      begin: 0.9,
+                      end: 1.14,
+                      duration: 650.ms,
+                      curve: Curves.easeInOut),
+              const SizedBox(height: 8),
+              Text(
+                isLast ? 'Toque para continuar' : 'Toque na tela para continuar',
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withOpacity(0.85),
+                ),
+              )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .fadeIn(duration: 700.ms)
+                  .then()
+                  .fade(begin: 1, end: 0.5, duration: 700.ms),
+            ],
+          ),
         ],
       ),
     );
@@ -1093,6 +1158,20 @@ class _InteractionArea extends StatelessWidget {
   Widget build(BuildContext context) {
     final inter = act.interaction;
     final isPairs = inter.items.isNotEmpty && inter.items.first.containsKey('correctPair');
+
+    // Som de animal: descobre o clipe (personagem animal_X do ato) e se o
+    // prompt é de imitar o som ("Fale o som do leão...").
+    String? animalClip;
+    for (final d in act.dialogue) {
+      if (d.animalSound != null) { animalClip = d.animalSound; break; }
+    }
+    final _instrLower = inter.instruction.toLowerCase();
+    final isAnimalSound = inter.type == 'voice_trigger' &&
+        animalClip != null &&
+        (_instrLower.contains('som do ') ||
+            _instrLower.contains('som da ') ||
+            _instrLower.contains('som de '));
+
     return switch (inter.type) {
       'touch_hold_breath' => _HoldBreathInteraction(
           instruction: inter.instruction,
@@ -1116,6 +1195,8 @@ class _InteractionArea extends StatelessWidget {
           onStop: onStopListening,
           onSkip: onSkip,
           color: colors[0],
+          isAnimalSound: isAnimalSound,
+          animalClip: animalClip,
         ),
       'touch_drag' when inter.isDragPath => _DragPathInteraction(
           pathNodes: inter.pathNodes,
@@ -1218,7 +1299,7 @@ class _InteractionArea extends StatelessWidget {
 // ═════════════════════════════════════════════════════════════════════════════
 // VOICE TRIGGER
 // ═════════════════════════════════════════════════════════════════════════════
-class _VoiceTrigger extends StatelessWidget {
+class _VoiceTrigger extends StatefulWidget {
   final String instruction;
   final String targetPhrase;
   final bool isListening;
@@ -1228,6 +1309,8 @@ class _VoiceTrigger extends StatelessWidget {
   final VoidCallback onStop;
   final VoidCallback onSkip;
   final Color color;
+  final bool isAnimalSound;
+  final String? animalClip;
 
   const _VoiceTrigger({
     required this.instruction,
@@ -1239,17 +1322,49 @@ class _VoiceTrigger extends StatelessWidget {
     required this.onStop,
     required this.onSkip,
     required this.color,
+    this.isAnimalSound = false,
+    this.animalClip,
   });
 
   @override
+  State<_VoiceTrigger> createState() => _VoiceTriggerState();
+}
+
+class _VoiceTriggerState extends State<_VoiceTrigger> {
+  @override
+  void initState() {
+    super.initState();
+    // Em prompts de som de animal, toca o som assim que aparece (a criança
+    // ouve o modelo e depois imita no microfone).
+    if (widget.isAnimalSound && widget.animalClip != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 350), () {
+          if (mounted) AudioManager().playClip(widget.animalClip!);
+        });
+      });
+    }
+  }
+
+  /// Instrução amigável para o modo "imitar": remove a onomatopeia após ":".
+  String get _animalInstruction {
+    final base = widget.instruction.split(':').first.trim();
+    // "Fale o som do leão" -> "Ouça o som do leão e imite!"
+    final semFale = base.replaceFirst(RegExp(r'^fale\s+', caseSensitive: false), '');
+    return 'Ouça $semFale e imite! 🎙️';
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final color = widget.color;
+    final isListening = widget.isListening;
+    final sttAvailable = widget.sttAvailable;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            instruction,
+            widget.isAnimalSound ? _animalInstruction : widget.instruction,
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontFamily: 'Nunito',
@@ -1258,29 +1373,67 @@ class _VoiceTrigger extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              '"$targetPhrase"',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Nunito',
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: color,
-                letterSpacing: 2,
+          const SizedBox(height: 12),
+          // Modo animal: botão "ouvir o som" (sem mostrar a onomatopeia).
+          // Demais: mostra a frase-alvo para ler.
+          if (widget.isAnimalSound)
+            GestureDetector(
+              onTap: () {
+                if (widget.animalClip != null) {
+                  AudioManager().playClip(widget.animalClip!);
+                }
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white.withOpacity(0.35)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.volume_up_rounded, color: Colors.white, size: 22),
+                    SizedBox(width: 8),
+                    Text(
+                      'Ouvir o som',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '"${widget.targetPhrase}"',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: color,
+                  letterSpacing: 2,
+                ),
               ),
             ),
-          ),
           const SizedBox(height: 24),
           // Mic button
           GestureDetector(
-            onTap: isListening ? onStop : (sttAvailable ? onStart : onSkip),
+            onTap: isListening
+                ? widget.onStop
+                : (sttAvailable ? widget.onStart : widget.onSkip),
             child: Container(
               width: 90,
               height: 90,
@@ -1324,10 +1477,10 @@ class _VoiceTrigger extends StatelessWidget {
               color: Colors.white.withOpacity(0.7),
             ),
           ),
-          if (lastSpeech.isNotEmpty) ...[
+          if (widget.lastSpeech.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              'Ouvi: "$lastSpeech"',
+              'Ouvi: "${widget.lastSpeech}"',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: 'Nunito', fontSize: 13,
@@ -1337,7 +1490,7 @@ class _VoiceTrigger extends StatelessWidget {
           ],
           const SizedBox(height: 16),
           TextButton(
-            onPressed: onSkip,
+            onPressed: widget.onSkip,
             child: Text(
               'Pular',
               style: TextStyle(

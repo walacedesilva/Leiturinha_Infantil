@@ -44,6 +44,10 @@ class AudioManager {
   AudioPlayer? _ambientPlayer;
   String? _currentAmbient;
 
+  // Controle de pausa durante gravação no microfone.
+  bool _micPausedMusic = false;
+  bool _micPausedAmbient = false;
+
   // Índice de áudios gravados (.mp3) presentes nos assets.
   final Map<String, String> _sylAssets = {};
   final Map<String, String> _wordAssets = {};
@@ -55,6 +59,7 @@ class AudioManager {
   double _musicVolume = 0.5;
 
   Future<void> initVolumeSettings() async {
+    await _configureAudioContext();
     try {
       final prefs = await SharedPreferences.getInstance();
       _masterVolume = prefs.getDouble('cfg_master_volume') ?? 0.8;
@@ -64,6 +69,32 @@ class AudioManager {
       await _tts.setVolume(_narrationVolume * _masterVolume);
     } catch (e) {
       debugPrint('[AudioManager] Erro ao carregar volumes: $e');
+    }
+  }
+
+  /// Configura o contexto de áudio global para que os sons NÃO disputem o
+  /// "audio focus" entre si. Sem isso, no Android tocar um efeito (ex.: o
+  /// preview do slider de volume) pausava a música de fundo, que só voltava
+  /// quando o foco era devolvido ("para e depois de um tempo volta").
+  Future<void> _configureAudioContext() async {
+    try {
+      await AudioPlayer.global.setAudioContext(
+        AudioContext(
+          android: const AudioContextAndroid(
+            isSpeakerphoneOn: false,
+            stayAwake: false,
+            contentType: AndroidContentType.music,
+            usageType: AndroidUsageType.media,
+            audioFocus: AndroidAudioFocus.none, // não rouba foco
+          ),
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.playback,
+            options: const {AVAudioSessionOptions.mixWithOthers},
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint('[AudioManager] audio context: $e');
     }
   }
 
@@ -420,6 +451,44 @@ class AudioManager {
     try {
       await _musicPlayer?.resume();
     } catch (_) {}
+  }
+
+  /// Pausa TODOS os sons durante a gravação no microfone (música, ambiente e
+  /// fala TTS), para não interferir no reconhecimento. Só marca para retomar o
+  /// que de fato estava tocando — assim não liga música indevida (ex.: numa
+  /// história a trilha já estava pausada e deve continuar pausada).
+  Future<void> pauseForMic() async {
+    try {
+      await _tts.stop();
+    } catch (_) {}
+    if (_musicPlayer != null && _musicPlayer!.state == PlayerState.playing) {
+      _micPausedMusic = true;
+      try {
+        await _musicPlayer!.pause();
+      } catch (_) {}
+    }
+    if (_ambientPlayer != null && _ambientPlayer!.state == PlayerState.playing) {
+      _micPausedAmbient = true;
+      try {
+        await _ambientPlayer!.pause();
+      } catch (_) {}
+    }
+  }
+
+  /// Retoma o que foi pausado por [pauseForMic] (somente esses canais).
+  Future<void> resumeFromMic() async {
+    if (_micPausedMusic) {
+      _micPausedMusic = false;
+      try {
+        await _musicPlayer?.resume();
+      } catch (_) {}
+    }
+    if (_micPausedAmbient) {
+      _micPausedAmbient = false;
+      try {
+        await _ambientPlayer?.resume();
+      } catch (_) {}
+    }
   }
 
   /// Pausa trilha e ambiente (ex.: app foi para segundo plano).
