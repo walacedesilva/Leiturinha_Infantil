@@ -552,8 +552,42 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
+        // Acesso de DEMONSTRAÇÃO (revisão da loja / testes, sem Google).
+        TextButton(
+          onPressed: _isAuthenticating ? null : _enterAsDemo,
+          child: Text(
+            'Acesso de demonstração',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withOpacity(0.6),
+            ),
+          ),
+        ),
       ],
     );
+  }
+
+  /// Entra com uma conta DEMO fixa (sem Google), para revisão da Google Play
+  /// e testes. As "credenciais" para o campo Acesso ao app são apenas tocar
+  /// neste botão — não exige senha.
+  Future<void> _enterAsDemo() async {
+    setState(() => _isAuthenticating = true);
+    final demo = GoogleUserModel(
+      id: 'demo_revisor',
+      name: 'Visitante',
+      email: 'revisor@leiturinha.app',
+      photoUrl: null,
+      idToken: 'demo',
+    );
+    try {
+      await GoogleAuthService().loginWithMock(demo);
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() => _isAuthenticating = false);
+    AudioManager().playSFX(SFXType.correct);
+    _navigateToGameShell();
   }
 
   // ── Helpers decorativos ────────────────────────────────────────────────

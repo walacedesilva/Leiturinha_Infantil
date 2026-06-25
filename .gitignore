@@ -64,3 +64,8 @@ app.*.map.json
 /install_log.txt
 /pub_get_out.txt
 /push_out.txt
+
+# Assinatura de release (NUNCA versionar a keystore nem as senhas)
+/android/key.properties
+*.jks
+*.keystore
